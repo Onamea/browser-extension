@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Browser Page</title>
+  </head>
+  <body>
+    <h1>Sign Request Demo</h1>
+    <button id="sign-btn">Send SIGN_REQUEST</button>
+    <pre id="output"></pre>
+    <script>
+      const output = document.getElementById("output")
+
+      document.getElementById("sign-btn").addEventListener("click", () => {
+        const requestId = crypto.randomUUID()
+        output.textContent = `Sending SIGN_REQUEST (requestId: ${ requestId })...`
+
+        const onMessage = event => {
+          console.log(event)
+          if (event.data?.type !== "SIGN_RESPONSE" || event.data?.requestId !== requestId) return
+          output.textContent = JSON.stringify(event.data, null, 2)
+          window.removeEventListener("message", onMessage)
+        }
+        window.addEventListener("message", onMessage)
+
+        const operation = {
+          hash: "5168977c13e5aced3556c919a8c66d220cdec88f137a7296891c346bfe6bf770",
+          id: "be@49KHHS3R8B4F0PG94A27CHV9QXFGH9NF4VMMC5UTP2XY4S4MH00",
+          type: "CREATE"
+        }
+
+        window.postMessage({ type: "SIGN_REQUEST", data: operation, requestId }, "*")
+      })
+    </script>
+  </body>
+</html>

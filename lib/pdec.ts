@@ -2,28 +2,33 @@ import { type SlotData, computeLayout, CONTAINER_METADATA_SIZE, OPFSHandle, PDEC
 
 let container: PDECContainer | undefined
 
-const getContainer = async (): Promise<PDECContainer> => {
-  if (container === undefined) {
-    const layout = computeLayout({ metadataBytes: CONTAINER_METADATA_SIZE })
-    try {
-      const handle = await OPFSHandle.open("vault.pdec")
-      container = await PDECContainer.openHandle(handle)
-    } catch {
-      const handle = await OPFSHandle.create("vault.pdec", layout.totalSize)
-      container = await PDECContainer.create(handle, layout)
-    }
+export const openContainer = async (): Promise<boolean> => {
+  if (container !== undefined) return true
+  try {
+    const handle = await OPFSHandle.open("vault.pdec")
+    container = await PDECContainer.openHandle(handle)
+    return true
+  } catch {
+    return false
   }
-  return container
 }
 
 export const readSlot = async (secret: string): Promise<SlotData | undefined> => {
-  const container = await getContainer()
-  const slot = await container.read(secret)
-  return slot
+  if (container === undefined) return undefined
+  return await container.read(secret)
 }
 
 export const writeSlot = async (secret: string, data: string): Promise<SlotData> => {
-  const container = await getContainer()
+  if (container === undefined) {
+    const layout = computeLayout({ metadataBytes: CONTAINER_METADATA_SIZE })
+    const handle = await OPFSHandle.create("vault.pdec", layout.totalSize)
+    container = await PDECContainer.create(handle, layout)
+  }
   const encodedData = new TextEncoder().encode(data)
   return await container.write(secret, encodedData)
+}
+
+export const decodeSlotData = (slotData: SlotData): unknown => {
+  const str = new TextDecoder().decode(slotData.data)
+  return JSON.parse(str)
 }

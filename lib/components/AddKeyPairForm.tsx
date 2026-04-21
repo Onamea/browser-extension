@@ -4,14 +4,12 @@ import { useState } from "react"
 import ErrorDisplay from "./ErrorDisplay.tsx"
 import { isPrivateKeyDisplay } from "@vanice/types"
 import { isIdentifier } from "@vanice/crdt"
-import { validatePassphrase } from "@mikeobank/pdec"
 
 type Props = {
-  onSubmit: (passphrase: string, identifier: Identifier, privateKey: string) => Promise<void>
+  onSubmit: (identifier: Identifier, privateKey: string) => Promise<void>
 }
 
 const AddKeyPairForm = ({ onSubmit }: Props) => {
-  const [passphrase, setPassphrase] = useState("")
   const [identifier, setIdentifier] = useState("")
   const [privateKey, setPrivateKey] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -20,11 +18,6 @@ const AddKeyPairForm = ({ onSubmit }: Props) => {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setIsSubmitting(true)
-    if (!validatePassphrase(passphrase)) {
-      setErrors(["Invalid Passphrase"])
-      setIsSubmitting(false)
-      return
-    }
     if (!isIdentifier(identifier)) {
       setErrors(["Invalid Identifier"])
       setIsSubmitting(false)
@@ -35,22 +28,12 @@ const AddKeyPairForm = ({ onSubmit }: Props) => {
       setIsSubmitting(false)
       return
     }
-    await onSubmit(passphrase, identifier, privateKey)
+    await onSubmit(identifier, privateKey)
     setIsSubmitting(false)
   }
 
   return (
     <form onSubmit={ handleSubmit }>
-      <div>
-        <label htmlFor="passphrase">Passphrase:</label>
-        <input
-          id="passphrase"
-          type="password"
-          value={ passphrase }
-          onChange={ event => setPassphrase(event.target.value) }
-          placeholder="Passphrase"
-        />
-      </div>
       <div>
         <label htmlFor="identifier">Identifier:</label>
         <input

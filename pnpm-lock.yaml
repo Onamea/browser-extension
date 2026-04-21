@@ -12,8 +12,8 @@ importers:
         specifier: jsr:^0.1.4
         version: '@jsr/mikeobank__pdec@0.1.4'
       '@vanice/crdt':
-        specifier: jsr:^0.3.7
-        version: '@jsr/vanice__crdt@0.3.7'
+        specifier: jsr:^0.3.8
+        version: '@jsr/vanice__crdt@0.3.8'
       '@vanice/types':
         specifier: jsr:^0.3.5
         version: '@jsr/vanice__types@0.3.5'
@@ -307,8 +307,8 @@ packages:
   '@jsr/scure__bip39@2.0.1':
     resolution: {integrity: sha512-3+WqsT1K0+4OteY8gXBmSh383xTdNgIwYqleIGmUVr/rePRBnl2oENT7TPxveYhTPYMaD01DA8I7ttZS+HZVsg==, tarball: https://npm.jsr.io/~/11/@jsr/scure__bip39/2.0.1.tgz}
 
-  '@jsr/vanice__crdt@0.3.7':
-    resolution: {integrity: sha512-s+uCdXNA/xU5cZzI5+MhVqN9mAH22+FAsVJE7/r+zVuxi67mzK18LZ3x6FBIbMD3JTDKAhkahZpeZNPHxZRjzw==, tarball: https://npm.jsr.io/~/11/@jsr/vanice__crdt/0.3.7.tgz}
+  '@jsr/vanice__crdt@0.3.8':
+    resolution: {integrity: sha512-L+IaS6m4lbbIlz5idpEr1EruMtx7L4Oo6NfYNGuEiyD/wxyz2jLaQJkCAAOpPsd5NPgs1Tk0stQO5YXBy4kn6Q==, tarball: https://npm.jsr.io/~/11/@jsr/vanice__crdt/0.3.8.tgz}
 
   '@jsr/vanice__types@0.3.5':
     resolution: {integrity: sha512-o9qKPL8Uey/6ThGSAOYgubu49TezZXoD7ITUv85hmB/B44XV+rSs6qIWfG9YPNKgo6ppmDst/dGPwLInW9l09w==, tarball: https://npm.jsr.io/~/11/@jsr/vanice__types/0.3.5.tgz}
@@ -2002,7 +2002,7 @@ snapshots:
       '@jsr/noble__hashes': 2.0.1
       '@jsr/scure__base': 2.0.0
 
-  '@jsr/vanice__crdt@0.3.7':
+  '@jsr/vanice__crdt@0.3.8':
     dependencies:
       '@cfworker/json-schema': 4.1.1
       '@jsr/vanice__types': 0.3.5

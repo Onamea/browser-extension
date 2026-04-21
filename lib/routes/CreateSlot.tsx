@@ -2,7 +2,7 @@ import type { SlotData } from "@mikeobank/pdec"
 import CreatePassphraseForm from "@/lib/components/CreatePassphraseForm.tsx"
 
 type Props = {
-  setSlot: (slot: SlotData) => void
+  setSlot: (slot: SlotData, passphrase: string) => void
 }
 
 const CreateSlot = ({ setSlot }: Props) => {

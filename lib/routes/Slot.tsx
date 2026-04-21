@@ -3,8 +3,7 @@ import type { Identifier } from "@vanice/crdt"
 import type { SlotData } from "@mikeobank/pdec"
 import { identify } from "@vanice/crdt"
 import SlotDisplay from "@/lib/components/SlotDisplay.tsx"
-import AddKeyPairForm from "../components/AddKeyPairForm.tsx"
-import { writeSlot } from "../pdec.ts"
+import AddKeyPairForm from "@/lib/components/AddKeyPairForm.tsx"
 
 type Props = {
   slot: SlotData
@@ -13,7 +12,7 @@ type Props = {
 
 const Slot = ({ slot, setSlot }: Props) => {
 
-  const addKeyPair = async (passphrase: string, identifier: Identifier, privateKey: PrivateKeyDisplay) => {
+  const addKeyPair = async (identifier: Identifier, privateKey: PrivateKeyDisplay) => {
     try {
       const [nameKey, keyPair] = await identify(identifier, privateKey)
       if (isNameKey(nameKey) === false) {
@@ -26,8 +25,11 @@ const Slot = ({ slot, setSlot }: Props) => {
         keyPair
       }
       console.log(data)
-      const slotData = await writeSlot(passphrase, JSON.stringify(data))
-      setSlot(slotData)
+      const response = await browser.runtime.sendMessage({ type: "WRITE_SLOT", data: JSON.stringify(data) }) as { slotData?: SlotData, error?: string }
+      if (response.slotData === undefined) {
+        throw new Error(response.error ?? "WRITE_SLOT failed")
+      }
+      setSlot(response.slotData)
     } catch (error) {
       console.error("Failed to identify key pair:", error)
     }
