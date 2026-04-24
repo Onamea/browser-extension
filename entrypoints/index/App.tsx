@@ -15,9 +15,10 @@ const AppRoutes = () => {
   const navigate = useNavigate()
 
   useEffect(() => {
-    openContainer().then(exists => {
+    (async () => {
+      const exists = await openContainer()
       setContainerExists(exists)
-    })
+    })().catch(() => {})
   }, [])
 
   const handleSetSlot = async (slotData: SlotData) => {
