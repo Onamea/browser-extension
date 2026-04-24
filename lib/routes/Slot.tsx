@@ -12,7 +12,7 @@ type Props = {
 
 const Slot = ({ slot, setSlot }: Props) => {
 
-  const addKeyPair = async (identifier: Identifier, privateKey: PrivateKeyDisplay) => {
+  const addKeyPair = async (identifier: Identifier, privateKey: PrivateKeyDisplay, passphrase: string) => {
     try {
       const [nameKey, keyPair] = await identify(identifier, privateKey)
       if (isNameKey(nameKey) === false) {
@@ -25,11 +25,11 @@ const Slot = ({ slot, setSlot }: Props) => {
         keyPair
       }
       console.log(data)
-      const response = await browser.runtime.sendMessage({ type: "WRITE_SLOT", data: JSON.stringify(data) }) as { slotData?: SlotData, error?: string }
-      if (response.slotData === undefined) {
+      const response = await browser.runtime.sendMessage({ type: "WRITE_SLOT", data: JSON.stringify(data), passphrase }) as { slot?: SlotData, error?: string }
+      if (response.slot === undefined) {
         throw new Error(response.error ?? "WRITE_SLOT failed")
       }
-      setSlot(response.slotData)
+      setSlot(response.slot)
     } catch (error) {
       console.error("Failed to identify key pair:", error)
     }

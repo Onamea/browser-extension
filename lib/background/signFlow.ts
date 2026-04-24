@@ -1,4 +1,3 @@
-import { parseKeyPairAsJSON } from "@vanice/types"
 import { isOperation } from "@vanice/crdt"
 import { sign } from "@/lib/sign.ts"
 import type { UnlockedState } from "./state.ts"
@@ -31,7 +30,7 @@ export const handleConfirmSign = (
   unlocked: UnlockedState | undefined,
   sendResponse: (response: unknown) => void
 ): false => {
-  if (pendingRequest === undefined || pendingSendResponse === undefined || unlocked === undefined) {
+  if (pendingRequest === undefined || pendingSendResponse === undefined || unlocked === undefined || unlocked.slotData?.keyPair === undefined) {
     sendResponse({ error: "No pending request" })
     return false
   }
@@ -44,7 +43,7 @@ export const handleConfirmSign = (
     resolve({ error: "Data is not a valid Operation", requestId })
     return false
   }
-  const keyPair = parseKeyPairAsJSON(unlocked.keyPair)
+  const keyPair = unlocked.slotData.keyPair
   sign(data, keyPair)
     .then(signedMessage => resolve({ signedMessage, requestId }))
     .catch(error => resolve({ error: String(error), requestId }))

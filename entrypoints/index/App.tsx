@@ -20,16 +20,8 @@ const AppRoutes = () => {
     })
   }, [])
 
-  const handleSetSlot = async (slotData: SlotData, passphrase: string) => {
-    const str = new TextDecoder().decode(slotData.data)
-    try {
-      const json = JSON.parse(str)
-      if (json.keyPair !== undefined) {
-        await browser.runtime.sendMessage({ type: "UNLOCK", slotData, keyPair: json.keyPair, passphrase })
-      }
-    } catch (_) {
-      // slot data may not contain a key pair
-    }
+  const handleSetSlot = async (slotData: SlotData) => {
+    await browser.runtime.sendMessage({ type: "UNLOCK", slot: slotData })
     await browser.runtime.sendMessage({ type: "SET_CONTAINER_EXISTS" })
     setSlot(slotData)
     navigate("/slot")

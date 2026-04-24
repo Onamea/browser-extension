@@ -1,6 +1,5 @@
 import type { SlotData } from "@mikeobank/pdec"
-import type { KeyPairAsJSON } from "@vanice/types"
-import { openContainer, writeSlot } from "@/lib/pdec.ts"
+import { openContainer, writeSlot, decodeSlotData } from "@/lib/pdec.ts"
 import { getContainerExists, setContainerExists, getUnlocked, setUnlocked } from "@/lib/background/state.ts"
 import { getPendingRequest, handleSign, handleConfirmSign, handleRejectSign } from "@/lib/background/signFlow.ts"
 
@@ -10,14 +9,13 @@ type SetContainerExistsMessage = {
 
 type UnlockMessage = {
   type: "UNLOCK"
-  slotData: SlotData
-  keyPair: KeyPairAsJSON
-  passphrase: string
+  slot: SlotData
 }
 
 type WriteSlotMessage = {
   type: "WRITE_SLOT"
   data: string
+  passphrase: string
 }
 
 type SignMessage = {
@@ -69,7 +67,8 @@ export default defineBackground(() => {
         return false
       }
       case "UNLOCK": {
-        setUnlocked({ slotData: message.slotData, keyPair: message.keyPair, passphrase: message.passphrase })
+        const slotData = decodeSlotData(message.slot)
+        setUnlocked({ slot: message.slot, slotData })
         sendResponse({ ok: true })
         return false
       }
@@ -79,10 +78,11 @@ export default defineBackground(() => {
           sendResponse({ error: "Not unlocked" })
           return false
         }
-        writeSlot(unlocked.passphrase, message.data)
-          .then(slotData => {
-            setUnlocked({ ...unlocked, slotData })
-            sendResponse({ slotData })
+        writeSlot(message.passphrase, message.data)
+          .then(slot => {
+            const slotData = decodeSlotData(slot)
+            setUnlocked({ ...unlocked, slot, slotData })
+            sendResponse({ slot })
           })
           .catch(error => sendResponse({ error: String(error) }))
         return true
@@ -92,7 +92,7 @@ export default defineBackground(() => {
           pendingRequest: getPendingRequest() ?? null,
           unlocked: getUnlocked() !== undefined,
           containerExists: getContainerExists(),
-          slotData: getUnlocked()?.slotData ?? null
+          slot: getUnlocked()?.slot ?? null
         })
         if (getContainerExists() === false) {
           openContainer().then(exists => {

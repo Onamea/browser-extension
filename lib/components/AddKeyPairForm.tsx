@@ -6,12 +6,13 @@ import { isPrivateKeyDisplay } from "@vanice/types"
 import { isIdentifier } from "@vanice/crdt"
 
 type Props = {
-  onSubmit: (identifier: Identifier, privateKey: string) => Promise<void>
+  onSubmit: (identifier: Identifier, privateKey: string, passphrase: string) => Promise<void>
 }
 
 const AddKeyPairForm = ({ onSubmit }: Props) => {
   const [identifier, setIdentifier] = useState("")
   const [privateKey, setPrivateKey] = useState("")
+  const [passphrase, setPassphrase] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<string[]>([])
 
@@ -28,7 +29,7 @@ const AddKeyPairForm = ({ onSubmit }: Props) => {
       setIsSubmitting(false)
       return
     }
-    await onSubmit(identifier, privateKey)
+    await onSubmit(identifier, privateKey, passphrase)
     setIsSubmitting(false)
   }
 
@@ -52,6 +53,16 @@ const AddKeyPairForm = ({ onSubmit }: Props) => {
           value={ privateKey }
           onChange={ event => setPrivateKey(event.target.value) }
           placeholder="Private key"
+        />
+      </div>
+      <div>
+        <label htmlFor="passphrase">Passphrase:</label>
+        <input
+          id="passphrase"
+          type="password"
+          value={ passphrase }
+          onChange={ event => setPassphrase(event.target.value) }
+          placeholder="Passphrase"
         />
       </div>
       <ErrorDisplay errors={ errors } />

@@ -1,10 +1,15 @@
 import type { SlotData } from "@mikeobank/pdec"
-import type { KeyPairAsJSON } from "@vanice/types"
+import type { NameKey, FingerprintedName, KeyPair } from "@vanice/types"
+
+export type SlotDataState = {
+  nameKey: NameKey
+  fingerprintedName: FingerprintedName
+  keyPair: KeyPair
+}
 
 export type UnlockedState = {
-  slotData: SlotData
-  keyPair: KeyPairAsJSON
-  passphrase: string
+  slot: SlotData
+  slotData?: SlotDataState
 }
 
 let containerExists = false

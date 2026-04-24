@@ -3,7 +3,7 @@ import { useEffect, useState } from "react"
 import PassphraseEntryForm from "@/lib/components/PassphraseEntryForm.tsx"
 import SlotDisplay from "@/lib/components/SlotDisplay.tsx"
 import SignConfirmation from "@/lib/components/SignConfirmation.tsx"
-import { decodeSlotData, openContainer } from "@/lib/pdec.ts"
+import { openContainer } from "@/lib/pdec.ts"
 import type { PendingRequest } from "@/lib/background/signFlow.ts"
 
 import "./App.css"
@@ -20,10 +20,10 @@ const App = () => {
     (async () => {
       const exists = await openContainer()
       setContainerExists(exists)
-      const response = await browser.runtime.sendMessage({ type: "GET_PENDING_REQUEST" }) as { pendingRequest: PendingRequest | null, unlocked: boolean, slotData: SlotData | null }
+      const response = await browser.runtime.sendMessage({ type: "GET_PENDING_REQUEST" }) as { pendingRequest: PendingRequest | null, unlocked: boolean, slot: SlotData | null }
       setUnlocked(response.unlocked)
-      if (response.slotData !== null) {
-        setSlot(response.slotData)
+      if (response.slot !== null) {
+        setSlot(response.slot)
       }
       if (response.pendingRequest !== null) {
         setPendingRequest(response.pendingRequest)
@@ -31,16 +31,8 @@ const App = () => {
     })().catch(() => {})
   }, [])
 
-  const handleSetSlot = async (slotData: SlotData, passphrase: string) => {
-    try {
-      const json = decodeSlotData(slotData)
-      const keyPair = (json as { keyPair?: unknown }).keyPair
-      if (keyPair !== undefined) {
-        await browser.runtime.sendMessage({ type: "UNLOCK", passphrase, slotData, keyPair })
-      }
-    } catch (_) {
-      // slot data may not contain a key pair
-    }
+  const handleSetSlot = async (slotData: SlotData) => {
+    await browser.runtime.sendMessage({ type: "UNLOCK", slot: slotData })
     setSlot(slotData)
   }
 
