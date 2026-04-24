@@ -1,16 +1,17 @@
 import { isNameKey, nameKeyToFingerprintedName, type PrivateKeyDisplay } from "@vanice/types"
 import type { Identifier } from "@vanice/crdt"
-import type { SlotData } from "@mikeobank/pdec"
 import { identify } from "@vanice/crdt"
+import { type SlotData } from "../pdec.ts"
+import type { SlotState } from "../background/state.ts"
 import SlotDisplay from "@/lib/components/SlotDisplay.tsx"
 import AddKeyPairForm from "@/lib/components/AddKeyPairForm.tsx"
 
 type Props = {
-  slot: SlotData
+  slotState: SlotState
   setSlot: (slot: SlotData) => void
 }
 
-const Slot = ({ slot, setSlot }: Props) => {
+const Slot = ({ slotState, setSlot }: Props) => {
 
   const addKeyPair = async (identifier: Identifier, privateKey: PrivateKeyDisplay, passphrase: string) => {
     try {
@@ -25,7 +26,10 @@ const Slot = ({ slot, setSlot }: Props) => {
         keyPair
       }
       console.log(data)
-      const response = await browser.runtime.sendMessage({ type: "WRITE_SLOT", data: JSON.stringify(data), passphrase }) as { slot?: SlotData, error?: string }
+      const response = await browser.runtime.sendMessage(
+        { type: "WRITE_SLOT", data, passphrase }
+      )
+      console.log(response)
       if (response.slot === undefined) {
         throw new Error(response.error ?? "WRITE_SLOT failed")
       }
@@ -38,8 +42,8 @@ const Slot = ({ slot, setSlot }: Props) => {
   return (
     <div>
       <h1>Slot</h1>
-      <SlotDisplay slot={ slot } />
-      { slot.data.length === 0 && <AddKeyPairForm onSubmit={ addKeyPair }/>}
+      <SlotDisplay slotState={ slotState } />
+      { slotState.slotData === undefined && <AddKeyPairForm onSubmit={ addKeyPair } /> }
     </div>
   )
 }

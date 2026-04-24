@@ -1,6 +1,6 @@
 import { isOperation } from "@vanice/crdt"
 import { sign } from "@/lib/sign.ts"
-import type { UnlockedState } from "./state.ts"
+import type { SlotState } from "./state.ts"
 
 export type PendingRequest = {
   data: unknown
@@ -27,10 +27,10 @@ export const handleSign = (
 }
 
 export const handleConfirmSign = (
-  unlocked: UnlockedState | undefined,
+  slotState: SlotState | undefined,
   sendResponse: (response: unknown) => void
 ): false => {
-  if (pendingRequest === undefined || pendingSendResponse === undefined || unlocked === undefined || unlocked.slotData?.keyPair === undefined) {
+  if (pendingRequest === undefined || pendingSendResponse === undefined || slotState?.slotData === undefined) {
     sendResponse({ error: "No pending request" })
     return false
   }
@@ -43,7 +43,7 @@ export const handleConfirmSign = (
     resolve({ error: "Data is not a valid Operation", requestId })
     return false
   }
-  const keyPair = unlocked.slotData.keyPair
+  const keyPair = slotState.slotData.keyPair
   sign(data, keyPair)
     .then(signedMessage => resolve({ signedMessage, requestId }))
     .catch(error => resolve({ error: String(error), requestId }))

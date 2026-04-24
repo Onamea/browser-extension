@@ -6,7 +6,7 @@ import { validatePassphrase } from "@mikeobank/pdec"
 import { writeSlot } from "../pdec.ts"
 
 type Props = {
-  setSlot: (slot: SlotData, passphrase: string) => void
+  setSlot: (slot: SlotData) => void
 }
 
 const CreatePassphraseForm = ({ setSlot }: Props) => {
@@ -30,7 +30,7 @@ const CreatePassphraseForm = ({ setSlot }: Props) => {
     setIsSubmitting(true)
     const slot = await writeSlot(passphrase, "")
     setIsSubmitting(false)
-    setSlot(slot, passphrase)
+    setSlot(slot)
   }
 
   return (

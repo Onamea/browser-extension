@@ -3,7 +3,9 @@ import React from "react"
 import ReactDOM from "react-dom/client"
 
 const mountApp = (App: ComponentType) => {
-  ReactDOM.createRoot(document.getElementById("root")!).render(
+  const root = document.getElementById("root")
+  if (root === null) return
+  ReactDOM.createRoot(root).render(
     <React.StrictMode>
       <App />
     </React.StrictMode>

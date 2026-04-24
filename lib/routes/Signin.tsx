@@ -3,7 +3,7 @@ import PassphraseEntryForm from "@/lib/components/PassphraseEntryForm.tsx"
 import type { SlotData } from "@mikeobank/pdec"
 
 type Props = {
-  setSlot: (slot: SlotData, passphrase: string) => void
+  setSlot: (slot: SlotData) => void
 }
 
 const Signin = ({ setSlot }: Props) => {
@@ -12,7 +12,7 @@ const Signin = ({ setSlot }: Props) => {
       <h1>Sign in</h1>
       <PassphraseEntryForm setSlot={ setSlot } />
       <div style={ { marginTop: "1rem" } }>
-        <Link to="/create-slot">Create slot</Link>
+        <Link to="/account/edit">Create slot</Link>
       </div>
     </div>
   )

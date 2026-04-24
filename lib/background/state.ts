@@ -1,21 +1,21 @@
-import type { SlotData } from "@mikeobank/pdec"
-import type { NameKey, FingerprintedName, KeyPair } from "@vanice/types"
+import type { NameKey, FingerprintedName, KeyPairDisplay } from "@vanice/types"
+import { type SlotData, decodeSlotData } from "../pdec.ts"
 
 export type SlotDataState = {
   nameKey: NameKey
   fingerprintedName: FingerprintedName
-  keyPair: KeyPair
+  keyPair: KeyPairDisplay
 }
 
-export type UnlockedState = {
+export type SlotState = {
   slot: SlotData
   slotData?: SlotDataState
 }
 
-let containerExists = false
-let unlocked: UnlockedState | undefined
+let slotState: SlotState | undefined
 
-export const getContainerExists = () => containerExists
-export const setContainerExists = (value: boolean) => { containerExists = value }
-export const getUnlocked = () => unlocked
-export const setUnlocked = (state: UnlockedState) => { unlocked = state }
+export const getSlot = () => slotState
+export const setSlot = (slot: SlotData) => {
+  const slotData = decodeSlotData(slot)
+  slotState = { slot, slotData }
+}

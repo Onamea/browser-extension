@@ -6,7 +6,7 @@ import { validatePassphrase } from "@mikeobank/pdec"
 import { readSlot } from "@/lib/pdec.ts"
 
 type Props = {
-  setSlot: (slot: SlotData, passphrase: string) => void
+  setSlot: (slot: SlotData) => void
 }
 
 const PassphraseEntryForm = ({ setSlot }: Props) => {
@@ -26,7 +26,7 @@ const PassphraseEntryForm = ({ setSlot }: Props) => {
     const slot = await readSlot(passphrase)
     setIsSubmitting(false)
     if (slot !== undefined) {
-      setSlot(slot, passphrase)
+      setSlot(slot)
     } else {
       setErrors(["Incorrect passphrase"])
     }

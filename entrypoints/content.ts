@@ -7,11 +7,11 @@ export default defineContentScript({
       if ((event.source as unknown) !== globalThis || event.data?.type !== "SIGN_REQUEST") return
       const { data, requestId } = event.data
       if (await validateOperation(data) === false) {
-        globalThis.postMessage({ type: "INVALID_SIGN_REQUEST", error: "Invalid operation", requestId }, "*")
+        globalThis.postMessage({ type: "INVALID_SIGN_REQUEST", error: "Invalid operation", requestId }, event.origin)
         return
       }
       browser.runtime.sendMessage({ type: "SIGN", data, requestId }, (response: Record<string, unknown>) => {
-        globalThis.postMessage({ type: "SIGN_RESPONSE", ...response }, "*")
+        globalThis.postMessage({ type: "SIGN_RESPONSE", ...response }, event.origin)
       })
     })
   }

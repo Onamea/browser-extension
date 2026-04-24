@@ -1,7 +1,10 @@
+import { isFingerprintedName, isKeyPairDisplay, isNameKey, KeyPairAsJSON, parseKeyPairAsJSON } from "@vanice/types"
 import { type SlotData, computeLayout, CONTAINER_METADATA_SIZE, OPFSHandle, PDECContainer } from "@mikeobank/pdec"
-import type { SlotDataState } from "./background/state"
-import isObject from "./utils/isObject"
-import { isFingerprintedName, isKeyPair, isNameKey } from "@vanice/types"
+import type { SlotDataState } from "./background/state.ts"
+import isObject from "./utils/isObject.ts"
+import { uint8ArrayToString } from "./utils/uint8ArrayToString.ts"
+
+export type { SlotData } from "@mikeobank/pdec"
 
 let container: PDECContainer | undefined
 
@@ -22,6 +25,7 @@ export const readSlot = async (secret: string): Promise<SlotData | undefined> =>
 }
 
 export const writeSlot = async (secret: string, data: string): Promise<SlotData> => {
+  console.log(data, container)
   if (container === undefined) {
     const layout = computeLayout({ metadataBytes: CONTAINER_METADATA_SIZE })
     const handle = await OPFSHandle.create("vault.pdec", layout.totalSize)
@@ -32,16 +36,23 @@ export const writeSlot = async (secret: string, data: string): Promise<SlotData>
 }
 
 export const decodeSlotData = (slot: SlotData): SlotDataState | undefined => {
-  const str = new TextDecoder().decode(slot.data)
   try {
+    const str = uint8ArrayToString(slot.data)
+    if (str.length === 0) return undefined
     const json: unknown = JSON.parse(str)
     if (isObject(json) === false) throw new Error("SlotData does not contain a valid JSON object")
-    if (isNameKey(json.nameKey) === false) throw new Error("SlotData does not contain a valid nameKey")
-    if (isFingerprintedName(json.fingerprintedName) === false) throw new Error("SlotData does not contain a valid fingerprintedName")
-    if (isKeyPair(json.keyPair) === false) throw new Error("SlotData does not contain a valid keyPair")
-    const { nameKey, fingerprintedName, keyPair } = json
+    const { nameKey, fingerprintedName, keyPair: _keyPair } = json
+    const keyPair = parseKeyPairAsJSON(_keyPair as KeyPairAsJSON)
+    if (isNameKey(nameKey) === false) throw new Error("SlotData does not contain a valid nameKey")
+    if (isFingerprintedName(fingerprintedName) === false) throw new Error("SlotData does not contain a valid fingerprintedName")
+    if (isKeyPairDisplay(keyPair) === false) throw new Error("SlotData does not contain a valid keyPair")
     return { nameKey, fingerprintedName, keyPair }
-  } catch (_) {
+  } catch (error) {
+    console.error("Failed to decode SlotData:", error)
     return undefined
   }
+}
+
+export const displaySlotData = (slot: SlotData): string => {
+  return uint8ArrayToString(slot.data)
 }

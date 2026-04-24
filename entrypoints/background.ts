@@ -1,20 +1,15 @@
-import type { SlotData } from "@mikeobank/pdec"
-import { openContainer, writeSlot, decodeSlotData } from "@/lib/pdec.ts"
-import { getContainerExists, setContainerExists, getUnlocked, setUnlocked } from "@/lib/background/state.ts"
+import { type SlotData, writeSlot } from "@/lib/pdec.ts"
+import { type SlotDataState, getSlot, setSlot } from "@/lib/background/state.ts"
 import { getPendingRequest, handleSign, handleConfirmSign, handleRejectSign } from "@/lib/background/signFlow.ts"
 
-type SetContainerExistsMessage = {
-  type: "SET_CONTAINER_EXISTS"
-}
-
-type UnlockMessage = {
-  type: "UNLOCK"
+type SetSlotMessage = {
+  type: "SET_SLOT"
   slot: SlotData
 }
 
 type WriteSlotMessage = {
   type: "WRITE_SLOT"
-  data: string
+  data: SlotDataState
   passphrase: string
 }
 
@@ -36,23 +31,27 @@ type RejectSignMessage = {
   type: "REJECT_SIGN"
 }
 
-type Message = UnlockMessage | SetContainerExistsMessage | WriteSlotMessage | SignMessage | GetPendingRequestMessage | ConfirmSignMessage | RejectSignMessage
+type Message = SetSlotMessage | WriteSlotMessage | SignMessage | GetPendingRequestMessage | ConfirmSignMessage | RejectSignMessage
 
 export default defineBackground(() => {
   browser.runtime.onMessage.addListener((message: Message, sender: { tab?: unknown, url?: string }, sendResponse: (response: unknown) => void) => {
 
+    console.log(message, sender)
+
     // guard
-    // sender.tab is only defined for messages from content scripts, and must be undefined for messages from the extension's own pages (popup, options, background) to prevent spoofing
+    // SIGN must originate from a content script (sender.tab defined, url not from extension)
+    // all other messages must originate from extension pages (url starts with extension base url)
+    const isFromExtension = sender.url?.startsWith(browser.runtime.getURL("")) === true
     switch (message.type) {
       case "SIGN": {
-        if (sender.tab === undefined) {
+        if (sender.tab === undefined || isFromExtension) {
           sendResponse({ error: "Forbidden" })
           return false
         }
         break
       }
       default: {
-        if (sender.tab !== undefined) {
+        if (isFromExtension === false) {
           sendResponse({ error: "Forbidden" })
           return false
         }
@@ -61,46 +60,28 @@ export default defineBackground(() => {
 
     // messages logic
     switch (message.type) {
-      case "SET_CONTAINER_EXISTS": {
-        setContainerExists(true)
+      case "SET_SLOT": {
+        setSlot(message.slot)
         sendResponse({ ok: true })
         return false
       }
-      case "UNLOCK": {
-        const slotData = decodeSlotData(message.slot)
-        setUnlocked({ slot: message.slot, slotData })
-        sendResponse({ ok: true })
-        return false
-      }
+
       case "WRITE_SLOT": {
-        const unlocked = getUnlocked()
-        if (unlocked === undefined) {
-          sendResponse({ error: "Not unlocked" })
-          return false
-        }
-        writeSlot(message.passphrase, message.data)
+        console.log(message.data, JSON.stringify(message.data))
+        writeSlot(message.passphrase, JSON.stringify(message.data))
           .then(slot => {
-            const slotData = decodeSlotData(slot)
-            setUnlocked({ ...unlocked, slot, slotData })
+            setSlot(slot)
             sendResponse({ slot })
           })
           .catch(error => sendResponse({ error: String(error) }))
         return true
       }
+
       case "GET_PENDING_REQUEST": {
         const buildResponse = () => ({
-          pendingRequest: getPendingRequest() ?? null,
-          unlocked: getUnlocked() !== undefined,
-          containerExists: getContainerExists(),
-          slot: getUnlocked()?.slot ?? null
+          pendingRequest: getPendingRequest(),
+          slot: getSlot()?.slot
         })
-        if (getContainerExists() === false) {
-          openContainer().then(exists => {
-            setContainerExists(exists)
-            sendResponse(buildResponse())
-          })
-          return true
-        }
         sendResponse(buildResponse())
         return false
       }
@@ -110,7 +91,7 @@ export default defineBackground(() => {
         return handleSign(data, requestId, origin, sendResponse, () => browser.action.openPopup().catch(() => {}))
       }
       case "CONFIRM_SIGN": {
-        return handleConfirmSign(getUnlocked(), sendResponse)
+        return handleConfirmSign(getSlot(), sendResponse)
       }
       case "REJECT_SIGN": {
         return handleRejectSign(sendResponse)

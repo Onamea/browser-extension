@@ -1,30 +1,26 @@
-import type { SlotData } from "@mikeobank/pdec"
-import { displayKeyPair, parseKeyPairAsJSON } from "@vanice/types"
+import { displaySlotData } from "../pdec.ts"
+import type { SlotState } from "../background/state.ts"
+import SlotDataDisplay from "./SlotDataStateDisplay.tsx"
 
 type Props = {
-  slot: SlotData
+  slotState: SlotState
 }
 
-const displaySlotData = (data: SlotData["data"]): string => {
-  const str = new TextDecoder().decode(data)
-  try {
-    const json = JSON.parse(str)
-    const { nameKey, fingerprintedName } = json
-    const keyPair = parseKeyPairAsJSON(json.keyPair)
-    const keyPairDisplay = displayKeyPair(keyPair)
-    const { cryptoName, publicKeyDisplay, privateKeyDisplay } = keyPairDisplay
-    return JSON.stringify({ nameKey, fingerprintedName, keyPair: { cryptoName, publicKeyDisplay, privateKeyDisplay } }, null, 2)
-  } catch (_) {
-    //console.error(error)
-    return str
-  }
-}
+const SlotDisplay = ({ slotState }: Props) => {
 
-const SlotDisplay = ({ slot }: Props) => {
+  console.log(slotState)
 
   return (
     <div>
-      <pre>{ displaySlotData(slot.data) }</pre>
+      { slotState.slotData !== undefined 
+        ? <SlotDataDisplay slotData={ slotState.slotData } />
+        : <p>
+            { Object.keys(slotState.slot.data).length === 0 
+              ? "Slot is empty"
+              : `Slot contains invalid data (${ displaySlotData(slotState.slot) })`
+            }
+          </p>
+      }
     </div>
   )
 }
