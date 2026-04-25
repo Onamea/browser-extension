@@ -7,17 +7,32 @@
   </head>
   <body>
     <h1>Sign Request Demo</h1>
+    <button id="identify-btn">Send IDENTIFY_REQUEST</button>
     <button id="sign-btn">Send SIGN_REQUEST</button>
     <pre id="output"></pre>
     <script>
       const output = document.getElementById("output")
+
+      document.getElementById("identify-btn").addEventListener("click", () => {
+        const requestId = crypto.randomUUID()
+        output.textContent = `Sending IDENTIFY_REQUEST (requestId: ${ requestId })...`
+
+        const onMessage = event => {
+          console.log(event)
+          if (event.data?.type !== "IDENTIFY_RESPONSE" || event.data?.requestId !== requestId) return
+          output.textContent = JSON.stringify(event.data, null, 2)
+          window.removeEventListener("message", onMessage)
+        }
+        window.addEventListener("message", onMessage)
+
+        window.postMessage({ type: "IDENTIFY_REQUEST", requestId }, "*")
+      })
 
       document.getElementById("sign-btn").addEventListener("click", () => {
         const requestId = crypto.randomUUID()
         output.textContent = `Sending SIGN_REQUEST (requestId: ${ requestId })...`
 
         const onMessage = event => {
-          console.log(event)
           if (event.data?.type !== "SIGN_RESPONSE" || event.data?.requestId !== requestId) return
           output.textContent = JSON.stringify(event.data, null, 2)
           window.removeEventListener("message", onMessage)

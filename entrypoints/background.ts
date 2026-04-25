@@ -13,6 +13,10 @@ type WriteSlotMessage = {
   passphrase: string
 }
 
+type IdentifyMessage = {
+  type: "IDENTIFY"
+}
+
 type SignMessage = {
   type: "SIGN"
   data: unknown
@@ -31,7 +35,7 @@ type RejectSignMessage = {
   type: "REJECT_SIGN"
 }
 
-type Message = SetSlotMessage | WriteSlotMessage | SignMessage | GetPendingRequestMessage | ConfirmSignMessage | RejectSignMessage
+type Message = SetSlotMessage | WriteSlotMessage | IdentifyMessage | SignMessage | GetPendingRequestMessage | ConfirmSignMessage | RejectSignMessage
 
 export default defineBackground(() => {
   browser.runtime.onMessage.addListener((message: Message, sender: { tab?: unknown, url?: string }, sendResponse: (response: unknown) => void) => {
@@ -43,7 +47,8 @@ export default defineBackground(() => {
     // all other messages must originate from extension pages (url starts with extension base url)
     const isFromExtension = sender.url?.startsWith(browser.runtime.getURL("")) === true
     switch (message.type) {
-      case "SIGN": {
+      case "SIGN": 
+      case "IDENTIFY": {
         if (sender.tab === undefined || isFromExtension) {
           sendResponse({ error: "Forbidden" })
           return false
@@ -75,6 +80,16 @@ export default defineBackground(() => {
           })
           .catch(error => sendResponse({ error: String(error) }))
         return true
+      }
+
+      case "IDENTIFY": {
+        const slot = getSlot()
+        if (slot?.slotData === undefined) {
+          sendResponse({ error: "Not initialized" })
+          return false
+        }
+        sendResponse({ nameKey: slot.slotData.nameKey })
+        return false
       }
 
       case "GET_PENDING_REQUEST": {
