@@ -18,7 +18,9 @@ const SignConfirmation = ({ pendingRequest, onDone }: Props) => {
   }
 
   return (
-    <SignConfirmationForm origin={ pendingRequest.origin } onConfirm={ handleConfirm } onReject={ handleReject } />
+    <>
+      <SignConfirmationForm origin={ pendingRequest.origin } message={ pendingRequest.data } onConfirm={ handleConfirm } onReject={ handleReject } />
+    </>
   )
 }
 
