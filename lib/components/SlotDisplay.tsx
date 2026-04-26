@@ -8,8 +8,6 @@ type Props = {
 
 const SlotDisplay = ({ slotState }: Props) => {
 
-  console.log(slotState)
-
   return (
     <div>
       { slotState.slotData !== undefined 

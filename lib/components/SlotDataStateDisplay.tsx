@@ -6,14 +6,15 @@ type Props = {
 
 const SlotDataDisplay = ({ slotData }: Props) => {
   const { nameKey, fingerprintedName, keyPair } = slotData
-  const { cryptoName, publicKeyDisplay, privateKeyDisplay } = keyPair
+  const { cryptoName, publicKeyDisplay, privateKeyDisplay, mnemonicDisplayWithPassphrase } = keyPair
   const displayData = {
     nameKey,
     fingerprintedName,
     keyPair: {
       cryptoName,
       publicKeyDisplay,
-      privateKeyDisplay
+      privateKeyDisplay,
+      mnemonicDisplayWithPassphrase
     }
   }
   return <pre>{ JSON.stringify(displayData, null, 2) }</pre>

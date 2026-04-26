@@ -12,8 +12,8 @@ importers:
         specifier: jsr:^0.1.4
         version: '@jsr/mikeobank__pdec@0.1.4'
       '@vanice/crdt':
-        specifier: jsr:^0.3.8
-        version: '@jsr/vanice__crdt@0.3.8'
+        specifier: jsr:^0.3.9
+        version: '@jsr/vanice__crdt@0.3.9'
       '@vanice/types':
         specifier: jsr:^0.3.5
         version: '@jsr/vanice__types@0.3.5'
@@ -307,11 +307,14 @@ packages:
   '@jsr/scure__bip39@2.0.1':
     resolution: {integrity: sha512-3+WqsT1K0+4OteY8gXBmSh383xTdNgIwYqleIGmUVr/rePRBnl2oENT7TPxveYhTPYMaD01DA8I7ttZS+HZVsg==, tarball: https://npm.jsr.io/~/11/@jsr/scure__bip39/2.0.1.tgz}
 
-  '@jsr/vanice__crdt@0.3.8':
-    resolution: {integrity: sha512-L+IaS6m4lbbIlz5idpEr1EruMtx7L4Oo6NfYNGuEiyD/wxyz2jLaQJkCAAOpPsd5NPgs1Tk0stQO5YXBy4kn6Q==, tarball: https://npm.jsr.io/~/11/@jsr/vanice__crdt/0.3.8.tgz}
+  '@jsr/vanice__crdt@0.3.9':
+    resolution: {integrity: sha512-XNgVyHTbwcIyiJCIVY0ltaFXg5HsqSZAnF+9yeS79VCz1epePSynEQcgE8iF1v0AoSQ6TqcZZzdBjLHzJoO6yw==, tarball: https://npm.jsr.io/~/11/@jsr/vanice__crdt/0.3.9.tgz}
 
   '@jsr/vanice__types@0.3.5':
     resolution: {integrity: sha512-o9qKPL8Uey/6ThGSAOYgubu49TezZXoD7ITUv85hmB/B44XV+rSs6qIWfG9YPNKgo6ppmDst/dGPwLInW9l09w==, tarball: https://npm.jsr.io/~/11/@jsr/vanice__types/0.3.5.tgz}
+
+  '@jsr/vanice__types@0.3.7':
+    resolution: {integrity: sha512-VBmqk8daIP8gPsQHTBtyjVd4a75lCpLx8lcuxNAwaQWJt8cE0lAfz5hbRITWRU7kFwres72tjO/NV7qLZMWAZw==, tarball: https://npm.jsr.io/~/11/@jsr/vanice__types/0.3.7.tgz}
 
   '@napi-rs/wasm-runtime@1.1.3':
     resolution: {integrity: sha512-xK9sGVbJWYb08+mTJt3/YV24WxvxpXcXtP6B172paPZ+Ts69Re9dAr7lKwJoeIx8OoeuimEiRZ7umkiUVClmmQ==}
@@ -2002,12 +2005,20 @@ snapshots:
       '@jsr/noble__hashes': 2.0.1
       '@jsr/scure__base': 2.0.0
 
-  '@jsr/vanice__crdt@0.3.8':
+  '@jsr/vanice__crdt@0.3.9':
     dependencies:
       '@cfworker/json-schema': 4.1.1
-      '@jsr/vanice__types': 0.3.5
+      '@jsr/vanice__types': 0.3.7
 
   '@jsr/vanice__types@0.3.5':
+    dependencies:
+      '@jsr/noble__ed25519': 3.1.0
+      '@jsr/noble__hashes': 1.8.0
+      '@jsr/noble__secp256k1': 3.1.0
+      '@jsr/scure__bip32': 2.0.1
+      '@jsr/scure__bip39': 2.0.1
+
+  '@jsr/vanice__types@0.3.7':
     dependencies:
       '@jsr/noble__ed25519': 3.1.0
       '@jsr/noble__hashes': 1.8.0

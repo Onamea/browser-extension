@@ -1,4 +1,9 @@
-import { isNameKey, nameKeyToFingerprintedName, type PrivateKeyDisplay } from "@vanice/types"
+import { 
+  type MnemonicDisplayWithPassphrase, 
+  type PrivateKeyDisplay, 
+  isNameKey, 
+  nameKeyToFingerprintedName 
+} from "@vanice/types"
 import type { Identifier } from "@vanice/crdt"
 import { identify } from "@vanice/crdt"
 import { type SlotData } from "../pdec.ts"
@@ -13,9 +18,10 @@ type Props = {
 
 const Slot = ({ slotState, setSlot }: Props) => {
 
-  const addKeyPair = async (identifier: Identifier, privateKey: PrivateKeyDisplay, passphrase: string) => {
+  const addKeyPair = async (identifier: Identifier, privateKeyOrMnemonic: PrivateKeyDisplay | MnemonicDisplayWithPassphrase, passphrase: string) => {
+
     try {
-      const [nameKey, keyPair] = await identify(identifier, privateKey)
+      const [nameKey, keyPair] = await identify(identifier, privateKeyOrMnemonic)
       if (isNameKey(nameKey) === false) {
         throw new Error("Identifier is not a NameKey")
       }
@@ -25,11 +31,9 @@ const Slot = ({ slotState, setSlot }: Props) => {
         fingerprintedName,
         keyPair
       }
-      console.log(data)
       const response = await browser.runtime.sendMessage(
         { type: "WRITE_SLOT", data, passphrase }
       )
-      console.log(response)
       if (response.slot === undefined) {
         throw new Error(response.error ?? "WRITE_SLOT failed")
       }

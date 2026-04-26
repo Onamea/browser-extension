@@ -2,16 +2,21 @@ import type { FormEvent } from "react"
 import type { Identifier } from "@vanice/crdt"
 import { useState } from "react"
 import ErrorDisplay from "./ErrorDisplay.tsx"
-import { isPrivateKeyDisplay } from "@vanice/types"
+import { 
+  type MnemonicDisplayWithPassphrase, 
+  type PrivateKeyDisplay, 
+  isMnemonicDisplayWithPassphrase, 
+  isPrivateKeyDisplay 
+} from "@vanice/types"
 import { isIdentifier } from "@vanice/crdt"
 
 type Props = {
-  onSubmit: (identifier: Identifier, privateKey: string, passphrase: string) => Promise<void>
+  onSubmit: (identifier: Identifier, privateKeyOrMnemonic: PrivateKeyDisplay | MnemonicDisplayWithPassphrase, passphrase: string) => Promise<void>
 }
 
 const AddKeyPairForm = ({ onSubmit }: Props) => {
   const [identifier, setIdentifier] = useState("")
-  const [privateKey, setPrivateKey] = useState("")
+  const [privateKeyOrMnemonic, setPrivateKeyOrMnemonic] = useState("")
   const [passphrase, setPassphrase] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<string[]>([])
@@ -24,12 +29,12 @@ const AddKeyPairForm = ({ onSubmit }: Props) => {
       setIsSubmitting(false)
       return
     }
-    if (!isPrivateKeyDisplay(privateKey)) {
-      setErrors(["Invalid PrivateKeyDisplay"])
+    if ((isPrivateKeyDisplay(privateKeyOrMnemonic) || isMnemonicDisplayWithPassphrase(privateKeyOrMnemonic)) === false) {
+      setErrors(["Invalid PrivateKeyDisplay and MnemonicDisplayWithPassphrase"])
       setIsSubmitting(false)
       return
     }
-    await onSubmit(identifier, privateKey, passphrase)
+    await onSubmit(identifier, privateKeyOrMnemonic, passphrase)
     setIsSubmitting(false)
   }
 
@@ -46,13 +51,13 @@ const AddKeyPairForm = ({ onSubmit }: Props) => {
         />
       </div>
       <div>
-        <label htmlFor="privateKey">Private key:</label>
+        <label htmlFor="privateKeyOrMnemonic">Private key or mnemonic:</label>
         <input
-          id="privateKey"
+          id="privateKeyOrMnemonic"
           type="password"
-          value={ privateKey }
-          onChange={ event => setPrivateKey(event.target.value) }
-          placeholder="Private key"
+          value={ privateKeyOrMnemonic }
+          onChange={ event => setPrivateKeyOrMnemonic(event.target.value) }
+          placeholder="Private key or mnemonic"
         />
       </div>
       <div>
