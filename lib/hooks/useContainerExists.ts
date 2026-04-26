@@ -11,7 +11,7 @@ const useContainerExists = () => {
     })().catch(() => {})
   }, [])
 
-  return containerExists
+  return [containerExists, setContainerExists] as const
 }
 
 export default useContainerExists

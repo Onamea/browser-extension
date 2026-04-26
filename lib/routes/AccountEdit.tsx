@@ -6,17 +6,21 @@ import {
 } from "@vanice/types"
 import type { Identifier } from "@vanice/crdt"
 import { identify } from "@vanice/crdt"
+import { useNavigate } from "react-router-dom"
 import { type SlotData } from "../pdec.ts"
 import type { SlotState } from "../background/state.ts"
 import SlotDisplay from "@/lib/components/SlotDisplay.tsx"
 import AddKeyPairForm from "@/lib/components/AddKeyPairForm.tsx"
+import MineForm from "../components/MineForm.tsx"
 
 type Props = {
   slotState: SlotState
   setSlot: (slot: SlotData) => void
 }
 
-const Slot = ({ slotState, setSlot }: Props) => {
+const AccountEdit = ({ slotState, setSlot }: Props) => {
+
+  const navigate = useNavigate()
 
   const addKeyPair = async (identifier: Identifier, privateKeyOrMnemonic: PrivateKeyDisplay | MnemonicDisplayWithPassphrase, passphrase: string) => {
 
@@ -43,13 +47,19 @@ const Slot = ({ slotState, setSlot }: Props) => {
     }
   }
 
+  const onClick = () => {
+    navigate("/account")
+  }
+
   return (
     <div>
       <h1>Slot</h1>
       <SlotDisplay slotState={ slotState } />
       { slotState.slotData === undefined && <AddKeyPairForm onSubmit={ addKeyPair } /> }
+      { slotState.slotData === undefined && <MineForm onSubmit={ async () => {} } /> }
+      <button onClick={ onClick }>cancel</button>
     </div>
   )
 }
 
-export default Slot
+export default AccountEdit

@@ -5,7 +5,7 @@ type Props = {
   setSlot: (slot: SlotData) => void
 }
 
-const CreateSlot = ({ setSlot }: Props) => {
+const Init = ({ setSlot }: Props) => {
   return (
     <div>
       <h1>Create slot</h1>
@@ -14,4 +14,4 @@ const CreateSlot = ({ setSlot }: Props) => {
   )
 }
 
-export default CreateSlot
+export default Init

@@ -11,7 +11,7 @@ import "./App.css"
 
 const App = () => {
 
-  const containerExists = useContainerExists()
+  const [containerExists, setContainerExists] = useContainerExists()
   const [slotState, setSlot] = useSlot()
   const [pendingRequest, setPendingRequest] = useState<PendingRequest>()
 
@@ -29,6 +29,7 @@ const App = () => {
 
   const handleSetSlot = async (slot: SlotData) => {
     await browser.runtime.sendMessage({ type: "SET_SLOT", slot })
+    setContainerExists(true)
     setSlot(slot)
   }
 

@@ -40,8 +40,6 @@ type Message = SetSlotMessage | WriteSlotMessage | IdentifyMessage | SignMessage
 export default defineBackground(() => {
   browser.runtime.onMessage.addListener((message: Message, sender: { tab?: unknown, url?: string }, sendResponse: (response: unknown) => void) => {
 
-    console.log(message, sender)
-
     // guard
     // SIGN must originate from a content script (sender.tab defined, url not from extension)
     // all other messages must originate from extension pages (url starts with extension base url)
