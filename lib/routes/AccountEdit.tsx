@@ -57,7 +57,7 @@ const AccountEdit = ({ slotState, setSlot }: Props) => {
       <SlotDisplay slotState={ slotState } />
       { slotState.slotData === undefined && <AddKeyPairForm onSubmit={ addKeyPair } /> }
       { slotState.slotData === undefined && <MineForm onSubmit={ async () => {} } /> }
-      <button onClick={ onClick }>cancel</button>
+      <button type="button" onClick={ onClick }>cancel</button>
     </div>
   )
 }

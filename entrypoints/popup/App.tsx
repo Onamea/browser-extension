@@ -3,16 +3,16 @@ import { useEffect, useState } from "react"
 import PassphraseEntryForm from "@/lib/components/PassphraseEntryForm.tsx"
 import SlotDisplay from "@/lib/components/SlotDisplay.tsx"
 import SignConfirmation from "@/lib/components/SignConfirmation.tsx"
-import useContainerExists from "@/lib/hooks/useContainerExists.ts"
 import type { PendingRequest } from "@/lib/background/signFlow.ts"
-import useSlot from "@/lib/hooks/useSlot.ts"
+import useExtensionState from "@/lib/hooks/useExtensionState.ts"
 
 import "./App.css"
 
 const App = () => {
 
-  const [containerExists, setContainerExists] = useContainerExists()
-  const [slotState, setSlot] = useSlot()
+  const { state, setContainerExists, setSlot } = useExtensionState()
+  const containerExists = state.containerExists
+  const slotState = state.slot
   const [pendingRequest, setPendingRequest] = useState<PendingRequest>()
 
   useEffect(() => {

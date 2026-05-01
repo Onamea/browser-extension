@@ -1,9 +1,9 @@
 # TODO
+- clear slot
 - mine name
 - manage account
 - immediate and confirmable browser EVENTS
 - browser interface on window
-- abstract state management
 - namespace events from postMessage
 - styling
 - master password + sub accounts

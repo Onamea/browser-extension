@@ -8,7 +8,7 @@ type Props = {
 const Init = ({ setSlot }: Props) => {
   return (
     <div>
-      <h1>Create slot</h1>
+      <h1>Initialize</h1>
       <CreatePassphraseForm setSlot={ setSlot } />
     </div>
   )

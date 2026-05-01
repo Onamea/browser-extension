@@ -1,19 +1,18 @@
 import type { SlotData } from "@mikeobank/pdec"
 import { useEffect } from "react"
 import { MemoryRouter, Route, Routes, useLocation, useNavigate } from "react-router-dom"
-import useContainerExists from "@/lib/hooks/useContainerExists.ts"
+import useExtensionState from "@/lib/hooks/useExtensionState.ts"
 import Signin from "@/lib/routes/Signin.tsx"
-import Init from "@/lib/routes/Init"
+import Init from "@/lib/routes/Init.tsx"
 import Account from "@/lib/routes/Account.tsx"
 import AccountEdit from "@/lib/routes/AccountEdit.tsx"
-import useSlot from "@/lib/hooks/useSlot.ts"
 
 import "./App.css"
 
 const AppRoutes = () => {
 
-  const [containerExists, setContainerExists] = useContainerExists()
-  const [slotState, setSlot] = useSlot()
+  const { state: { containerExists, slot: slotState }, setContainerExists, setSlot } = useExtensionState()
+  const isUnlocked = slotState !== undefined
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -21,14 +20,14 @@ const AppRoutes = () => {
     if (containerExists === undefined) return
     if (containerExists === false) {
       navigate("/init")
-    } else if (slotState === undefined) {
+    } else if (isUnlocked === false) {
       navigate("/signin")
     } else {
       if (location.pathname.startsWith("/account") === false) {
         navigate("/account")
       }
     }
-  }, [containerExists, slotState, navigate, location.pathname])
+  }, [containerExists, isUnlocked, navigate, location.pathname])
 
   useEffect(() => {
     (async () => {
@@ -53,8 +52,8 @@ const AppRoutes = () => {
       <Route path="/" element={ null } />
       <Route path="/signin" element={ <Signin setSlot={ handleSetSlot } /> } />
       <Route path="/init" element={ <Init setSlot={ handleSetSlot } /> } />
-      <Route path="/account" element={ slotState !== undefined ? <Account slotState={ slotState } /> : null } />
-      <Route path="/account/edit" element={ slotState !== undefined ? <AccountEdit slotState={ slotState } setSlot={ setSlot } /> : null } />
+      <Route path="/account" element={ isUnlocked ? <Account slotState={ slotState } /> : null } />
+      <Route path="/account/edit" element={ isUnlocked ? <AccountEdit slotState={ slotState } setSlot={ setSlot } /> : null } />
     </Routes>
   )
 }
