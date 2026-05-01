@@ -19,7 +19,7 @@ export type ExtensionState = {
 
 export type ExtensionAction =
   | { type: "SET_CONTAINER_EXISTS", payload: boolean | undefined }
-  | { type: "SET_SLOT", payload: SlotData }
+  | { type: "SET_SLOT", payload: SlotData | undefined }
   | { type: "CLEAR_SLOT" }
 
 export const initialState: ExtensionState = {
@@ -35,11 +35,22 @@ export const extensionReducer = (
     case "SET_CONTAINER_EXISTS":
       return { ...state, containerExists: action.payload }
     case "SET_SLOT": {
+      if (action.payload === undefined) {
+        return { ...state, slot: undefined }
+      }
       const slotData = decodeSlotData(action.payload)
       return { ...state, slot: { slot: action.payload, slotData } }
     }
     case "CLEAR_SLOT":
-      return { ...state, slot: undefined }
+      if (state.slot === undefined) return state
+      return {
+        ...state,
+        containerExists: true,
+        slot: {
+          slot: { ...state.slot.slot, data: new Uint8Array() },
+          slotData: undefined
+        }
+      }
     default:
       return state
   }

@@ -36,11 +36,7 @@ const useExtensionState = () => {
 
   const syncState = (nextState: ExtensionState) => {
     dispatch({ type: "SET_CONTAINER_EXISTS", payload: nextState.containerExists })
-    if (nextState.slot !== undefined) {
-      dispatch({ type: "SET_SLOT", payload: nextState.slot.slot })
-      return
-    }
-    dispatch({ type: "CLEAR_SLOT" })
+    dispatch({ type: "SET_SLOT", payload: nextState.slot?.slot })
   }
 
   // Fetch initial state from background on mount
@@ -63,9 +59,21 @@ const useExtensionState = () => {
     }
   }, [])
 
-  const setContainerExists = (value: boolean | undefined) => setContainerExistsToDispatch(dispatch, value)
-  const setSlot = (slot: SlotData) => setSlotToDispatch(dispatch, slot)
-  const clearSlot = () => clearSlotToDispatch(dispatch)
+  const setContainerExists = async (value: boolean | undefined) => {
+    await browser.runtime.sendMessage({ type: "SET_CONTAINER_EXISTS", value })
+    setContainerExistsToDispatch(dispatch, value)
+  }
+
+  const setSlot = async (slot: SlotData) => {
+    await browser.runtime.sendMessage({ type: "SET_SLOT", slot })
+    setContainerExistsToDispatch(dispatch, true)
+    setSlotToDispatch(dispatch, slot)
+  }
+
+  const clearSlot = async () => {
+    await browser.runtime.sendMessage({ type: "CLEAR_SLOT" })
+    clearSlotToDispatch(dispatch)
+  }
 
   return {
     state,

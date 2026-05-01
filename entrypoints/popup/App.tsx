@@ -10,7 +10,7 @@ import "./App.css"
 
 const App = () => {
 
-  const { state, setContainerExists, setSlot } = useExtensionState()
+  const { state, setSlot } = useExtensionState()
   const containerExists = state.containerExists
   const slotState = state.slot
   const [pendingRequest, setPendingRequest] = useState<PendingRequest>()
@@ -18,9 +18,6 @@ const App = () => {
   useEffect(() => {
     (async () => {
       const response = await browser.runtime.sendMessage({ type: "GET_PENDING_REQUEST" })
-      if (response.slot !== undefined) {
-        setSlot(response.slot)
-      }
       if (response.pendingRequest !== undefined) {
         setPendingRequest(response.pendingRequest)
       }
@@ -28,9 +25,7 @@ const App = () => {
   }, [])
 
   const handleSetSlot = async (slot: SlotData) => {
-    await browser.runtime.sendMessage({ type: "SET_SLOT", slot })
-    setContainerExists(true)
-    setSlot(slot)
+    await setSlot(slot)
   }
 
   const handleSignDone = () => {

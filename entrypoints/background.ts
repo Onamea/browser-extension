@@ -36,7 +36,9 @@ type RejectSignMessage = {
 }
 
 type GetStateMessage = { type: "GET_STATE" }
-type Message = SetSlotMessage | WriteSlotMessage | IdentifyMessage | SignMessage | GetPendingRequestMessage | ConfirmSignMessage | RejectSignMessage | GetStateMessage
+type SetContainerExistsMessage = { type: "SET_CONTAINER_EXISTS", value: boolean | undefined }
+type ClearSlotMessage = { type: "CLEAR_SLOT" }
+type Message = SetSlotMessage | WriteSlotMessage | IdentifyMessage | SignMessage | GetPendingRequestMessage | ConfirmSignMessage | RejectSignMessage | GetStateMessage | SetContainerExistsMessage | ClearSlotMessage
 
 const broadcastState = () => {
   browser.runtime.sendMessage({ type: "STATE_UPDATED", state: backgroundState })
@@ -94,6 +96,13 @@ export default defineBackground(() => {
         return false
       }
 
+      case "SET_CONTAINER_EXISTS": {
+        setContainerExists(backgroundDispatch, message.value)
+        broadcastState()
+        sendResponse({ ok: true })
+        return false
+      }
+
       case "WRITE_SLOT": {
         writeSlot(message.passphrase, JSON.stringify(message.data))
           .then(slot => {
@@ -104,6 +113,13 @@ export default defineBackground(() => {
           })
           .catch(error => sendResponse({ error: String(error) }))
         return true
+      }
+
+      case "CLEAR_SLOT": {
+        backgroundDispatch({ type: "CLEAR_SLOT" })
+        broadcastState()
+        sendResponse({ ok: true })
+        return false
       }
 
       case "IDENTIFY": {

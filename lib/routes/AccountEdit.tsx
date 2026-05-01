@@ -12,13 +12,15 @@ import type { SlotState } from "../background/state.ts"
 import SlotDisplay from "@/lib/components/SlotDisplay.tsx"
 import AddKeyPairForm from "@/lib/components/AddKeyPairForm.tsx"
 import MineForm from "../components/MineForm.tsx"
+import ClearSlotButton from "../components/ClearSlotButton.tsx"
 
 type Props = {
   slotState: SlotState
-  setSlot: (slot: SlotData) => void
+  setSlot: (slot: SlotData) => Promise<void>
+  clearSlot: () => Promise<void>
 }
 
-const AccountEdit = ({ slotState, setSlot }: Props) => {
+const AccountEdit = ({ slotState, setSlot, clearSlot }: Props) => {
 
   const navigate = useNavigate()
 
@@ -41,7 +43,7 @@ const AccountEdit = ({ slotState, setSlot }: Props) => {
       if (response.slot === undefined) {
         throw new Error(response.error ?? "WRITE_SLOT failed")
       }
-      setSlot(response.slot)
+      await setSlot(response.slot)
     } catch (error) {
       console.error("Failed to identify key pair:", error)
     }
@@ -55,6 +57,7 @@ const AccountEdit = ({ slotState, setSlot }: Props) => {
     <div>
       <h1>Slot</h1>
       <SlotDisplay slotState={ slotState } />
+      { slotState.slotData !== undefined && <ClearSlotButton onClearSlot={ clearSlot } /> }
       { slotState.slotData === undefined && <AddKeyPairForm onSubmit={ addKeyPair } /> }
       { slotState.slotData === undefined && <MineForm onSubmit={ async () => {} } /> }
       <button type="button" onClick={ onClick }>cancel</button>
