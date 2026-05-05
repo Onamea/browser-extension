@@ -24,7 +24,11 @@ const AppRoutes = () => {
       navigate("/signin")
     } else {
       if (location.pathname.startsWith("/account") === false) {
-        navigate("/account")
+        if (slotState.slotData === undefined) {
+          navigate("/account/edit")
+        } else {
+          navigate("/account")
+        }
       }
     }
   }, [containerExists, isUnlocked, navigate, location.pathname])
