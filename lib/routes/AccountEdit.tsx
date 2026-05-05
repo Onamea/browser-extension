@@ -11,7 +11,7 @@ import { type SlotData } from "../pdec.ts"
 import type { SlotState } from "../background/state.ts"
 import SlotDisplay from "@/lib/components/SlotDisplay.tsx"
 import AddKeyPairForm from "@/lib/components/AddKeyPairForm.tsx"
-import MineForm from "../components/MineForm.tsx"
+import CreateKeyPairForm from "../components/CreateKeyPairForm.tsx"
 import ClearSlotButton from "../components/ClearSlotButton.tsx"
 
 type Props = {
@@ -59,7 +59,7 @@ const AccountEdit = ({ slotState, setSlot, clearSlot }: Props) => {
       <SlotDisplay slotState={ slotState } />
       { slotState.slotData !== undefined && <ClearSlotButton onClearSlot={ clearSlot } /> }
       { slotState.slotData === undefined && <AddKeyPairForm onSubmit={ addKeyPair } /> }
-      { slotState.slotData === undefined && <MineForm onSubmit={ async () => {} } /> }
+      { slotState.slotData === undefined && <CreateKeyPairForm onSubmit={ async () => {} } /> }
       <button type="button" onClick={ onClick }>cancel</button>
     </div>
   )

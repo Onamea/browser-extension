@@ -1,5 +1,4 @@
 # TODO
-- route empty slot to /account/edit
 - mine name
 - manage account
 - immediate and confirmable browser EVENTS

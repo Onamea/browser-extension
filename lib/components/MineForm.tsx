@@ -7,7 +7,7 @@ type Props = {
 	onSubmit: (name: string) => Promise<void>
 }
 
-const MineForm = ({ onSubmit }: Props) => {
+const CreateKeyPairForm = ({ onSubmit }: Props) => {
 	const [name, setName] = useState("")
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [errors, setErrors] = useState<string[]>([])
@@ -44,4 +44,4 @@ const MineForm = ({ onSubmit }: Props) => {
 	)
 }
 
-export default MineForm
+export default CreateKeyPairForm
