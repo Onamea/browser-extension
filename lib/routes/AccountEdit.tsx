@@ -26,7 +26,7 @@ const AccountEdit = ({ slotState, setSlot, clearSlot }: Props) => {
       <SlotDisplay slotState={ slotState } />
       { slotState.slotData !== undefined && <ClearSlotButton onClearSlot={ clearSlot } /> }
       { slotState.slotData === undefined && <AddKeyPairForm setSlot={ setSlot } /> }
-      { slotState.slotData === undefined && <CreateKeyPairForm onSubmit={ async () => {} } /> }
+      { slotState.slotData === undefined && <CreateKeyPairForm setSlot={ setSlot } /> }
       <button type="button" onClick={ onClick }>cancel</button>
     </div>
   )
