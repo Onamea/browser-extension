@@ -14,7 +14,8 @@
     "compile": "tsc --noEmit",
     "postinstall": "wxt prepare",
     "serve:browser-page": "npx serve browser-page --listen 3001",
-    "lint": "deno lint --ignore=assets/workers/worker.js"
+    "lint": "deno lint --ignore=assets/workers/worker.js",
+    "test": "vitest run"
   },
   "dependencies": {
     "@mikeobank/pdec": "jsr:^0.1.4",
@@ -30,6 +31,7 @@
     "@types/react-dom": "^19.2.3",
     "@wxt-dev/module-react": "^1.1.5",
     "typescript": "^5.9.3",
+    "vitest": "^3.2.4",
     "wxt": "^0.20.21"
   }
 }
