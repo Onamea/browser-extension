@@ -8,7 +8,7 @@ import {
 	PBKDF2_ITERATIONS,
 	SALT_LENGTH
 } from "./constants.ts"
-import { ContainerError, StoredValueNotEncryptedContainerError } from "./errors.ts"
+import { StoredValueNotEncryptedContainerError } from "./errors.ts"
 import { read, write } from "./storage.ts"
 import { getRandomBytes } from "./utils/getRandomBytes.ts"
 import { toBufferSource } from "./utils/toBufferSource.ts"
@@ -165,7 +165,7 @@ export const readContainer = async (): Promise<EncryptedContainer | undefined> =
 	}
 
 	if (isEncryptedContainer(value) === false) {
-		throw new ContainerError(StoredValueNotEncryptedContainerError)
+		throw StoredValueNotEncryptedContainerError
 	}
 
 	return value

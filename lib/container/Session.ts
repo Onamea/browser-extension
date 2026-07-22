@@ -2,7 +2,6 @@ import { clone, compareContainers, create, type EncryptedContainer, readContaine
 import { GCM_IV_LENGTH, MASTER_KEY_LENGTH, PBKDF2_ITERATIONS } from "./constants.ts"
 import {
 	ContainerChangedSinceSessionStartError,
-	ContainerError,
 	InvalidPasswordError,
 	NoContainerExistsError,
 	SessionEncryptionFailedError,
@@ -95,7 +94,7 @@ const unwrapMasterKey = async (session: ActiveSession): Promise<CryptoKey> => {
 		)
 	} catch (error) {
 		void error
-		throw new ContainerError(SessionKeyUnwrapFailedError)
+		throw SessionKeyUnwrapFailedError
 	}
 }
 
@@ -116,7 +115,7 @@ const unlockContainer = async (container: EncryptedContainer, password: Password
 		decryptedContainer = await decryptWithMasterKey(masterKey, iv, ciphertext)
 	} catch (error) {
 		void error
-		throw new ContainerError(WrongPasswordOrCorruptedContainerError)
+		throw WrongPasswordOrCorruptedContainerError
 	}
 
 	const sessionKey = await crypto.subtle.generateKey(
@@ -164,7 +163,7 @@ const encryptWithSession = async (session: ActiveSession, plaintext: string): Pr
 		)
 	} catch (error) {
 		void error
-		throw new ContainerError(SessionEncryptionFailedError)
+		throw SessionEncryptionFailedError
 	}
 
 	return {
@@ -182,7 +181,7 @@ export const init = async (password: string): Promise<ActiveSession> => {
 		parsedPassword = parsePassword(password)
 	} catch (error) {
 		void error
-		throw new ContainerError(InvalidPasswordError)
+		throw InvalidPasswordError
 	}
 
 	const stored = await readContainer()
@@ -198,15 +197,15 @@ export const init = async (password: string): Promise<ActiveSession> => {
 
 export const write = async (session: Session, content: string): Promise<void> => {
 	if (isActiveSession(session) === false) {
-		throw new ContainerError(SessionNotActiveError)
+		throw SessionNotActiveError
 	}
 
 	const stored = await readContainer()
 	if (stored === undefined) {
-		throw new ContainerError(NoContainerExistsError)
+		throw NoContainerExistsError
 	}
 	if (compareContainers(stored, session.container) === false) {
-		throw new ContainerError(ContainerChangedSinceSessionStartError)
+		throw ContainerChangedSinceSessionStartError
 	}
 	const encrypted = await encryptWithSession(session, content)
 	await writeContainer(encrypted)

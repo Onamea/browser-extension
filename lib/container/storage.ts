@@ -1,6 +1,6 @@
 import { CONTAINER_STORAGE_KEY } from "./constants.ts"
 import type { EncryptedContainer } from "./EncryptedContainer.ts"
-import { ContainerError, StorageAPIUnavailableError, StorageReadFailedError, StorageWriteFailedError } from "./errors.ts"
+import { StorageAPIUnavailableError, StorageReadFailedError, StorageWriteFailedError } from "./errors.ts"
 
 export { CONTAINER_STORAGE_KEY }
 
@@ -16,7 +16,7 @@ const getLocalStorage = (): LocalStorage => {
 	}
 	const localStorage = g.chrome?.storage?.local ?? g.browser?.storage?.local
 	if (localStorage === undefined) {
-		throw new ContainerError(StorageAPIUnavailableError)
+		throw StorageAPIUnavailableError
 	}
 
 	return localStorage
@@ -30,7 +30,7 @@ export const read = async (): Promise<unknown> => {
 		return stored[CONTAINER_STORAGE_KEY]
 	} catch (error) {
 		void error
-		throw new ContainerError(StorageReadFailedError)
+		throw StorageReadFailedError
 	}
 }
 
@@ -41,6 +41,6 @@ export const write = async (container: EncryptedContainer): Promise<void> => {
 		await localStorage.set({ [CONTAINER_STORAGE_KEY]: container })
 	} catch (error) {
 		void error
-		throw new ContainerError(StorageWriteFailedError)
+		throw StorageWriteFailedError
 	}
 }
