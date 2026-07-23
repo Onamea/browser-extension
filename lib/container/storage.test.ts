@@ -1,9 +1,4 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
-import {
-	StorageAPIUnavailableError,
-	StorageReadFailedError,
-	StorageWriteFailedError
-} from "./errors.ts"
 import { CONTAINER_STORAGE_KEY, read, write } from "./storage.ts"
 
 type StorageShape = {
@@ -64,9 +59,7 @@ describe("storage", () => {
 	it("throws typed error when read fails", async () => {
 		shouldRejectGet = true
 
-		await expect(read()).rejects.toMatchObject({
-			code: StorageReadFailedError.code
-		})
+		await expect(read()).rejects.toThrow("Failed to read from extension storage")
 	})
 
 	it("throws typed error when write fails", async () => {
@@ -79,9 +72,7 @@ describe("storage", () => {
 				ciphertext: "AQIDBAUGBwgJCgsMDQ4PEA==",
 				version: 1
 			})
-		).rejects.toMatchObject({
-			code: StorageWriteFailedError.code
-		})
+		).rejects.toThrow("Failed to write to extension storage")
 	})
 
 	it("throws typed error when storage API is unavailable", async () => {
@@ -92,9 +83,7 @@ describe("storage", () => {
 		delete g.chrome
 		delete g.browser
 
-		await expect(read()).rejects.toMatchObject({
-			code: StorageAPIUnavailableError.code
-		})
+		await expect(read()).rejects.toThrow("Extension storage API is unavailable")
 	})
 
 	it("falls back to browser.storage.local when chrome storage is unavailable", async () => {

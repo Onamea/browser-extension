@@ -1,7 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
-import { clone, compareContainers, isEncryptedContainer, readContainer, type EncryptedContainer } from "./EncryptedContainer.ts"
-import { StoredValueNotEncryptedContainerError } from "./errors.ts"
-import { CONTAINER_STORAGE_KEY } from "./storage.ts"
+import { clone, compareContainers, isEncryptedContainer, type EncryptedContainer } from "./EncryptedContainer.ts"
 
 type StorageShape = {
 	[storageKey: string]: unknown
@@ -107,32 +105,6 @@ describe("encrypted container validation", () => {
 				extra: true
 			})
 		).toBe(false)
-	})
-})
-
-describe("readContainer", () => {
-	it("returns undefined when storage is empty", async () => {
-		await expect(readContainer()).resolves.toBeUndefined()
-	})
-
-	it("throws when stored value is not a valid encrypted container", async () => {
-		storageState[CONTAINER_STORAGE_KEY] = "not-an-object"
-
-		await expect(readContainer()).rejects.toMatchObject({
-			code: StoredValueNotEncryptedContainerError.code
-		})
-	})
-
-	it("returns parsed container when storage contains a valid value", async () => {
-		const container: EncryptedContainer = {
-			salt: "AQIDBAUGBwgJCgsMDQ4PEA==",
-			iv: "AQIDBAUGBwgJCgsM",
-			ciphertext: "AQIDBAUGBwgJCgsMDQ4PEA==",
-			version: 1
-		}
-		storageState[CONTAINER_STORAGE_KEY] = container
-
-		await expect(readContainer()).resolves.toEqual(container)
 	})
 })
 

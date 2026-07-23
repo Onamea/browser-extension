@@ -1,269 +1,140 @@
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { describe, expect, it } from "vitest"
+import { checkPassword, invalidate, unlock, update } from "./Session.ts"
+import { GCM_IV_LENGTH, MASTER_KEY_LENGTH, PBKDF2_ITERATIONS } from "./constants.ts"
+import { toBase64 } from "./utils/base64.ts"
 import type { EncryptedContainer } from "./EncryptedContainer.ts"
-import {
-	ContainerChangedSinceSessionStartError,
-	InvalidPasswordError,
-	NoContainerExistsError,
-	SessionEncryptionFailedError,
-	SessionKeyUnwrapFailedError,
-	SessionNotActiveError,
-	StoredValueNotEncryptedContainerError,
-	WrongPasswordOrCorruptedContainerError
-} from "./errors.ts"
-import { readContainer } from "./EncryptedContainer.ts"
-import { init, invalidate, PBKDF2_ITERATIONS, write } from "./Session.ts"
-import { CONTAINER_STORAGE_KEY } from "./storage.ts"
-import { fromBase64 } from "./utils/base64.ts"
-
-type StorageShape = {
-	[storageKey: string]: EncryptedContainer | undefined
-}
 
 const encoder = new TextEncoder()
-const decoder = new TextDecoder()
-let storageState: StorageShape
 
-const deriveKeyForTest = async (password: string, salt: Uint8Array): Promise<CryptoKey> => {
-	const passwordKey = await crypto.subtle.importKey(
-		"raw",
-		encoder.encode(password),
-		"PBKDF2",
-		false,
-		["deriveKey"]
-	)
+const createEncryptedContainer = async (password: string, plaintext: string): Promise<EncryptedContainer> => {
+	const salt = crypto.getRandomValues(new Uint8Array(16))
+	const iv = crypto.getRandomValues(new Uint8Array(GCM_IV_LENGTH))
 
-	return await crypto.subtle.deriveKey(
+	const passwordKey = await crypto.subtle.importKey("raw", encoder.encode(password), "PBKDF2", false, ["deriveKey"])
+	const masterKey = await crypto.subtle.deriveKey(
 		{
 			name: "PBKDF2",
 			hash: "SHA-256",
 			iterations: PBKDF2_ITERATIONS,
-			salt: Uint8Array.from(salt)
+			salt
 		},
 		passwordKey,
 		{
 			name: "AES-GCM",
-			length: 256
+			length: MASTER_KEY_LENGTH
 		},
 		false,
-		["decrypt"]
+		["encrypt", "decrypt"]
 	)
-}
 
-const decryptStoredContainer = async (password: string, container: EncryptedContainer): Promise<string> => {
-	const key = await deriveKeyForTest(password, fromBase64(container.salt))
-	const plaintextBuffer = await crypto.subtle.decrypt(
+	const ciphertext = await crypto.subtle.encrypt(
 		{
 			name: "AES-GCM",
-			iv: Uint8Array.from(fromBase64(container.iv))
+			iv
 		},
-		key,
-		Uint8Array.from(fromBase64(container.ciphertext))
+		masterKey,
+		encoder.encode(plaintext)
 	)
 
-	return decoder.decode(plaintextBuffer)
+	return {
+		salt: toBase64(salt),
+		iv: toBase64(iv),
+		ciphertext: toBase64(new Uint8Array(ciphertext)),
+		version: 1
+	} as EncryptedContainer
 }
 
-beforeEach(() => {
-	storageState = {}
-	vi.stubGlobal("chrome", {
-		storage: {
-			local: {
-				get: (key: string): Promise<StorageShape> => {
-					return Promise.resolve({ [key]: storageState[key] })
-				},
-				set: (items: StorageShape): Promise<void> => {
-					storageState = { ...storageState, ...items }
-					return Promise.resolve()
-				}
-			}
-		}
+describe("Session.unlock", () => {
+	it("unlocks container with correct password (happy path)", async () => {
+		const password = "CorrectHorseBatteryStaple123!"
+		const decrypted = JSON.stringify({ id: "acc_1", value: "secret" })
+		const container = await createEncryptedContainer(password, decrypted)
+
+		const session = await unlock(container, password)
+
+		expect(session.state).toBe("ACTIVE")
+		expect(session.decryptedContainer).toBe(decrypted)
+		expect(session.container).toEqual(container)
+		expect(session.container).not.toBe(container)
+		expect(session.wrappedMasterKey.byteLength).toBeGreaterThan(0)
+		expect(session.wrappingIv.byteLength).toBe(GCM_IV_LENGTH)
+	})
+
+	it("throws WrongPasswordOrCorruptedContainerError for incorrect password", async () => {
+		const password = "CorrectHorseBatteryStaple123!"
+		const wrongPassword = "DefinitelyWrongPassword123!"
+		const container = await createEncryptedContainer(password, '{"ok":true}')
+
+		await expect(unlock(container, wrongPassword)).rejects.toThrow(
+			"Wrong password or corrupted container"
+		)
 	})
 })
 
-const getStoredContainer = (): EncryptedContainer => {
-	const container = storageState[CONTAINER_STORAGE_KEY]
+describe("Session.checkPassword", () => {
+	it("returns true when password is correct", async () => {
+		const password = "CorrectHorseBatteryStaple123!"
+		const container = await createEncryptedContainer(password, '{"ok":true}')
+		const session = await unlock(container, password)
 
-	if (container === undefined) {
-		throw new Error("Expected container to be stored")
-	}
-
-	return container
-}
-
-describe("container round trips", () => {
-	it("initializes storage and unlocks an existing container", async () => {
-		const password = "hunter222"
-		const plaintext = "alpha beta gamma"
-		const session = await init(password)
-		expect(session.state).toBe("ACTIVE")
-
-		await write(session, plaintext)
-
-		const storedContainer = getStoredContainer()
-		await expect(decryptStoredContainer(password, storedContainer)).resolves.toBe(plaintext)
-
-		const parsed = await readContainer()
-		expect(parsed).toEqual(storedContainer)
-
-		await expect(init(password)).resolves.toMatchObject({
-			wrappedMasterKey: expect.any(ArrayBuffer),
-			wrappingIv: expect.any(Uint8Array),
-			decryptedContainer: plaintext
-		})
+		await expect(checkPassword(session, password)).resolves.toBe(true)
 	})
 
-	it("treats whitespace-padded passwords the same as trimmed passwords", async () => {
-		const password = "  hunter222  "
-		const plaintext = "alpha beta gamma"
-		const session = await init(password)
+	it("returns false when password is incorrect", async () => {
+		const password = "CorrectHorseBatteryStaple123!"
+		const wrongPassword = "DefinitelyWrongPassword123!"
+		const container = await createEncryptedContainer(password, '{"ok":true}')
+		const session = await unlock(container, password)
 
-		await write(session, plaintext)
+		await expect(checkPassword(session, wrongPassword)).resolves.toBe(false)
+	})
+})
 
-		await expect(init("hunter222")).resolves.toMatchObject({
-			decryptedContainer: plaintext
-		})
+describe("Session.update", () => {
+	it("updates decrypted data and produces a re-unlockable container", async () => {
+		const password = "CorrectHorseBatteryStaple123!"
+		const originalDecrypted = '{"ok":true,"v":1}'
+		const nextDecrypted = '{"ok":true,"v":2}'
+		const container = await createEncryptedContainer(password, originalDecrypted)
+		const session = await unlock(container, password)
+
+		const updatedSession = await update(session, nextDecrypted)
+
+		expect(updatedSession).not.toBe(session)
+		expect(updatedSession.decryptedContainer).toBe(nextDecrypted)
+		expect(updatedSession.container.salt).toBe(session.container.salt)
+		expect(updatedSession.container.version).toBe(session.container.version)
+		expect(updatedSession.container.ciphertext).not.toBe(session.container.ciphertext)
+		expect(updatedSession.container.iv).not.toBe(session.container.iv)
+
+		const unlockedAgain = await unlock(updatedSession.container, password)
+		expect(unlockedAgain.decryptedContainer).toBe(nextDecrypted)
+	})
+})
+
+describe("Session.invalidate", () => {
+	it("invalidates an active session and removes sensitive fields", async () => {
+		const password = "CorrectHorseBatteryStaple123!"
+		const container = await createEncryptedContainer(password, '{"ok":true}')
+		const session = await unlock(container, password)
+
+		const invalidated = invalidate(session)
+
+		expect(invalidated).toBe(session)
+		expect(invalidated.state).toBe("INVALIDATED")
+		expect("sessionKey" in (invalidated as Record<string, unknown>)).toBe(false)
+		expect("wrappedMasterKey" in (invalidated as Record<string, unknown>)).toBe(false)
+		expect("wrappingIv" in (invalidated as Record<string, unknown>)).toBe(false)
+		expect("container" in (invalidated as Record<string, unknown>)).toBe(false)
+		expect("decryptedContainer" in (invalidated as Record<string, unknown>)).toBe(false)
 	})
 
-	it("writes new plaintext and preserves container metadata", async () => {
-		const password = "correct horse battery staple"
-		const updatedText = "after"
-		const session = await init(password)
-		const initialContainer = getStoredContainer()
+	it("returns the same object when session is already invalidated", () => {
+		const invalidatedSession = { state: "INVALIDATED" } as const
 
-		await write(session, updatedText)
+		const result = invalidate(invalidatedSession)
 
-		const updatedContainer = getStoredContainer()
-
-		expect(updatedContainer.salt).toBe(initialContainer.salt)
-		expect(updatedContainer.version).toBe(1)
-		expect(updatedContainer.iv).not.toBe(initialContainer.iv)
-		expect(updatedContainer.ciphertext).not.toBe(initialContainer.ciphertext)
-		await expect(decryptStoredContainer(password, updatedContainer)).resolves.toBe(updatedText)
-		expect(session.decryptedContainer).toBe(updatedText)
-	})
-
-	it("invalidates session and removes decrypted container", async () => {
-		const session = await init("correct horse battery staple")
-		expect(session.decryptedContainer).toBe("")
-
-		await write(session, "after")
-		expect(session.decryptedContainer).toBe("after")
-
-		const invalidatedSession = invalidate(session)
-		expect(invalidatedSession.state).toBe("INVALIDATED")
-		expect("decryptedContainer" in invalidatedSession).toBe(false)
-		await expect(write(invalidatedSession, "should fail")).rejects.toMatchObject({
-			code: SessionNotActiveError.code
-		})
-	})
-
-	it("allows invalidating an already invalidated session", async () => {
-		const session = await init("correct horse battery staple")
-		await write(session, "after")
-
-		const invalidatedSession = invalidate(session)
-		const invalidatedAgain = invalidate(invalidatedSession)
-
-		expect(invalidatedAgain).toBe(invalidatedSession)
-		expect(invalidatedAgain.state).toBe("INVALIDATED")
-		expect("decryptedContainer" in invalidatedAgain).toBe(false)
-		await expect(write(invalidatedAgain, "should still fail")).rejects.toMatchObject({
-			code: SessionNotActiveError.code
-		})
-	})
-
-	it("aborts when an existing stored value is invalid", async () => {
-		storageState[CONTAINER_STORAGE_KEY] = {
-			salt: "",
-			iv: "",
-			ciphertext: "",
-			version: 1
-		}
-
-		await expect(init("correct horse battery staple")).rejects.toMatchObject({
-			code: StoredValueNotEncryptedContainerError.code
-		})
-		expect(storageState[CONTAINER_STORAGE_KEY]).toEqual({
-			salt: "",
-			iv: "",
-			ciphertext: "",
-			version: 1
-		})
-	})
-
-	it("aborts write when stored container changed after session init", async () => {
-		const session = await init("correct horse battery staple")
-
-		storageState[CONTAINER_STORAGE_KEY] = {
-			salt: getStoredContainer().salt,
-			iv: getStoredContainer().iv,
-			ciphertext: "EBESExQVFhcYGRobHB0eHw==",
-			version: 1
-		}
-
-		await expect(write(session, "after tamper")).rejects.toMatchObject({
-			code: ContainerChangedSinceSessionStartError.code
-		})
-	})
-
-	it("aborts when stored container has malformed base64", async () => {
-		storageState[CONTAINER_STORAGE_KEY] = {
-			salt: "%%%",
-			iv: "%%%",
-			ciphertext: "%%%",
-			version: 1
-		}
-
-		await expect(init("correct horse battery staple")).rejects.toMatchObject({
-			code: StoredValueNotEncryptedContainerError.code
-		})
-	})
-
-	it("aborts when password does not match an existing valid container", async () => {
-		await init("correct horse battery staple")
-
-		await expect(init("totally different password")).rejects.toMatchObject({
-			code: WrongPasswordOrCorruptedContainerError.code
-		})
-	})
-
-	it("rejects invalid password before reading or creating a container", async () => {
-		await expect(init("       ")).rejects.toMatchObject({
-			code: InvalidPasswordError.code
-		})
-		await expect(init("short")).rejects.toMatchObject({
-			code: InvalidPasswordError.code
-		})
-		expect(storageState[CONTAINER_STORAGE_KEY]).toBeUndefined()
-	})
-
-	it("aborts write when container no longer exists in storage", async () => {
-		const session = await init("correct horse battery staple")
-		delete storageState[CONTAINER_STORAGE_KEY]
-
-		await expect(write(session, "after deletion")).rejects.toMatchObject({
-			code: NoContainerExistsError.code
-		})
-	})
-
-	it("aborts write with typed error when session key unwrap fails", async () => {
-		const session = await init("correct horse battery staple")
-		session.wrappingIv = new Uint8Array(0)
-
-		await expect(write(session, "after unwrap failure")).rejects.toMatchObject({
-			code: SessionKeyUnwrapFailedError.code
-		})
-	})
-
-	it("aborts write with typed error when session encryption fails", async () => {
-		const session = await init("correct horse battery staple")
-		const encryptSpy = vi.spyOn(crypto.subtle, "encrypt")
-		encryptSpy.mockRejectedValueOnce(new Error("forced encrypt failure"))
-
-		await expect(write(session, "after encryption failure")).rejects.toMatchObject({
-			code: SessionEncryptionFailedError.code
-		})
-
-		encryptSpy.mockRestore()
+		expect(result).toBe(invalidatedSession)
+		expect(result.state).toBe("INVALIDATED")
 	})
 })

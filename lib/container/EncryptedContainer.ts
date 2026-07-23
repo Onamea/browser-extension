@@ -8,8 +8,6 @@ import {
 	PBKDF2_ITERATIONS,
 	SALT_LENGTH
 } from "./constants.ts"
-import { StoredValueNotEncryptedContainerError } from "./errors.ts"
-import { read, write } from "./storage.ts"
 import { getRandomBytes } from "./utils/getRandomBytes.ts"
 import { toBufferSource } from "./utils/toBufferSource.ts"
 import { toBase64, decodeBase64 } from "./utils/base64.ts"
@@ -155,22 +153,4 @@ export const create = async (password: Password): Promise<EncryptedContainer> =>
 		ciphertext: toBase64(new Uint8Array(ciphertextBuffer)),
 		version: ENCRYPTED_CONTAINER_VERSION
 	}
-}
-
-export const readContainer = async (): Promise<EncryptedContainer | undefined> => {
-	const value = await read()
-
-	if (value === undefined) {
-		return undefined
-	}
-
-	if (isEncryptedContainer(value) === false) {
-		throw StoredValueNotEncryptedContainerError
-	}
-
-	return value
-}
-
-export const writeContainer = async (container: EncryptedContainer): Promise<void> => {
-  await write(container)
 }

@@ -1,17 +1,8 @@
-import { clone, compareContainers, create, type EncryptedContainer, readContainer, writeContainer } from "./EncryptedContainer.ts"
+import { type EncryptedContainer, clone } from "./EncryptedContainer.ts"
+import { type Password, parsePassword } from "./Password.ts"
 import { GCM_IV_LENGTH, MASTER_KEY_LENGTH, PBKDF2_ITERATIONS } from "./constants.ts"
-import {
-	ContainerChangedSinceSessionStartError,
-	InvalidPasswordError,
-	NoContainerExistsError,
-	SessionEncryptionFailedError,
-	SessionKeyUnwrapFailedError,
-	SessionNotActiveError,
-	WrongPasswordOrCorruptedContainerError
-} from "./errors.ts"
 import { fromBase64, toBase64 } from "./utils/base64.ts"
 import { getRandomBytes } from "./utils/getRandomBytes.ts"
-import { type Password, parsePassword } from "./Password.ts"
 import { toBufferSource } from "./utils/toBufferSource.ts"
 
 export type SessionState = "ACTIVE" | "INVALIDATED"
@@ -92,9 +83,8 @@ const unwrapMasterKey = async (session: ActiveSession): Promise<CryptoKey> => {
 			false,
 			["encrypt", "decrypt"]
 		)
-	} catch (error) {
-		void error
-		throw SessionKeyUnwrapFailedError
+	} catch (_error) {
+		throw new Error("Failed to unwrap session key")
 	}
 }
 
@@ -103,20 +93,12 @@ const isActiveSession = (session: Session): session is ActiveSession => {
 }
 
 const unlockContainer = async (container: EncryptedContainer, password: Password): Promise<ActiveSession> => {
-	let salt: Uint8Array
-	let decryptedContainer: string
-	let masterKey: CryptoKey
+	const salt = fromBase64(container.salt)
+	const iv = fromBase64(container.iv)
+	const ciphertext = fromBase64(container.ciphertext)
+	const masterKey = await deriveMasterKey(password, salt, true)
+	const decryptedContainer = await decryptWithMasterKey(masterKey, iv, ciphertext)
 
-	try {
-		salt = fromBase64(container.salt)
-		const iv = fromBase64(container.iv)
-		const ciphertext = fromBase64(container.ciphertext)
-		masterKey = await deriveMasterKey(password, salt, true)
-		decryptedContainer = await decryptWithMasterKey(masterKey, iv, ciphertext)
-	} catch (error) {
-		void error
-		throw WrongPasswordOrCorruptedContainerError
-	}
 
 	const sessionKey = await crypto.subtle.generateKey(
 		{
@@ -150,21 +132,15 @@ const unlockContainer = async (container: EncryptedContainer, password: Password
 const encryptWithSession = async (session: ActiveSession, plaintext: string): Promise<EncryptedContainer> => {
 	const masterKey = await unwrapMasterKey(session)
 	const iv = getRandomBytes(GCM_IV_LENGTH)
-	let ciphertextBuffer: ArrayBuffer
 
-	try {
-		ciphertextBuffer = await crypto.subtle.encrypt(
-			{
-				name: "AES-GCM",
-				iv: toBufferSource(iv)
-			},
-			masterKey,
-			encoder.encode(plaintext)
-		)
-	} catch (error) {
-		void error
-		throw SessionEncryptionFailedError
-	}
+	const ciphertextBuffer = await crypto.subtle.encrypt(
+		{
+			name: "AES-GCM",
+			iv: toBufferSource(iv)
+		},
+		masterKey,
+		encoder.encode(plaintext)
+	)
 
 	return {
 		salt: session.container.salt,
@@ -174,43 +150,38 @@ const encryptWithSession = async (session: ActiveSession, plaintext: string): Pr
 	}
 }
 
-export const init = async (password: string): Promise<ActiveSession> => {
+export const unlock = async (container: EncryptedContainer, password: string): Promise<ActiveSession> => {
 	let parsedPassword: Password
-
 	try {
 		parsedPassword = parsePassword(password)
-	} catch (error) {
-		void error
-		throw InvalidPasswordError
+	} catch (_error) {
+		throw new Error("Invalid password")
 	}
 
-	const stored = await readContainer()
-
-	if (stored === undefined) {
-		const container = await create(parsedPassword)
-		await writeContainer(container)
+	try {
 		return await unlockContainer(container, parsedPassword)
-	} else {
-		return await unlockContainer(stored, parsedPassword)
+	} catch (_error) {
+		// Map crypto errors to meaningful domain error
+		throw new Error("Wrong password or corrupted container")
 	}
 }
 
-export const write = async (session: Session, content: string): Promise<void> => {
-	if (isActiveSession(session) === false) {
-		throw SessionNotActiveError
+export const checkPassword = async (session: ActiveSession, password: string): Promise<boolean> => {
+	try {
+		await unlock(session.container, password)
+		return true
+	} catch {
+		return false
 	}
+}
 
-	const stored = await readContainer()
-	if (stored === undefined) {
-		throw NoContainerExistsError
+export const update = async (session: ActiveSession, decryptedContainer: string): Promise<ActiveSession> => {
+	const encryptedContainer = await encryptWithSession(session, decryptedContainer)
+	return {
+		...session,
+		container: encryptedContainer,
+		decryptedContainer
 	}
-	if (compareContainers(stored, session.container) === false) {
-		throw ContainerChangedSinceSessionStartError
-	}
-	const encrypted = await encryptWithSession(session, content)
-	await writeContainer(encrypted)
-	session.container = clone(encrypted)
-	session.decryptedContainer = content
 }
 
 export const invalidate = (session: Session): InvalidatedSession => {
