@@ -1,30 +1,20 @@
-import type { NameKey, FingerprintedName, KeyPairDisplay } from "@vanice/types"
-import { type SlotData, decodeSlotData } from "../pdec.ts"
-
-export type SlotDataState = {
-  nameKey: NameKey
-  fingerprintedName: FingerprintedName
-  keyPair: KeyPairDisplay
-}
-
-export type SlotState = {
-  slot: SlotData
-  slotData: SlotDataState | undefined
-}
+import { type ContainerData, decodeSessionData } from "../container.ts"
 
 export type ExtensionState = {
   containerExists: boolean | undefined
-  slot: SlotState | undefined
+  raw: string | undefined
+  data: ContainerData | undefined
 }
 
 export type ExtensionAction =
   | { type: "SET_CONTAINER_EXISTS", payload: boolean | undefined }
-  | { type: "SET_SLOT", payload: SlotData | undefined }
-  | { type: "CLEAR_SLOT" }
+  | { type: "SET_DATA", payload: string | undefined }
+  | { type: "CLEAR_DATA" }
 
 export const initialState: ExtensionState = {
   containerExists: undefined,
-  slot: undefined
+  data: undefined,
+  raw: undefined
 }
 
 export const extensionReducer = (
@@ -34,22 +24,19 @@ export const extensionReducer = (
   switch (action.type) {
     case "SET_CONTAINER_EXISTS":
       return { ...state, containerExists: action.payload }
-    case "SET_SLOT": {
+    case "SET_DATA": {
       if (action.payload === undefined) {
-        return { ...state, slot: undefined }
+        return { ...state, raw: undefined, data: undefined }
       }
-      const slotData = decodeSlotData(action.payload)
-      return { ...state, slot: { slot: action.payload, slotData } }
+      const raw = action.payload
+      const data = decodeSessionData(raw)
+      return { ...state, data, raw }
     }
-    case "CLEAR_SLOT":
-      if (state.slot === undefined) return state
+    case "CLEAR_DATA":
       return {
         ...state,
-        containerExists: true,
-        slot: {
-          slot: { ...state.slot.slot, data: new Uint8Array() },
-          slotData: undefined
-        }
+        data: undefined,
+        raw: undefined
       }
     default:
       return state
@@ -60,12 +47,12 @@ export const setContainerExists = (dispatch: (action: ExtensionAction) => void, 
   dispatch({ type: "SET_CONTAINER_EXISTS", payload: value })
 }
 
-export const setSlot = (dispatch: (action: ExtensionAction) => void, slot: SlotData) => {
-  dispatch({ type: "SET_SLOT", payload: slot })
+export const setData = (dispatch: (action: ExtensionAction) => void, data: string) => {
+  dispatch({ type: "SET_DATA", payload: data })
 }
 
-export const clearSlot = (dispatch: (action: ExtensionAction) => void) => {
-  dispatch({ type: "CLEAR_SLOT" })
+export const clearData = (dispatch: (action: ExtensionAction) => void) => {
+  dispatch({ type: "CLEAR_DATA" })
 }
 
 export let backgroundState = initialState

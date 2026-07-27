@@ -1,18 +1,16 @@
-import type { SlotData } from "@mikeobank/pdec"
 import { useEffect, useState } from "react"
-import PassphraseEntryForm from "@/lib/components/PassphraseEntryForm.tsx"
-import SlotDisplay from "@/lib/components/SlotDisplay.tsx"
-import SignConfirmation from "@/lib/components/SignConfirmation.tsx"
 import type { PendingRequest } from "@/lib/background/signFlow.ts"
+import PassphraseEntryForm from "@/lib/components/PassphraseEntryForm.tsx"
+import ContainerDisplay from "@/lib/components/ContainerDisplay.tsx"
+import SignConfirmation from "@/lib/components/SignConfirmation.tsx"
 import useExtensionState from "@/lib/hooks/useExtensionState.ts"
 
 import "./App.css"
 
 const App = () => {
 
-  const { state, setSlot } = useExtensionState()
+  const { state, setData } = useExtensionState()
   const containerExists = state.containerExists
-  const slotState = state.slot
   const [pendingRequest, setPendingRequest] = useState<PendingRequest>()
 
   useEffect(() => {
@@ -24,8 +22,8 @@ const App = () => {
     })().catch(() => {})
   }, [])
 
-  const handleSetSlot = async (slot: SlotData) => {
-    await setSlot(slot)
+  const handleSetData = async (data: string) => {
+    await setData(data)
   }
 
   const handleSignDone = () => {
@@ -39,7 +37,7 @@ const App = () => {
 
   if (containerExists === undefined) return null
 
-  const isUnlocked = slotState !== undefined
+  const isUnlocked = state.raw !== undefined
   const isInitialized = isUnlocked || containerExists === true
   const showConfirmationForm = isUnlocked && pendingRequest !== undefined
 
@@ -48,8 +46,8 @@ const App = () => {
       ? <SignConfirmation pendingRequest={ pendingRequest } onDone={ handleSignDone } />
       : <>
           { isInitialized === false && <p>Not initialized</p> }
-          { isInitialized && isUnlocked === false && <PassphraseEntryForm setSlot={ handleSetSlot } /> }
-          { isUnlocked && <SlotDisplay slotState={ slotState } /> }
+          { isInitialized && isUnlocked === false && <PassphraseEntryForm setData={ handleSetData } /> }
+          { isUnlocked && <ContainerDisplay state={ state } /> }
           <button type="button" onClick={ handleOpenIndex }>Open Key Manager</button>
         </>
   )

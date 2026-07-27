@@ -264,7 +264,7 @@ describe("main.get", () => {
 
 		await main.initialize(password)
 
-		await expect(main.get(wrongPassword)).rejects.toThrow("Invalid password")
+		await expect(main.get(wrongPassword)).rejects.toThrow("Incorrect password")
 	})
 
 	it("throws after session is invalidated", async () => {
@@ -337,7 +337,7 @@ describe("main.set", () => {
 
 		await main.initialize(password)
 
-		await expect(main.set(wrongPassword, '{"version":2}')).rejects.toThrow("Invalid password")
+		await expect(main.set(wrongPassword, '{"version":2}')).rejects.toThrow("Incorrect password")
 	})
 
 	it("throws when validation function rejects content", async () => {

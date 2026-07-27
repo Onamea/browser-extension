@@ -1,19 +1,14 @@
-import { Link } from "react-router-dom"
 import PassphraseEntryForm from "@/lib/components/PassphraseEntryForm.tsx"
-import type { SlotData } from "@mikeobank/pdec"
 
 type Props = {
-  setSlot: (slot: SlotData) => void
+  setData: (data: string) => void
 }
 
-const Signin = ({ setSlot }: Props) => {
+const Signin = ({ setData }: Props) => {
   return (
     <div>
       <h1>Sign in</h1>
-      <PassphraseEntryForm setSlot={ setSlot } />
-      <div style={ { marginTop: "1rem" } }>
-        <Link to="/account/edit">Create slot</Link>
-      </div>
+      <PassphraseEntryForm setData={ setData } />
     </div>
   )
 }

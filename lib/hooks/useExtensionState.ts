@@ -2,13 +2,12 @@ import { useReducer, useEffect } from "react"
 import {
   extensionReducer,
   initialState,
-  clearSlot as clearSlotToDispatch,
+  clearData as clearDataToDispatch,
   setContainerExists as setContainerExistsToDispatch,
-  setSlot as setSlotToDispatch
+  setData as setDataToDispatch
 } from "../background/state.ts"
 
 import type { ExtensionState } from "../background/state.ts"
-import type { SlotData } from "../pdec.ts"
 
 type StateUpdatedMessage = {
   type: "STATE_UPDATED"
@@ -36,7 +35,7 @@ const useExtensionState = () => {
 
   const syncState = (nextState: ExtensionState) => {
     dispatch({ type: "SET_CONTAINER_EXISTS", payload: nextState.containerExists })
-    dispatch({ type: "SET_SLOT", payload: nextState.slot?.slot })
+    dispatch({ type: "SET_DATA", payload: nextState.raw })
   }
 
   // Fetch initial state from background on mount
@@ -64,22 +63,22 @@ const useExtensionState = () => {
     setContainerExistsToDispatch(dispatch, value)
   }
 
-  const setSlot = async (slot: SlotData) => {
-    await browser.runtime.sendMessage({ type: "SET_SLOT", slot })
+  const setData = async (data: string) => {
+    await browser.runtime.sendMessage({ type: "SET_DATA", data })
     setContainerExistsToDispatch(dispatch, true)
-    setSlotToDispatch(dispatch, slot)
+    setDataToDispatch(dispatch, data)
   }
 
-  const clearSlot = async () => {
-    await browser.runtime.sendMessage({ type: "CLEAR_SLOT" })
-    clearSlotToDispatch(dispatch)
+  const clearData = async () => {
+    await browser.runtime.sendMessage({ type: "CLEAR_DATA" })
+    clearDataToDispatch(dispatch)
   }
 
   return {
     state,
-    clearSlot,
+    clearData,
     setContainerExists,
-    setSlot
+    setData
   }
 }
 

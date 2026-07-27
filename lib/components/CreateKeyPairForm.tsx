@@ -4,16 +4,16 @@ import { useNavigate } from "react-router-dom"
 import { type Name, type FingerprintDisplay, isName, isNameOrFingerprintedName, nameKeyToFingerprintedName, parseFingerprintedName } from "@vanice/types"
 import { createWorkerPool } from "@vanice/vanice-pool"
 import ErrorDisplay from "./ErrorDisplay.tsx"
-import type { SlotData } from "../pdec.ts"
 import MiningProgress from "./MiningProgress.tsx"
+import { encodeSessionData } from "../container.ts"
 
 type Props = {
-	setSlot: (slot: SlotData) => Promise<void>
+	setData: (data: string) => Promise<void>
 }
 
 const url = new URL("../../assets/workers/worker.js", import.meta.url)
 
-const CreateKeyPairForm = ({ setSlot }: Props) => {
+const CreateKeyPairForm = ({ setData }: Props) => {
 	const [name, setName] = useState("")
 	const [nameToMine, setNameToMine] = useState<string>()
 	const [passphrase, setPassphrase] = useState("")
@@ -57,17 +57,17 @@ const CreateKeyPairForm = ({ setSlot }: Props) => {
 						cryptoName: result.cryptoName,
 						publicKey: result.publicKey,
 						publicKeyDisplay: result.publicKeyDisplay,
-						privateKey: result.privateKey,
-						privateKeyDisplay: result.privateKeyDisplay
+						privateKey: result.privateKey!,
+						privateKeyDisplay: result.privateKeyDisplay!
 					}
 				}
 				const response = await browser.runtime.sendMessage(
-					{ type: "WRITE_SLOT", data, passphrase }
+					{ type: "WRITE_DATA", data, passphrase }
 				)
-				if (response.slot === undefined) {
-					throw new Error(response.error ?? "WRITE_SLOT failed")
+				if (response.data === undefined) {
+					throw new Error(response.error ?? "WRITE_DATA failed")
 				}
-				await setSlot(response.slot)
+				await setData(encodeSessionData(data))
 				await navigate("/account")
 			}
 		} catch (error) {

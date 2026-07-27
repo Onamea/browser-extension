@@ -1,32 +1,31 @@
 import type { FormEvent } from "react"
-import type { SlotData } from "@mikeobank/pdec"
 import { useState } from "react"
+import { readSession } from "@/lib/container.ts"
 import ErrorDisplay from "./ErrorDisplay.tsx"
-import { validatePassphrase } from "@mikeobank/pdec"
-import { readSlot } from "@/lib/pdec.ts"
+import { isPassword } from "@/lib/container/main.ts"
 
 type Props = {
-  setSlot: (slot: SlotData) => void
+  setData: (data: string) => void
 }
 
-const PassphraseEntryForm = ({ setSlot }: Props) => {
+const PassphraseEntryForm = ({ setData }: Props) => {
   const [passphrase, setPassphrase] = useState("")
   const [errors, setErrors] = useState<string[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const result = validatePassphrase(passphrase)
-    if (result.errors.length > 0) {
-      setErrors(result.errors)
+    const errors = isPassword(passphrase) ? [] : ["Invalid passphrase"]
+    if (errors.length > 0) {
+      setErrors(errors)
       return
     }
     setErrors([])
     setIsSubmitting(true)
-    const slot = await readSlot(passphrase)
+    const data = await readSession(passphrase)
     setIsSubmitting(false)
-    if (slot !== undefined) {
-      setSlot(slot)
+    if (data !== undefined) {
+      setData(data)
     } else {
       setErrors(["Incorrect passphrase"])
     }

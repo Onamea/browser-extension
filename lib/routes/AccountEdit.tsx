@@ -1,18 +1,17 @@
 import { useNavigate } from "react-router-dom"
-import { type SlotData } from "../pdec.ts"
-import type { SlotState } from "../background/state.ts"
-import SlotDisplay from "@/lib/components/SlotDisplay.tsx"
+import type { ExtensionState } from "../background/state.ts"
+import ContainerDisplay from "@/lib/components/ContainerDisplay.tsx"
 import AddKeyPairForm from "@/lib/components/AddKeyPairForm.tsx"
 import CreateKeyPairForm from "../components/CreateKeyPairForm.tsx"
-import ClearSlotButton from "../components/ClearSlotButton.tsx"
+import ClearContainerButton from "../components/ClearContainerButton.tsx"
 
 type Props = {
-  slotState: SlotState
-  setSlot: (slot: SlotData) => Promise<void>
-  clearSlot: () => Promise<void>
+  state: ExtensionState
+  setData: (data: string) => Promise<void>
+  clearData: () => Promise<void>
 }
 
-const AccountEdit = ({ slotState, setSlot, clearSlot }: Props) => {
+const AccountEdit = ({ state, setData, clearData }: Props) => {
 
   const navigate = useNavigate()
 
@@ -22,11 +21,11 @@ const AccountEdit = ({ slotState, setSlot, clearSlot }: Props) => {
 
   return (
     <div>
-      <h1>Slot</h1>
-      <SlotDisplay slotState={ slotState } />
-      { slotState.slotData !== undefined && <ClearSlotButton onClearSlot={ clearSlot } /> }
-      { slotState.slotData === undefined && <AddKeyPairForm setSlot={ setSlot } /> }
-      { slotState.slotData === undefined && <CreateKeyPairForm setSlot={ setSlot } /> }
+      <h1>Container</h1>
+      <ContainerDisplay state={ state } />
+      { state.data !== undefined && <ClearContainerButton onClear={ clearData } /> }
+      { state.data === undefined && <AddKeyPairForm setData={ setData } /> }
+      { state.data === undefined && <CreateKeyPairForm setData={ setData } /> }
       <button type="button" onClick={ onClick }>cancel</button>
     </div>
   )

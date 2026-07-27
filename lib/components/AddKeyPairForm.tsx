@@ -1,8 +1,7 @@
 import type { FormEvent } from "react"
-import type { Identifier } from "@vanice/crdt"
-import { identify } from "@vanice/crdt"
 import { useState } from "react"
-import ErrorDisplay from "./ErrorDisplay.tsx"
+import type { Identifier } from "@vanice/crdt"
+import { identify, isIdentifier } from "@vanice/crdt"
 import { 
   type MnemonicDisplayWithPassphrase, 
   type PrivateKeyDisplay, 
@@ -11,14 +10,14 @@ import {
   isNameKey,
   nameKeyToFingerprintedName
 } from "@vanice/types"
-import { isIdentifier } from "@vanice/crdt"
-import type { SlotData } from "../pdec.ts"
+import { encodeSessionData } from "@/lib/container.ts"
+import ErrorDisplay from "./ErrorDisplay.tsx"
 
 type Props = {
-  setSlot: (slot: SlotData) => Promise<void>
+  setData: (data: string) => Promise<void>
 }
 
-const AddKeyPairForm = ({ setSlot }: Props) => {
+const AddKeyPairForm = ({ setData }: Props) => {
   const [identifier, setIdentifier] = useState("")
   const [privateKeyOrMnemonic, setPrivateKeyOrMnemonic] = useState("")
   const [passphrase, setPassphrase] = useState("")
@@ -37,15 +36,16 @@ const AddKeyPairForm = ({ setSlot }: Props) => {
         fingerprintedName,
         keyPair
       }
+      // TODO: Do not send passphrase
       const response = await browser.runtime.sendMessage(
-        { type: "WRITE_SLOT", data, passphrase }
+        { type: "WRITE_DATA", data, passphrase }
       )
-      if (response.slot === undefined) {
-        throw new Error(response.error ?? "WRITE_SLOT failed")
+      if (response.data === undefined) {
+        throw new Error(response.error ?? "WRITE_DATA failed")
       }
-      await setSlot(response.slot)
+      await setData(encodeSessionData(data))
     } catch (error) {
-      console.error("Failed to identify key pair:", error)
+      setErrors([`Failed to identify key pair: ${ String(error) }`])
     }
   }
 

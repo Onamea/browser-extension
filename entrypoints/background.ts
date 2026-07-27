@@ -1,15 +1,16 @@
-import { type SlotData, openContainer, writeSlot } from "@/lib/pdec.ts"
-import { type SlotDataState, backgroundState, backgroundDispatch, setContainerExists, setSlot } from "@/lib/background/state.ts"
+import type { ContainerData } from "@/lib/container.ts"
+import { checkStorage, set } from "@/lib/container/main.ts"
+import { backgroundState, backgroundDispatch, setContainerExists, setData } from "@/lib/background/state.ts"
 import { getPendingRequest, handleSign, handleConfirmSign, handleRejectSign } from "@/lib/background/signFlow.ts"
 
-type SetSlotMessage = {
-  type: "SET_SLOT"
-  slot: SlotData
+type SetDataMessage = {
+  type: "SET_DATA"
+  data: string
 }
 
-type WriteSlotMessage = {
-  type: "WRITE_SLOT"
-  data: SlotDataState
+type WriteDataMessage = {
+  type: "WRITE_DATA"
+  data: ContainerData
   passphrase: string
 }
 
@@ -37,8 +38,8 @@ type RejectSignMessage = {
 
 type GetStateMessage = { type: "GET_STATE" }
 type SetContainerExistsMessage = { type: "SET_CONTAINER_EXISTS", value: boolean | undefined }
-type ClearSlotMessage = { type: "CLEAR_SLOT" }
-type Message = SetSlotMessage | WriteSlotMessage | IdentifyMessage | SignMessage | GetPendingRequestMessage | ConfirmSignMessage | RejectSignMessage | GetStateMessage | SetContainerExistsMessage | ClearSlotMessage
+type ClearDataMessage = { type: "CLEAR_DATA" }
+type Message = SetDataMessage | WriteDataMessage | IdentifyMessage | SignMessage | GetPendingRequestMessage | ConfirmSignMessage | RejectSignMessage | GetStateMessage | SetContainerExistsMessage | ClearDataMessage
 
 const broadcastState = () => {
   browser.runtime.sendMessage({ type: "STATE_UPDATED", state: backgroundState })
@@ -73,7 +74,7 @@ export default defineBackground(() => {
 
       case "GET_STATE": {
         if (backgroundState.containerExists === undefined) {
-          openContainer()
+          checkStorage()
             .then(exists => {
               setContainerExists(backgroundDispatch, exists)
               sendResponse({ state: backgroundState })
@@ -88,9 +89,9 @@ export default defineBackground(() => {
         return false
       }
 
-      case "SET_SLOT": {
+      case "SET_DATA": {
         setContainerExists(backgroundDispatch, true)
-        setSlot(backgroundDispatch, message.slot)
+        setData(backgroundDispatch, message.data)
         broadcastState()
         sendResponse({ ok: true })
         return false
@@ -103,39 +104,38 @@ export default defineBackground(() => {
         return false
       }
 
-      case "WRITE_SLOT": {
-        writeSlot(message.passphrase, JSON.stringify(message.data))
-          .then(slot => {
+      case "WRITE_DATA": {
+        set(message.passphrase, JSON.stringify(message.data))
+          .then(() => {
             setContainerExists(backgroundDispatch, true)
-            setSlot(backgroundDispatch, slot)
+            setData(backgroundDispatch, JSON.stringify(message.data))
             broadcastState()
-            sendResponse({ slot })
+            sendResponse({ data: message.data })
           })
           .catch(error => sendResponse({ error: String(error) }))
         return true
       }
 
-      case "CLEAR_SLOT": {
-        backgroundDispatch({ type: "CLEAR_SLOT" })
+      case "CLEAR_DATA": {
+        backgroundDispatch({ type: "CLEAR_DATA" })
         broadcastState()
         sendResponse({ ok: true })
         return false
       }
 
       case "IDENTIFY": {
-        const slot = backgroundState.slot
-        if (slot?.slotData === undefined) {
+        if (backgroundState.data === undefined) {
           sendResponse({ error: "Not initialized" })
           return false
         }
-        sendResponse({ nameKey: slot.slotData.nameKey })
+        sendResponse({ nameKey: backgroundState.data.nameKey })
         return false
       }
 
       case "GET_PENDING_REQUEST": {
         const buildResponse = () => ({
           pendingRequest: getPendingRequest(),
-          slot: backgroundState.slot?.slot
+          data: backgroundState.data
         })
         sendResponse(buildResponse())
         return false
@@ -148,7 +148,7 @@ export default defineBackground(() => {
       }
 
       case "CONFIRM_SIGN": {
-        return handleConfirmSign(backgroundState.slot, sendResponse)
+        return handleConfirmSign(backgroundState, sendResponse)
       }
 
       case "REJECT_SIGN": {

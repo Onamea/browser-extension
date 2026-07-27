@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router-dom"
-import type { SlotState } from "../background/state.ts"
-import SlotDisplay from "../components/SlotDisplay.tsx"
+import type { ExtensionState } from "../background/state.ts"
+import ContainerDisplay from "../components/ContainerDisplay.tsx"
 
 type Props = {
-  slotState: SlotState
+  state: ExtensionState
 }
 
-const Account = ({ slotState }: Props) => {
+const Account = ({ state }: Props) => {
 
   const navigate = useNavigate()
 
@@ -16,7 +16,7 @@ const Account = ({ slotState }: Props) => {
 
   return (
     <>
-      <SlotDisplay slotState={ slotState } />
+      <ContainerDisplay state={ state } />
       <button type="button" onClick={ onClick }>Edit</button>
     </>
   )
