@@ -87,6 +87,7 @@ describe("main.initialize", () => {
 
 		expect(result.hasContainer).toBe(false)
 		expect(result.content).toBeUndefined()
+		expect(result.accessKey).toBeUndefined()
 	})
 
 	it("initializes with existing container and correct password", async () => {
@@ -104,6 +105,7 @@ describe("main.initialize", () => {
 
 		expect(result.hasContainer).toBe(true)
 		expect(result.content).toBe(content)
+		expect(result.accessKey).toBeDefined()
 	})
 
 	it("throws for wrong password", async () => {
@@ -178,7 +180,7 @@ describe("main.get", () => {
 		main.deinitialize()
 	})
 
-	it("retrieves content with correct password after initialization", async () => {
+	it("retrieves content with valid session key after initialization", async () => {
 		const password = "CorrectHorseBatteryStaple123!"
 		const content = '{"data":"secret"}'
 		const container = await createMockContainer(password, content)
@@ -189,20 +191,20 @@ describe("main.get", () => {
 			}
 		})
 
-		await main.initialize(password)
-		const result = await main.get(password)
+		const initResult = await main.initialize(password)
+		const result = await main.get(initResult.accessKey!)
 
 		expect(result.hasContainer).toBe(true)
 		expect(result.content).toBe(content)
+		expect(result.accessKey).toBe(initResult.accessKey)
 	})
 
 	it("throws when get called without initialization", async () => {
 		await expect(main.get("CorrectHorseBatteryStaple123!")).rejects.toThrow("No active session")
 	})
 
-	it("throws with wrong password", async () => {
+	it("throws with invalid session key", async () => {
 		const password = "CorrectHorseBatteryStaple123!"
-		const wrongPassword = "WrongPassword123!"
 		const content = '{"data":"secret"}'
 		const container = await createMockContainer(password, content)
 
@@ -214,7 +216,7 @@ describe("main.get", () => {
 
 		await main.initialize(password)
 
-		await expect(main.get(wrongPassword)).rejects.toThrow("Incorrect password")
+		await expect(main.get("not-the-session-key")).rejects.toThrow("Invalid session key")
 	})
 
 	it("throws after session is invalidated", async () => {
@@ -228,10 +230,10 @@ describe("main.get", () => {
 			}
 		})
 
-		await main.initialize(password)
+		const initResult = await main.initialize(password)
 		main.deinitialize()
 
-		await expect(main.get(password)).rejects.toThrow("No active session")
+		await expect(main.get(initResult.accessKey!)).rejects.toThrow("No active session")
 	})
 })
 
@@ -244,7 +246,7 @@ describe("main.set", () => {
 		main.deinitialize()
 	})
 
-	it("updates content with correct password", async () => {
+	it("updates content with valid session key", async () => {
 		const password = "CorrectHorseBatteryStaple123!"
 		const initialContent = '{"version":1}'
 		const newContent = '{"version":2}'
@@ -261,8 +263,8 @@ describe("main.set", () => {
 			}
 		})
 
-		await main.initialize(password)
-		await main.set(password, newContent)
+		const initResult = await main.initialize(password)
+		await main.set(initResult.accessKey!, newContent)
 
 		expect(setMock).toHaveBeenCalled()
 	})
@@ -273,9 +275,8 @@ describe("main.set", () => {
 		)
 	})
 
-	it("throws with wrong password", async () => {
+	it("throws with invalid session key", async () => {
 		const password = "CorrectHorseBatteryStaple123!"
-		const wrongPassword = "WrongPassword123!"
 		const content = '{"version":1}'
 		const container = await createMockContainer(password, content)
 
@@ -287,7 +288,7 @@ describe("main.set", () => {
 
 		await main.initialize(password)
 
-		await expect(main.set(wrongPassword, '{"version":2}')).rejects.toThrow("Incorrect password")
+		await expect(main.set("not-the-session-key", '{"version":2}')).rejects.toThrow("Invalid session key")
 	})
 
 	it("throws when content is identical to current content", async () => {
@@ -301,9 +302,9 @@ describe("main.set", () => {
 			}
 		})
 
-		await main.initialize(password)
+		const initResult = await main.initialize(password)
 
-		await expect(main.set(password, content)).rejects.toThrow(
+		await expect(main.set(initResult.accessKey!, content)).rejects.toThrow(
 			"Content is the same as the current content"
 		)
 	})
@@ -323,9 +324,9 @@ describe("main.set", () => {
 			}
 		})
 
-		await main.initialize(password)
+		const initResult = await main.initialize(password)
 
-		await expect(main.set(password, newContent)).rejects.toThrow(
+		await expect(main.set(initResult.accessKey!, newContent)).rejects.toThrow(
 			"Failed to write to extension storage"
 		)
 	})
@@ -342,10 +343,10 @@ describe("main.set", () => {
 			}
 		})
 
-		await main.initialize(password)
-		await main.set(password, newContent)
+		const initResult = await main.initialize(password)
+		await main.set(initResult.accessKey!, newContent)
 
-		const result = await main.get(password)
+		const result = await main.get(initResult.accessKey!)
 		expect(result.content).toBe(newContent)
 	})
 
@@ -392,12 +393,12 @@ describe("main.set", () => {
 			}
 		})
 
-		await main.initialize(password)
+		const initResult = await main.initialize(password)
 
-		const firstSet = main.set(password, firstContent)
+		const firstSet = main.set(initResult.accessKey!, firstContent)
 		await firstWriteStarted
 
-		const secondSet = main.set(password, secondContent)
+		const secondSet = main.set(initResult.accessKey!, secondContent)
 		await Promise.resolve()
 
 		expect(setCallCount).toBe(1)
@@ -408,7 +409,7 @@ describe("main.set", () => {
 		expect(maxConcurrentSetCalls).toBe(1)
 		expect(setCallCount).toBe(2)
 
-		const result = await main.get(password)
+		const result = await main.get(initResult.accessKey!)
 		expect(result.content).toBe(secondContent)
 	})
 })
@@ -429,10 +430,10 @@ describe("main.deinitialize", () => {
 			}
 		})
 
-		await main.initialize(password)
+		const initResult = await main.initialize(password)
 		main.deinitialize()
 
-		await expect(main.get(password)).rejects.toThrow("No active session")
+		await expect(main.get(initResult.accessKey!)).rejects.toThrow("No active session")
 	})
 
 	it("can be called multiple times safely", () => {
@@ -484,6 +485,7 @@ describe("main.deinitialize", () => {
 		const result2 = await main.initialize(password)
 		expect(result2.hasContainer).toBe(true)
 		expect(result2.content).toBe(content)
+		expect(result2.accessKey).toBeDefined()
 	})
 })
 
@@ -510,18 +512,19 @@ describe("main state transitions", () => {
 
 		const initResult = await main.initialize(password)
 		expect(initResult.content).toBe(initialContent)
+		expect(initResult.accessKey).toBeDefined()
 
-		const getResult = await main.get(password)
+		const getResult = await main.get(initResult.accessKey!)
 		expect(getResult.content).toBe(initialContent)
 
-		await main.set(password, newContent)
+		await main.set(initResult.accessKey!, newContent)
 
-		const getResult2 = await main.get(password)
+		const getResult2 = await main.get(initResult.accessKey!)
 		expect(getResult2.content).toBe(newContent)
 
 		main.deinitialize()
 
-		await expect(main.get(password)).rejects.toThrow("No active session")
+		await expect(main.get(initResult.accessKey!)).rejects.toThrow("No active session")
 	})
 
 	it("re-initialization after deinitialize", async () => {
@@ -535,11 +538,12 @@ describe("main state transitions", () => {
 			}
 		})
 
-		await main.initialize(password)
+		const initResult = await main.initialize(password)
 		main.deinitialize()
 
 		const result = await main.initialize(password)
 		expect(result.content).toBe(content)
+		expect(result.accessKey).not.toBe(initResult.accessKey)
 	})
 
 	it("multiple get calls maintain state", async () => {
@@ -553,11 +557,11 @@ describe("main state transitions", () => {
 			}
 		})
 
-		await main.initialize(password)
+		const initResult = await main.initialize(password)
 
-		const get1 = await main.get(password)
-		const get2 = await main.get(password)
-		const get3 = await main.get(password)
+		const get1 = await main.get(initResult.accessKey!)
+		const get2 = await main.get(initResult.accessKey!)
+		const get3 = await main.get(initResult.accessKey!)
 
 		expect(get1.content).toBe(content)
 		expect(get2.content).toBe(content)

@@ -1,26 +1,51 @@
 import { create as createEncryptedContainer, isEncryptedContainer } from "./EncryptedContainer.ts"
 import { parsePassword } from "./Password.ts"
-import { type Session, checkPassword, invalidate, unlock, update } from "./Session.ts"
+import { type ActiveSession, type Session, invalidate, unlock, update } from "./Session.ts"
 import { read, write } from "./storage.ts"
 import { createWriteQueue } from "./utils/writeQueue.ts"
 import { compareUint8Arrays } from "./utils/compareUint8Arrays.ts"
 import { encode, decode } from "./utils/codec.ts"
 
 export { isPassword } from "./Password.ts"
+export type { ActiveSession, Session, InvalidatedSession } from "./Session.ts"
+export type { AccessKey } from "./AccessKey.ts"
 
 type Result = {
   hasContainer: boolean
   content: string | undefined
+  accessKey: ActiveSession["accessKey"] | undefined
 }
 
 let session: Session | undefined = undefined
 const enqueueWrite = createWriteQueue()
 
+const getActiveSession = (): ActiveSession => {
+  if (session === undefined || session.state !== "ACTIVE") {
+    throw new Error("No active session")
+  }
+  return session
+}
+
+const assertAccessKey = (accessKey: string): void => {
+  const currentSession = getActiveSession()
+  if (accessKey !== currentSession.accessKey) {
+    throw new Error("Invalid session key")
+  }
+}
+
+export const checkStorage = async (): Promise<boolean> => {
+  const result = await read()
+  return result !== undefined
+}
+
 export const create = async (password: string): Promise<void> => {
+
   const parsedPassword = parsePassword(password)
+
   if (await checkStorage()) {
     throw new Error("Storage already exists")
   }
+
   const container = await createEncryptedContainer(parsedPassword)
   await write(container)
 }
@@ -35,7 +60,7 @@ export const initialize = async (password: string): Promise<Result> => {
 
   const result = await read()
   if (result === undefined) {
-    return { hasContainer: false, content: undefined }
+    return { hasContainer: false, content: undefined, accessKey: undefined }
   }
 
   if (isEncryptedContainer(result) === false) {
@@ -45,53 +70,37 @@ export const initialize = async (password: string): Promise<Result> => {
   session = await unlock(result, parsedPassword)
   const content = decode(session.raw)
 
-  return { hasContainer: true, content }
+  return { hasContainer: true, content, accessKey: session.accessKey }
 }
 
-export const checkStorage = async (): Promise<boolean> => {
-  const result = await read()
-  return result !== undefined
-}
-
-export const get = async (password: string): Promise<Result> => {
-
-  const parsedPassword = parsePassword(password)
-
-  if (session === undefined || session.state !== "ACTIVE") {
-    throw new Error("No active session")
+export const get = (accessKey: string): Promise<Result> => {
+  try {
+    const currentSession = getActiveSession()
+    assertAccessKey(accessKey)
+    return Promise.resolve({ hasContainer: true, content: decode(currentSession.raw), accessKey: currentSession.accessKey })
+  } catch (error) {
+    return Promise.reject(error)
   }
-  if (await checkPassword(session, parsedPassword) === false) {
-    throw new Error("Incorrect password")
-  }
-  return { hasContainer: true, content: decode(session.raw) }
 }
 
-export const set = async (password: string, content: string): Promise<void> => {
-
-  const parsedPassword = parsePassword(password)
+export const set = async (accessKey: string, content: string): Promise<void> => {
 
   const nextRaw = encode(content)
 
-  if (session === undefined || session.state !== "ACTIVE") {
-    throw new Error("No active session")
-  }
-  if (await checkPassword(session, parsedPassword) === false) {
-    throw new Error("Incorrect password")
-  }
-  if (compareUint8Arrays(session.raw, nextRaw)) {
+  const currentSession = getActiveSession()
+  assertAccessKey(accessKey)
+  if (compareUint8Arrays(currentSession.raw, nextRaw)) {
     throw new Error("Content is the same as the current content")
   }
 
   await enqueueWrite(async () => {
-    const currentSession = session
-    if (currentSession === undefined || currentSession.state !== "ACTIVE") {
-      throw new Error("No active session")
-    }
-    if (compareUint8Arrays(currentSession.raw, nextRaw)) {
+    const queuedSession = getActiveSession()
+    assertAccessKey(accessKey)
+    if (compareUint8Arrays(queuedSession.raw, nextRaw)) {
       throw new Error("Content is the same as the current content")
     }
 
-    const updatedSession = await update(currentSession, nextRaw)
+    const updatedSession = await update(queuedSession, nextRaw)
     await write(updatedSession.container)
     session = updatedSession
   })

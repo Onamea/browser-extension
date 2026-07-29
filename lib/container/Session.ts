@@ -1,4 +1,5 @@
 import { type EncryptedContainer, clone } from "./EncryptedContainer.ts"
+import { generateAccessKey } from "./AccessKey.ts"
 import { type Password, parsePassword } from "./Password.ts"
 import { GCM_IV_LENGTH, MASTER_KEY_LENGTH, PBKDF2_ITERATIONS } from "./constants.ts"
 import { fromBase64, toBase64 } from "./utils/base64.ts"
@@ -9,7 +10,8 @@ export type SessionState = "ACTIVE" | "INVALIDATED"
 
 export type ActiveSession = {
 	state: Extract<SessionState, "ACTIVE">
-	sessionKey: CryptoKey
+	accessKey: string
+	wrappingKey: CryptoKey
 	wrappedMasterKey: ArrayBuffer
 	wrappingIv: Uint8Array
 	raw: Uint8Array
@@ -69,7 +71,7 @@ const unwrapMasterKey = async (session: ActiveSession): Promise<CryptoKey> => {
 		return await crypto.subtle.unwrapKey(
 			"raw",
 			session.wrappedMasterKey,
-			session.sessionKey,
+			session.wrappingKey,
 			{
 				name: "AES-GCM",
 				iv: toBufferSource(session.wrappingIv)
@@ -97,8 +99,9 @@ const unlockContainer = async (container: EncryptedContainer, password: Password
 	const masterKey = await deriveMasterKey(password, salt, true)
 	const raw = await decryptWithMasterKey(masterKey, iv, ciphertext)
 
+	const accessKey = generateAccessKey()
 
-	const sessionKey = await crypto.subtle.generateKey(
+	const wrappingKey = await crypto.subtle.generateKey(
 		{
 			name: "AES-GCM",
 			length: MASTER_KEY_LENGTH
@@ -110,7 +113,7 @@ const unlockContainer = async (container: EncryptedContainer, password: Password
 	const wrappedMasterKey = await crypto.subtle.wrapKey(
 		"raw",
 		masterKey,
-		sessionKey,
+		wrappingKey,
 		{
 			name: "AES-GCM",
 			iv: toBufferSource(wrappingIv)
@@ -119,7 +122,8 @@ const unlockContainer = async (container: EncryptedContainer, password: Password
 
 	return {
 		state: "ACTIVE",
-		sessionKey,
+		accessKey,
+		wrappingKey,
 		wrappedMasterKey,
 		wrappingIv,
 		raw,
@@ -193,7 +197,8 @@ export const invalidate = (session: Session): InvalidatedSession => {
 	session.raw = new Uint8Array(0)
 
 	const mutableSession = session as Record<string, unknown>
-	Reflect.deleteProperty(mutableSession, "sessionKey")
+	Reflect.deleteProperty(mutableSession, "accessKey")
+	Reflect.deleteProperty(mutableSession, "wrappingKey")
 	Reflect.deleteProperty(mutableSession, "wrappedMasterKey")
 	Reflect.deleteProperty(mutableSession, "wrappingIv")
 	Reflect.deleteProperty(mutableSession, "container")

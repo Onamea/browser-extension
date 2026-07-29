@@ -5,7 +5,7 @@ import { createSession } from "../container.ts"
 import { isPassword } from "../container/main.ts"
 
 type Props = {
-  setData: (data: string) => void
+  setData: (data: string, accessKey: string) => void
 }
 
 const CreatePassphraseForm = ({ setData }: Props) => {
@@ -27,9 +27,9 @@ const CreatePassphraseForm = ({ setData }: Props) => {
     setErrors([])
     setIsSubmitting(true)
     try {
-      const success = await createSession(passphrase)
-      if (success) {
-        setData("")
+      const accessKey = await createSession(passphrase)
+      if (accessKey !== undefined) {
+        setData("", accessKey)
       }
     } catch (error) {
       setErrors([String(error)])

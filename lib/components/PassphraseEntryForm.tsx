@@ -5,7 +5,7 @@ import ErrorDisplay from "./ErrorDisplay.tsx"
 import { isPassword } from "@/lib/container/main.ts"
 
 type Props = {
-  setData: (data: string) => void
+  setData: (data: string, accessKey: string) => void
 }
 
 const PassphraseEntryForm = ({ setData }: Props) => {
@@ -22,10 +22,10 @@ const PassphraseEntryForm = ({ setData }: Props) => {
     }
     setErrors([])
     setIsSubmitting(true)
-    const data = await readSession(passphrase)
+    const sessionResult = await readSession(passphrase)
     setIsSubmitting(false)
-    if (data !== undefined) {
-      setData(data)
+    if (sessionResult !== undefined && sessionResult.accessKey !== undefined) {
+      setData(sessionResult.content ?? "", sessionResult.accessKey)
     } else {
       setErrors(["Incorrect passphrase"])
     }

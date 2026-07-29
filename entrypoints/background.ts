@@ -1,17 +1,18 @@
 import type { ContainerData } from "@/lib/container.ts"
 import { checkStorage, set } from "@/lib/container/main.ts"
-import { backgroundState, backgroundDispatch, setContainerExists, setData } from "@/lib/background/state.ts"
+import { backgroundState, backgroundDispatch, setContainerExists, setData, setAccessKey } from "@/lib/background/state.ts"
 import { getPendingRequest, handleSign, handleConfirmSign, handleRejectSign } from "@/lib/background/signFlow.ts"
 
 type SetDataMessage = {
   type: "SET_DATA"
   data: string
+  accessKey?: string
 }
 
 type WriteDataMessage = {
   type: "WRITE_DATA"
   data: ContainerData
-  passphrase: string
+  accessKey?: string
 }
 
 type IdentifyMessage = {
@@ -92,6 +93,9 @@ export default defineBackground(() => {
       case "SET_DATA": {
         setContainerExists(backgroundDispatch, true)
         setData(backgroundDispatch, message.data)
+        if (message.accessKey !== undefined) {
+          setAccessKey(backgroundDispatch, message.accessKey)
+        }
         broadcastState()
         sendResponse({ ok: true })
         return false
@@ -105,10 +109,17 @@ export default defineBackground(() => {
       }
 
       case "WRITE_DATA": {
-        set(message.passphrase, JSON.stringify(message.data))
+        const accessKey = message.accessKey ?? backgroundState.accessKey
+        if (accessKey === undefined) {
+          sendResponse({ error: "No active session key" })
+          return false
+        }
+
+        set(accessKey, JSON.stringify(message.data))
           .then(() => {
             setContainerExists(backgroundDispatch, true)
             setData(backgroundDispatch, JSON.stringify(message.data))
+            setAccessKey(backgroundDispatch, accessKey)
             broadcastState()
             sendResponse({ data: message.data })
           })

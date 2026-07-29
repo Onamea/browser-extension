@@ -1,7 +1,7 @@
 import PassphraseEntryForm from "@/lib/components/PassphraseEntryForm.tsx"
 
 type Props = {
-  setData: (data: string) => void
+  setData: (data: string, accessKey: string) => void
 }
 
 const Signin = ({ setData }: Props) => {

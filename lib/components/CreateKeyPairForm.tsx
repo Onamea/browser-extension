@@ -16,7 +16,6 @@ const url = new URL("../../assets/workers/worker.js", import.meta.url)
 const CreateKeyPairForm = ({ setData }: Props) => {
 	const [name, setName] = useState("")
 	const [nameToMine, setNameToMine] = useState<string>()
-	const [passphrase, setPassphrase] = useState("")
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [errors, setErrors] = useState<string[]>([])
 	const [progress, setProgress] = useState<{ totalAttempts: number }>()
@@ -62,7 +61,7 @@ const CreateKeyPairForm = ({ setData }: Props) => {
 					}
 				}
 				const response = await browser.runtime.sendMessage(
-					{ type: "WRITE_DATA", data, passphrase }
+					{ type: "WRITE_DATA", data }
 				)
 				if (response.data === undefined) {
 					throw new Error(response.error ?? "WRITE_DATA failed")
@@ -88,16 +87,6 @@ const CreateKeyPairForm = ({ setData }: Props) => {
 					onChange={ event => setName(event.target.value) }
 					placeholder="Name"
 					disabled={ isSubmitting }
-				/>
-			</div>
-			<div>
-				<label htmlFor="passphrase">Passphrase:</label>
-				<input
-					id="passphrase"
-					type="password"
-					value={ passphrase }
-					onChange={ event => setPassphrase(event.target.value) }
-					placeholder="Passphrase"
 				/>
 			</div>
 			{ progress !== undefined && nameToMine !== undefined && <MiningProgress nameLength={ nameToMine.length } totalAttempts={ progress.totalAttempts } /> }

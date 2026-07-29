@@ -32,8 +32,8 @@ const AppRoutes = () => {
     }
   }, [containerExists, isUnlocked, navigate, location.pathname])
 
-  const handleSetData = async (data: string) => {
-    await setData(data)
+  const handleSetData = async (data: string, accessKey?: string) => {
+    await setData(data, accessKey)
   }
 
   // Wait for async container check before rendering routes

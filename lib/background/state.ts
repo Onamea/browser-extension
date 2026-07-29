@@ -4,17 +4,20 @@ export type ExtensionState = {
   containerExists: boolean | undefined
   raw: string | undefined
   data: ContainerData | undefined
+  accessKey: string | undefined
 }
 
 export type ExtensionAction =
   | { type: "SET_CONTAINER_EXISTS", payload: boolean | undefined }
   | { type: "SET_DATA", payload: string | undefined }
+  | { type: "SET_ACCESS_KEY", payload: string | undefined }
   | { type: "CLEAR_DATA" }
 
 export const initialState: ExtensionState = {
   containerExists: undefined,
   data: undefined,
-  raw: undefined
+  raw: undefined,
+  accessKey: undefined
 }
 
 export const extensionReducer = (
@@ -32,11 +35,14 @@ export const extensionReducer = (
       const data = decodeSessionData(raw)
       return { ...state, data, raw }
     }
+    case "SET_ACCESS_KEY":
+      return { ...state, accessKey: action.payload }
     case "CLEAR_DATA":
       return {
         ...state,
         data: undefined,
-        raw: undefined
+        raw: undefined,
+          accessKey: undefined
       }
     default:
       return state
@@ -49,6 +55,10 @@ export const setContainerExists = (dispatch: (action: ExtensionAction) => void, 
 
 export const setData = (dispatch: (action: ExtensionAction) => void, data: string) => {
   dispatch({ type: "SET_DATA", payload: data })
+}
+
+export const setAccessKey = (dispatch: (action: ExtensionAction) => void, accessKey: string | undefined) => {
+  dispatch({ type: "SET_ACCESS_KEY", payload: accessKey })
 }
 
 export const clearData = (dispatch: (action: ExtensionAction) => void) => {

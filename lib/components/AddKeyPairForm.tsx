@@ -20,11 +20,10 @@ type Props = {
 const AddKeyPairForm = ({ setData }: Props) => {
   const [identifier, setIdentifier] = useState("")
   const [privateKeyOrMnemonic, setPrivateKeyOrMnemonic] = useState("")
-  const [passphrase, setPassphrase] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<string[]>([])
 
-  const addKeyPair = async (identifier: Identifier, privateKeyOrMnemonic: PrivateKeyDisplay | MnemonicDisplayWithPassphrase, passphrase: string) => {
+  const addKeyPair = async (identifier: Identifier, privateKeyOrMnemonic: PrivateKeyDisplay | MnemonicDisplayWithPassphrase) => {
     try {
       const [nameKey, keyPair] = await identify(identifier, privateKeyOrMnemonic)
       if (isNameKey(nameKey) === false) {
@@ -36,9 +35,8 @@ const AddKeyPairForm = ({ setData }: Props) => {
         fingerprintedName,
         keyPair
       }
-      // TODO: Do not send passphrase
       const response = await browser.runtime.sendMessage(
-        { type: "WRITE_DATA", data, passphrase }
+        { type: "WRITE_DATA", data }
       )
       if (response.data === undefined) {
         throw new Error(response.error ?? "WRITE_DATA failed")
@@ -62,7 +60,7 @@ const AddKeyPairForm = ({ setData }: Props) => {
       setIsSubmitting(false)
       return
     }
-    await addKeyPair(identifier, privateKeyOrMnemonic, passphrase)
+    await addKeyPair(identifier, privateKeyOrMnemonic)
     setIsSubmitting(false)
   }
 
@@ -86,16 +84,6 @@ const AddKeyPairForm = ({ setData }: Props) => {
           value={ privateKeyOrMnemonic }
           onChange={ event => setPrivateKeyOrMnemonic(event.target.value) }
           placeholder="Private key or mnemonic"
-        />
-      </div>
-      <div>
-        <label htmlFor="passphrase">Passphrase:</label>
-        <input
-          id="passphrase"
-          type="password"
-          value={ passphrase }
-          onChange={ event => setPassphrase(event.target.value) }
-          placeholder="Passphrase"
         />
       </div>
       <ErrorDisplay errors={ errors } />

@@ -1,7 +1,7 @@
 import CreatePassphraseForm from "@/lib/components/CreatePassphraseForm.tsx"
 
 type Props = {
-  setData: (data: string) => void
+  setData: (data: string, accessKey: string) => void
 }
 
 const Init = ({ setData }: Props) => {

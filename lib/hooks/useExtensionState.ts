@@ -4,7 +4,8 @@ import {
   initialState,
   clearData as clearDataToDispatch,
   setContainerExists as setContainerExistsToDispatch,
-  setData as setDataToDispatch
+  setData as setDataToDispatch,
+  setAccessKey as setAccessKeyToDispatch
 } from "../background/state.ts"
 
 import type { ExtensionState } from "../background/state.ts"
@@ -36,6 +37,7 @@ const useExtensionState = () => {
   const syncState = (nextState: ExtensionState) => {
     dispatch({ type: "SET_CONTAINER_EXISTS", payload: nextState.containerExists })
     dispatch({ type: "SET_DATA", payload: nextState.raw })
+    dispatch({ type: "SET_ACCESS_KEY", payload: nextState.accessKey })
   }
 
   // Fetch initial state from background on mount
@@ -63,10 +65,13 @@ const useExtensionState = () => {
     setContainerExistsToDispatch(dispatch, value)
   }
 
-  const setData = async (data: string) => {
-    await browser.runtime.sendMessage({ type: "SET_DATA", data })
+  const setData = async (data: string, accessKey?: string) => {
+    await browser.runtime.sendMessage({ type: "SET_DATA", data, accessKey })
     setContainerExistsToDispatch(dispatch, true)
     setDataToDispatch(dispatch, data)
+    if (accessKey !== undefined) {
+      setAccessKeyToDispatch(dispatch, accessKey)
+    }
   }
 
   const clearData = async () => {

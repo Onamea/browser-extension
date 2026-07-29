@@ -22,8 +22,8 @@ const App = () => {
     })().catch(() => {})
   }, [])
 
-  const handleSetData = async (data: string) => {
-    await setData(data)
+  const handleSetData = async (data: string, accessKey?: string) => {
+    await setData(data, accessKey)
   }
 
   const handleSignDone = () => {

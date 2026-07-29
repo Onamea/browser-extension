@@ -9,37 +9,48 @@ export type ContainerData = {
   keyPair: KeyPairDisplay
 }
 
-export const createSession = async (password: string): Promise<boolean> => {
+export type SessionResult = {
+  content: string | undefined
+	accessKey: string | undefined
+}
+
+export const createSession = async (password: string): Promise<string | undefined> => {
 	try {
 		await create(password)
 		const result = await initialize(password)
-		return result.hasContainer === true && result.content === ""
-	} catch {
-		return false
-	}
-}
-
-export const readSession = async (password: string): Promise<string | undefined> => {
-	try {
-		const result = await initialize(password)
-		return result.content
+		return result.hasContainer === true && result.content === "" ? result.accessKey : undefined
 	} catch {
 		return undefined
 	}
 }
 
-export const writeSession = async (password: string, data?: ContainerData): Promise<boolean> => {
+export const readSession = async (password: string): Promise<SessionResult | undefined> => {
 	try {
-		await set(password, data ? encodeSessionData(data) : "")
+		const result = await initialize(password)
+		if (result.hasContainer === false || result.accessKey === undefined) {
+			return undefined
+		}
+		return {
+			content: result.content,
+			accessKey: result.accessKey
+		}
+	} catch {
+		return undefined
+	}
+}
+
+export const writeSession = async (accessKey: string, data?: ContainerData): Promise<boolean> => {
+	try {
+		await set(accessKey, data ? encodeSessionData(data) : "")
 		return true
 	} catch {
     return false
 	}
 }
 
-export const clearSession = async (password: string): Promise<boolean> => {
+export const clearSession = async (accessKey: string): Promise<boolean> => {
 	try {
-		await set(password, "")
+		await set(accessKey, "")
 		return true
 	} catch {
 		return false

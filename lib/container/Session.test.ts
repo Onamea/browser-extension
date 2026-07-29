@@ -123,7 +123,7 @@ describe("Session.invalidate", () => {
 
 		expect(invalidated).toBe(session)
 		expect(invalidated.state).toBe("INVALIDATED")
-		expect("sessionKey" in (invalidated as Record<string, unknown>)).toBe(false)
+		expect("accessKey" in (invalidated as Record<string, unknown>)).toBe(false)
 		expect("wrappedMasterKey" in (invalidated as Record<string, unknown>)).toBe(false)
 		expect("wrappingIv" in (invalidated as Record<string, unknown>)).toBe(false)
 		expect("container" in (invalidated as Record<string, unknown>)).toBe(false)
