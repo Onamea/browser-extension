@@ -5,6 +5,7 @@ import { toBase64 } from "./utils/base64.ts"
 import type { EncryptedContainer } from "./EncryptedContainer.ts"
 
 const encoder = new TextEncoder()
+const decoder = new TextDecoder()
 
 const createEncryptedContainer = async (password: string, plaintext: string): Promise<EncryptedContainer> => {
 	const salt = crypto.getRandomValues(new Uint8Array(16))
@@ -53,7 +54,7 @@ describe("Session.unlock", () => {
 		const session = await unlock(container, password)
 
 		expect(session.state).toBe("ACTIVE")
-		expect(session.raw).toBe(decrypted)
+		expect(decoder.decode(session.raw)).toBe(decrypted)
 		expect(session.container).toEqual(container)
 		expect(session.container).not.toBe(container)
 		expect(session.wrappedMasterKey.byteLength).toBeGreaterThan(0)
@@ -98,17 +99,17 @@ describe("Session.update", () => {
 		const container = await createEncryptedContainer(password, originalDecrypted)
 		const session = await unlock(container, password)
 
-		const updatedSession = await update(session, nextDecrypted)
+		const updatedSession = await update(session, encoder.encode(nextDecrypted))
 
 		expect(updatedSession).not.toBe(session)
-		expect(updatedSession.raw).toBe(nextDecrypted)
+		expect(decoder.decode(updatedSession.raw)).toBe(nextDecrypted)
 		expect(updatedSession.container.salt).toBe(session.container.salt)
 		expect(updatedSession.container.version).toBe(session.container.version)
 		expect(updatedSession.container.ciphertext).not.toBe(session.container.ciphertext)
 		expect(updatedSession.container.iv).not.toBe(session.container.iv)
 
 		const unlockedAgain = await unlock(updatedSession.container, password)
-		expect(unlockedAgain.raw).toBe(nextDecrypted)
+		expect(decoder.decode(unlockedAgain.raw)).toBe(nextDecrypted)
 	})
 })
 

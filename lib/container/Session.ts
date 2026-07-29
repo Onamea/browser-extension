@@ -12,7 +12,7 @@ export type ActiveSession = {
 	sessionKey: CryptoKey
 	wrappedMasterKey: ArrayBuffer
 	wrappingIv: Uint8Array
-	raw: string
+	raw: Uint8Array
 	container: EncryptedContainer
 }
 
@@ -25,8 +25,6 @@ export type Session = ActiveSession | InvalidatedSession
 export { PBKDF2_ITERATIONS }
 
 const encoder = new TextEncoder()
-const decoder = new TextDecoder()
-
 const deriveMasterKey = async (password: Password, salt: Uint8Array, extractable: boolean): Promise<CryptoKey> => {
 	const passwordKey = await crypto.subtle.importKey(
 		"raw",
@@ -53,7 +51,7 @@ const deriveMasterKey = async (password: Password, salt: Uint8Array, extractable
 	)
 }
 
-const decryptWithMasterKey = async (masterKey: CryptoKey, iv: Uint8Array, ciphertext: Uint8Array): Promise<string> => {
+const decryptWithMasterKey = async (masterKey: CryptoKey, iv: Uint8Array, ciphertext: Uint8Array): Promise<Uint8Array> => {
 	const plaintextBuffer = await crypto.subtle.decrypt(
 		{
 			name: "AES-GCM",
@@ -63,7 +61,7 @@ const decryptWithMasterKey = async (masterKey: CryptoKey, iv: Uint8Array, cipher
 		toBufferSource(ciphertext)
 	)
 
-	return decoder.decode(plaintextBuffer)
+	return new Uint8Array(plaintextBuffer)
 }
 
 const unwrapMasterKey = async (session: ActiveSession): Promise<CryptoKey> => {
@@ -129,7 +127,7 @@ const unlockContainer = async (container: EncryptedContainer, password: Password
 	}
 }
 
-const encryptWithSession = async (session: ActiveSession, plaintext: string): Promise<EncryptedContainer> => {
+const encryptWithSession = async (session: ActiveSession, plaintext: Uint8Array): Promise<EncryptedContainer> => {
 	const masterKey = await unwrapMasterKey(session)
 	const iv = getRandomBytes(GCM_IV_LENGTH)
 
@@ -139,7 +137,7 @@ const encryptWithSession = async (session: ActiveSession, plaintext: string): Pr
 			iv: toBufferSource(iv)
 		},
 		masterKey,
-		encoder.encode(plaintext)
+		toBufferSource(plaintext)
 	)
 
 	return {
@@ -175,7 +173,7 @@ export const checkPassword = async (session: ActiveSession, password: string): P
 	}
 }
 
-export const update = async (session: ActiveSession, raw: string): Promise<ActiveSession> => {
+export const update = async (session: ActiveSession, raw: Uint8Array): Promise<ActiveSession> => {
 	const encryptedContainer = await encryptWithSession(session, raw)
 	return {
 		...session,
@@ -191,7 +189,8 @@ export const invalidate = (session: Session): InvalidatedSession => {
 
 	session.wrappedMasterKey = new ArrayBuffer(0)
 	session.wrappingIv = new Uint8Array(0)
-	session.raw = ""
+	session.raw.fill(0)
+	session.raw = new Uint8Array(0)
 
 	const mutableSession = session as Record<string, unknown>
 	Reflect.deleteProperty(mutableSession, "sessionKey")

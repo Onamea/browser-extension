@@ -3,6 +3,8 @@ import { parsePassword } from "./Password.ts"
 import { type Session, checkPassword, invalidate, unlock, update } from "./Session.ts"
 import { read, write } from "./storage.ts"
 import { createWriteQueue } from "./utils/writeQueue.ts"
+import { compareUint8Arrays } from "./utils/compareUint8Arrays.ts"
+import { encode, decode } from "./utils/codec.ts"
 
 export { isPassword } from "./Password.ts"
 
@@ -41,7 +43,7 @@ export const initialize = async (password: string): Promise<Result> => {
   }
 
   session = await unlock(result, parsedPassword)
-  const content = session.raw
+  const content = decode(session.raw)
 
   return { hasContainer: true, content }
 }
@@ -61,12 +63,14 @@ export const get = async (password: string): Promise<Result> => {
   if (await checkPassword(session, parsedPassword) === false) {
     throw new Error("Incorrect password")
   }
-  return { hasContainer: true, content: session.raw }
+  return { hasContainer: true, content: decode(session.raw) }
 }
 
 export const set = async (password: string, content: string): Promise<void> => {
 
   const parsedPassword = parsePassword(password)
+
+  const nextRaw = encode(content)
 
   if (session === undefined || session.state !== "ACTIVE") {
     throw new Error("No active session")
@@ -74,7 +78,7 @@ export const set = async (password: string, content: string): Promise<void> => {
   if (await checkPassword(session, parsedPassword) === false) {
     throw new Error("Incorrect password")
   }
-  if (session.raw === content) {
+  if (compareUint8Arrays(session.raw, nextRaw)) {
     throw new Error("Content is the same as the current content")
   }
 
@@ -83,11 +87,11 @@ export const set = async (password: string, content: string): Promise<void> => {
     if (currentSession === undefined || currentSession.state !== "ACTIVE") {
       throw new Error("No active session")
     }
-    if (currentSession.raw === content) {
+    if (compareUint8Arrays(currentSession.raw, nextRaw)) {
       throw new Error("Content is the same as the current content")
     }
 
-    const updatedSession = await update(currentSession, content)
+    const updatedSession = await update(currentSession, nextRaw)
     await write(updatedSession.container)
     session = updatedSession
   })
