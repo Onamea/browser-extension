@@ -1,5 +1,5 @@
 import { isOperation } from "@vanice/crdt"
-import { sign } from "@/lib/sign.ts"
+import { signOperation } from "@vanice/crdt"
 import type { ExtensionState } from "./state.ts"
 
 export type PendingRequest = {
@@ -44,7 +44,7 @@ export const handleConfirmSign = (
     return false
   }
   const keyPair = state.data.keyPair
-  sign(data, keyPair)
+  signOperation(data, keyPair)
     .then(signedMessage => resolve({ signedMessage, requestId }))
     .catch(error => resolve({ error: String(error), requestId }))
   return false
