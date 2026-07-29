@@ -16,12 +16,30 @@ type Result = {
   accessKey: ActiveSession["accessKey"] | undefined
 }
 
+const SESSION_IDLE_TIMEOUT_MS = 15 * 60 * 1000
+const SESSION_ABSOLUTE_TIMEOUT_MS = 12 * 60 * 60 * 1000
+
 let session: Session | undefined = undefined
+let sessionExpiresAt: number | undefined = undefined
+let sessionAbsoluteExpiresAt: number | undefined = undefined
 const enqueueWrite = createWriteQueue()
+
+const refreshSessionExpiration = (): void => {
+  sessionExpiresAt = Date.now() + SESSION_IDLE_TIMEOUT_MS
+}
 
 const getActiveSession = (): ActiveSession => {
   if (session === undefined || session.state !== "ACTIVE") {
     throw new Error("No active session")
+  }
+  const now = Date.now()
+  if (sessionAbsoluteExpiresAt === undefined || now > sessionAbsoluteExpiresAt) {
+    deinitialize()
+    throw new Error("Session expired")
+  }
+  if (sessionExpiresAt === undefined || now > sessionExpiresAt) {
+    deinitialize()
+    throw new Error("Session expired")
   }
   return session
 }
@@ -68,6 +86,8 @@ export const initialize = async (password: string): Promise<Result> => {
   }
 
   session = await unlock(result, parsedPassword)
+  sessionAbsoluteExpiresAt = Date.now() + SESSION_ABSOLUTE_TIMEOUT_MS
+  refreshSessionExpiration()
   const content = decode(session.raw)
 
   return { hasContainer: true, content, accessKey: session.accessKey }
@@ -77,6 +97,7 @@ export const get = (accessKey: string): Promise<Result> => {
   try {
     const currentSession = getActiveSession()
     assertAccessKey(accessKey)
+    refreshSessionExpiration()
     return Promise.resolve({ hasContainer: true, content: decode(currentSession.raw), accessKey: currentSession.accessKey })
   } catch (error) {
     return Promise.reject(error)
@@ -89,6 +110,7 @@ export const set = async (accessKey: string, content: string): Promise<void> => 
 
   const currentSession = getActiveSession()
   assertAccessKey(accessKey)
+  refreshSessionExpiration()
   if (compareUint8Arrays(currentSession.raw, nextRaw)) {
     throw new Error("Content is the same as the current content")
   }
@@ -96,6 +118,7 @@ export const set = async (accessKey: string, content: string): Promise<void> => 
   await enqueueWrite(async () => {
     const queuedSession = getActiveSession()
     assertAccessKey(accessKey)
+    refreshSessionExpiration()
     if (compareUint8Arrays(queuedSession.raw, nextRaw)) {
       throw new Error("Content is the same as the current content")
     }
@@ -111,4 +134,6 @@ export const deinitialize = (): void => {
     invalidate(session)
     session = undefined
   }
+  sessionExpiresAt = undefined
+  sessionAbsoluteExpiresAt = undefined
 }

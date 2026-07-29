@@ -235,6 +235,60 @@ describe("main.get", () => {
 
 		await expect(main.get(initResult.accessKey!)).rejects.toThrow("No active session")
 	})
+
+	it("expires active session after idle timeout", async () => {
+		vi.useFakeTimers()
+		try {
+			vi.setSystemTime(new Date("2026-01-01T00:00:00.000Z"))
+
+			const password = "CorrectHorseBatteryStaple123!"
+			const content = '{"data":"secret"}'
+			const container = await createMockContainer(password, content)
+
+			vi.stubGlobal("chrome", {
+				storage: {
+					local: createStorageMock(container)
+				}
+			})
+
+			const initResult = await main.initialize(password)
+			vi.advanceTimersByTime(15 * 60 * 1000 + 1)
+
+			await expect(main.get(initResult.accessKey!)).rejects.toThrow("Session expired")
+			await expect(main.get(initResult.accessKey!)).rejects.toThrow("No active session")
+		} finally {
+			vi.useRealTimers()
+		}
+	})
+
+	it("expires active session after absolute timeout even with activity", async () => {
+		vi.useFakeTimers()
+		try {
+			vi.setSystemTime(new Date("2026-01-01T00:00:00.000Z"))
+
+			const password = "CorrectHorseBatteryStaple123!"
+			const content = '{"data":"secret"}'
+			const container = await createMockContainer(password, content)
+
+			vi.stubGlobal("chrome", {
+				storage: {
+					local: createStorageMock(container)
+				}
+			})
+
+			const initResult = await main.initialize(password)
+			for (let i = 0; i < 72; i += 1) {
+				await expect(main.get(initResult.accessKey!)).resolves.toMatchObject({ hasContainer: true })
+				vi.advanceTimersByTime(10 * 60 * 1000)
+			}
+
+			vi.advanceTimersByTime(1)
+			await expect(main.get(initResult.accessKey!)).rejects.toThrow("Session expired")
+			await expect(main.get(initResult.accessKey!)).rejects.toThrow("No active session")
+		} finally {
+			vi.useRealTimers()
+		}
+	})
 })
 
 describe("main.set", () => {
