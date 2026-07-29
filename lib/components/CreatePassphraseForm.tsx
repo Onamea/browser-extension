@@ -3,6 +3,7 @@ import { useState } from "react"
 import ErrorDisplay from "./ErrorDisplay.tsx"
 import { createSession } from "../container.ts"
 import { isPassword } from "../container/main.ts"
+import { setContainerExists } from "../background/state.ts"
 
 type Props = {
   setData: (data: string, accessKey: string) => void
@@ -27,9 +28,9 @@ const CreatePassphraseForm = ({ setData }: Props) => {
     setErrors([])
     setIsSubmitting(true)
     try {
-      const accessKey = await createSession(passphrase)
-      if (accessKey !== undefined) {
-        setData("", accessKey)
+      const result = await createSession(passphrase)
+      if (result?.accessKey !== undefined) {
+        setData("", result.accessKey)
       }
     } catch (error) {
       setErrors([String(error)])

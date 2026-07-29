@@ -1,6 +1,6 @@
 import type { NameKey, FingerprintedName, KeyPairDisplay, KeyPairAsJSON } from "@vanice/types"
 import { isFingerprintedName, isKeyPairDisplay, isNameKey, parseKeyPairAsJSON } from "@vanice/types"
-import { create, initialize, deinitialize, set } from "./container/main.ts"
+import { type AccessKey, create, initialize, deinitialize, set } from "./container/main.ts"
 import isObject from "./utils/isObject.ts"
 
 export type ContainerData = {
@@ -10,15 +10,21 @@ export type ContainerData = {
 }
 
 export type SessionResult = {
-  content: string | undefined
-	accessKey: string | undefined
+  content: string
+	accessKey: AccessKey
 }
 
-export const createSession = async (password: string): Promise<string | undefined> => {
+export const createSession = async (password: string): Promise<SessionResult | undefined> => {
 	try {
 		await create(password)
 		const result = await initialize(password)
-		return result.hasContainer === true && result.content === "" ? result.accessKey : undefined
+		if (result.hasContainer === false || result.content === undefined || result.accessKey === undefined) {
+			return undefined
+		}
+		return {
+			content: result.content,
+			accessKey: result.accessKey
+		}
 	} catch {
 		return undefined
 	}
@@ -27,7 +33,7 @@ export const createSession = async (password: string): Promise<string | undefine
 export const readSession = async (password: string): Promise<SessionResult | undefined> => {
 	try {
 		const result = await initialize(password)
-		if (result.hasContainer === false || result.accessKey === undefined) {
+		if (result.hasContainer === false || result.content === undefined || result.accessKey === undefined) {
 			return undefined
 		}
 		return {
