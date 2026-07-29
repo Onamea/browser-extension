@@ -12,7 +12,7 @@ export type ActiveSession = {
 	sessionKey: CryptoKey
 	wrappedMasterKey: ArrayBuffer
 	wrappingIv: Uint8Array
-	decryptedContainer: string
+	raw: string
 	container: EncryptedContainer
 }
 
@@ -97,7 +97,7 @@ const unlockContainer = async (container: EncryptedContainer, password: Password
 	const iv = fromBase64(container.iv)
 	const ciphertext = fromBase64(container.ciphertext)
 	const masterKey = await deriveMasterKey(password, salt, true)
-	const decryptedContainer = await decryptWithMasterKey(masterKey, iv, ciphertext)
+	const raw = await decryptWithMasterKey(masterKey, iv, ciphertext)
 
 
 	const sessionKey = await crypto.subtle.generateKey(
@@ -124,7 +124,7 @@ const unlockContainer = async (container: EncryptedContainer, password: Password
 		sessionKey,
 		wrappedMasterKey,
 		wrappingIv,
-		decryptedContainer,
+		raw,
 		container: clone(container)
 	}
 }
@@ -175,12 +175,12 @@ export const checkPassword = async (session: ActiveSession, password: string): P
 	}
 }
 
-export const update = async (session: ActiveSession, decryptedContainer: string): Promise<ActiveSession> => {
-	const encryptedContainer = await encryptWithSession(session, decryptedContainer)
+export const update = async (session: ActiveSession, raw: string): Promise<ActiveSession> => {
+	const encryptedContainer = await encryptWithSession(session, raw)
 	return {
 		...session,
 		container: encryptedContainer,
-		decryptedContainer
+		raw
 	}
 }
 
@@ -191,14 +191,14 @@ export const invalidate = (session: Session): InvalidatedSession => {
 
 	session.wrappedMasterKey = new ArrayBuffer(0)
 	session.wrappingIv = new Uint8Array(0)
-	session.decryptedContainer = ""
+	session.raw = ""
 
 	const mutableSession = session as Record<string, unknown>
 	Reflect.deleteProperty(mutableSession, "sessionKey")
 	Reflect.deleteProperty(mutableSession, "wrappedMasterKey")
 	Reflect.deleteProperty(mutableSession, "wrappingIv")
 	Reflect.deleteProperty(mutableSession, "container")
-	Reflect.deleteProperty(mutableSession, "decryptedContainer")
+	Reflect.deleteProperty(mutableSession, "raw")
 	mutableSession.state = "INVALIDATED"
 
 	return session as unknown as InvalidatedSession

@@ -2,7 +2,6 @@ import { create as createEncryptedContainer, isEncryptedContainer } from "./Encr
 import { parsePassword } from "./Password.ts"
 import { type Session, checkPassword, invalidate, unlock, update } from "./Session.ts"
 import { read, write } from "./storage.ts"
-import { isString } from "./utils/isString.ts"
 import { createWriteQueue } from "./utils/writeQueue.ts"
 
 export { isPassword } from "./Password.ts"
@@ -12,12 +11,7 @@ type Result = {
   content: string | undefined
 }
 
-const defaultValidate = (content: string): boolean => {
-  return isString(content)
-}
-
 let session: Session | undefined = undefined
-let validate = defaultValidate
 const enqueueWrite = createWriteQueue()
 
 export const create = async (password: string): Promise<void> => {
@@ -29,15 +23,13 @@ export const create = async (password: string): Promise<void> => {
   await write(container)
 }
 
-export const initialize = async (password: string, validateFn = defaultValidate): Promise<Result> => {
+export const initialize = async (password: string): Promise<Result> => {
 
   const parsedPassword = parsePassword(password)
 
   if (session !== undefined) {
     throw new Error("Session already initialized")
   }
-
-  validate = validateFn
 
   const result = await read()
   if (result === undefined) {
@@ -49,11 +41,8 @@ export const initialize = async (password: string, validateFn = defaultValidate)
   }
 
   session = await unlock(result, parsedPassword)
-  const content = session.decryptedContainer
-  if (validate(content) === false) {
-    session = undefined
-    throw new Error("Storage corrupted: content validation failed")
-  }
+  const content = session.raw
+
   return { hasContainer: true, content }
 }
 
@@ -72,7 +61,7 @@ export const get = async (password: string): Promise<Result> => {
   if (await checkPassword(session, parsedPassword) === false) {
     throw new Error("Incorrect password")
   }
-  return { hasContainer: true, content: session.decryptedContainer }
+  return { hasContainer: true, content: session.raw }
 }
 
 export const set = async (password: string, content: string): Promise<void> => {
@@ -85,11 +74,8 @@ export const set = async (password: string, content: string): Promise<void> => {
   if (await checkPassword(session, parsedPassword) === false) {
     throw new Error("Incorrect password")
   }
-  if (session.decryptedContainer === content) {
+  if (session.raw === content) {
     throw new Error("Content is the same as the current content")
-  }
-  if (validate(content) === false) {
-    throw new Error("Content validation failed")
   }
 
   await enqueueWrite(async () => {
@@ -97,7 +83,7 @@ export const set = async (password: string, content: string): Promise<void> => {
     if (currentSession === undefined || currentSession.state !== "ACTIVE") {
       throw new Error("No active session")
     }
-    if (currentSession.decryptedContainer === content) {
+    if (currentSession.raw === content) {
       throw new Error("Content is the same as the current content")
     }
 
@@ -112,5 +98,4 @@ export const deinitialize = (): void => {
     invalidate(session)
     session = undefined
   }
-  validate = defaultValidate
 }

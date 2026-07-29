@@ -141,56 +141,6 @@ describe("main.initialize", () => {
 		)
 	})
 
-	it("supports custom validation function", async () => {
-		const password = "CorrectHorseBatteryStaple123!"
-		const content = '{"valid":true}'
-		const container = await createMockContainer(password, content)
-
-		const customValidate = (data: string): boolean => {
-			try {
-				const parsed = JSON.parse(data)
-				return parsed.valid === true
-			} catch {
-				return false
-			}
-		}
-
-		vi.stubGlobal("chrome", {
-			storage: {
-				local: createStorageMock(container)
-			}
-		})
-
-		const result = await main.initialize(password, customValidate)
-
-		expect(result.content).toBe(content)
-	})
-
-	it("throws when custom validation function rejects content", async () => {
-		const password = "CorrectHorseBatteryStaple123!"
-		const content = '{"valid":false}'
-		const container = await createMockContainer(password, content)
-
-		const customValidate = (data: string): boolean => {
-			try {
-				const parsed = JSON.parse(data)
-				return parsed.valid === true
-			} catch {
-				return false
-			}
-		}
-
-		vi.stubGlobal("chrome", {
-			storage: {
-				local: createStorageMock(container)
-			}
-		})
-
-		await expect(main.initialize(password, customValidate)).rejects.toThrow(
-			"Storage corrupted: content validation failed"
-		)
-	})
-
 	it("throws when stored value is not an encrypted container", async () => {
 		vi.stubGlobal("chrome", {
 			storage: {
@@ -338,31 +288,6 @@ describe("main.set", () => {
 		await main.initialize(password)
 
 		await expect(main.set(wrongPassword, '{"version":2}')).rejects.toThrow("Incorrect password")
-	})
-
-	it("throws when validation function rejects content", async () => {
-		const password = "CorrectHorseBatteryStaple123!"
-		const content = '{"version":1}'
-		const container = await createMockContainer(password, content)
-
-		const customValidate = (data: string): boolean => {
-			try {
-				const parsed = JSON.parse(data)
-				return typeof parsed.version === "number" && parsed.version > 0
-			} catch {
-				return false
-			}
-		}
-
-		vi.stubGlobal("chrome", {
-			storage: {
-				local: createStorageMock(container)
-			}
-		})
-
-		await main.initialize(password, customValidate)
-
-		await expect(main.set(password, "invalid-json")).rejects.toThrow("Content validation failed")
 	})
 
 	it("throws when content is identical to current content", async () => {

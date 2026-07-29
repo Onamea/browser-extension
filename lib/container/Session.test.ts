@@ -53,7 +53,7 @@ describe("Session.unlock", () => {
 		const session = await unlock(container, password)
 
 		expect(session.state).toBe("ACTIVE")
-		expect(session.decryptedContainer).toBe(decrypted)
+		expect(session.raw).toBe(decrypted)
 		expect(session.container).toEqual(container)
 		expect(session.container).not.toBe(container)
 		expect(session.wrappedMasterKey.byteLength).toBeGreaterThan(0)
@@ -101,14 +101,14 @@ describe("Session.update", () => {
 		const updatedSession = await update(session, nextDecrypted)
 
 		expect(updatedSession).not.toBe(session)
-		expect(updatedSession.decryptedContainer).toBe(nextDecrypted)
+		expect(updatedSession.raw).toBe(nextDecrypted)
 		expect(updatedSession.container.salt).toBe(session.container.salt)
 		expect(updatedSession.container.version).toBe(session.container.version)
 		expect(updatedSession.container.ciphertext).not.toBe(session.container.ciphertext)
 		expect(updatedSession.container.iv).not.toBe(session.container.iv)
 
 		const unlockedAgain = await unlock(updatedSession.container, password)
-		expect(unlockedAgain.decryptedContainer).toBe(nextDecrypted)
+		expect(unlockedAgain.raw).toBe(nextDecrypted)
 	})
 })
 
@@ -126,7 +126,7 @@ describe("Session.invalidate", () => {
 		expect("wrappedMasterKey" in (invalidated as Record<string, unknown>)).toBe(false)
 		expect("wrappingIv" in (invalidated as Record<string, unknown>)).toBe(false)
 		expect("container" in (invalidated as Record<string, unknown>)).toBe(false)
-		expect("decryptedContainer" in (invalidated as Record<string, unknown>)).toBe(false)
+		expect("raw" in (invalidated as Record<string, unknown>)).toBe(false)
 	})
 
 	it("returns the same object when session is already invalidated", () => {
