@@ -9,7 +9,7 @@ import "./App.css"
 
 const App = () => {
 
-  const { state, setData } = useExtensionState()
+  const { state } = useExtensionState()
   const containerExists = state.containerExists
   const [pendingRequest, setPendingRequest] = useState<PendingRequest>()
 
@@ -21,10 +21,6 @@ const App = () => {
       }
     })().catch(() => {})
   }, [])
-
-  const handleSetData = async (data: string, accessKey?: string) => {
-    await setData(data, accessKey)
-  }
 
   const handleSignDone = () => {
     setPendingRequest(undefined)
@@ -46,7 +42,7 @@ const App = () => {
       ? <SignConfirmation pendingRequest={ pendingRequest } onDone={ handleSignDone } />
       : <>
           { isInitialized === false && <p>Not initialized</p> }
-          { isInitialized && isUnlocked === false && <PassphraseEntryForm setData={ handleSetData } /> }
+          { isInitialized && isUnlocked === false && <PassphraseEntryForm /> }
           { isUnlocked && <ContainerDisplay state={ state } /> }
           <button type="button" onClick={ handleOpenIndex }>Open Key Manager</button>
         </>

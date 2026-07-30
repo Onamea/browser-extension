@@ -6,20 +6,18 @@ import { createWorkerPool } from "@vanice/vanice-pool"
 import ErrorDisplay from "./ErrorDisplay.tsx"
 import MiningProgress from "./MiningProgress.tsx"
 import { encodeSessionData } from "../container.ts"
-
-type Props = {
-	setData: (data: string) => Promise<void>
-}
+import { useExtensionStateContext } from "@/lib/hooks/useExtensionStateContext.tsx"
 
 const url = new URL("../../assets/workers/worker.js", import.meta.url)
 
-const CreateKeyPairForm = ({ setData }: Props) => {
+const CreateKeyPairForm = () => {
 	const [name, setName] = useState("")
 	const [nameToMine, setNameToMine] = useState<string>()
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [errors, setErrors] = useState<string[]>([])
 	const [progress, setProgress] = useState<{ totalAttempts: number }>()
 	const navigate = useNavigate()
+	const { setData } = useExtensionStateContext()
 
 	const onWorkerPoolStatusChange = ({ totalAttempts }: { totalAttempts: number }) => {
 		setProgress({ totalAttempts })

@@ -3,15 +3,13 @@ import { useState } from "react"
 import { readSession } from "@/lib/container.ts"
 import ErrorDisplay from "./ErrorDisplay.tsx"
 import { isPassword } from "@/lib/container/main.ts"
+import { useExtensionStateContext } from "@/lib/hooks/useExtensionStateContext.tsx"
 
-type Props = {
-  setData: (data: string, accessKey: string) => void
-}
-
-const PassphraseEntryForm = ({ setData }: Props) => {
+const PassphraseEntryForm = () => {
   const [passphrase, setPassphrase] = useState("")
   const [errors, setErrors] = useState<string[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { setData } = useExtensionStateContext()
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()

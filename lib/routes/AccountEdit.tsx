@@ -4,16 +4,16 @@ import ContainerDisplay from "@/lib/components/ContainerDisplay.tsx"
 import AddKeyPairForm from "@/lib/components/AddKeyPairForm.tsx"
 import CreateKeyPairForm from "../components/CreateKeyPairForm.tsx"
 import ClearContainerButton from "../components/ClearContainerButton.tsx"
+import { useExtensionStateContext } from "@/lib/hooks/useExtensionStateContext.tsx"
 
 type Props = {
   state: ExtensionState
-  setData: (data: string) => Promise<void>
-  clearData: () => Promise<void>
 }
 
-const AccountEdit = ({ state, setData, clearData }: Props) => {
+const AccountEdit = ({ state }: Props) => {
 
   const navigate = useNavigate()
+  const { clearData } = useExtensionStateContext()
 
   const onClick = () => {
     navigate("/account")
@@ -24,8 +24,8 @@ const AccountEdit = ({ state, setData, clearData }: Props) => {
       <h1>Container</h1>
       <ContainerDisplay state={ state } />
       { state.data !== undefined && <ClearContainerButton onClear={ clearData } /> }
-      { state.data === undefined && <AddKeyPairForm setData={ setData } /> }
-      { state.data === undefined && <CreateKeyPairForm setData={ setData } /> }
+      { state.data === undefined && <AddKeyPairForm /> }
+      { state.data === undefined && <CreateKeyPairForm /> }
       <button type="button" onClick={ onClick }>cancel</button>
     </div>
   )

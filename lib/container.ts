@@ -25,7 +25,8 @@ export const createSession = async (password: string): Promise<SessionResult | u
 			content: result.content,
 			accessKey: result.accessKey
 		}
-	} catch {
+	} catch (error) {
+		console.error("Failed to create session:", error)
 		return undefined
 	}
 }
@@ -40,7 +41,8 @@ export const readSession = async (password: string): Promise<SessionResult | und
 			content: result.content,
 			accessKey: result.accessKey
 		}
-	} catch {
+	} catch (error) {
+		console.error("Failed to read session:", error)
 		return undefined
 	}
 }
@@ -49,7 +51,8 @@ export const writeSession = async (accessKey: string, data?: ContainerData): Pro
 	try {
 		await set(accessKey, data ? encodeSessionData(data) : "")
 		return true
-	} catch {
+	} catch (error) {
+    console.error("Failed to write session:", error)
     return false
 	}
 }
@@ -58,16 +61,18 @@ export const clearSession = async (accessKey: string): Promise<boolean> => {
 	try {
 		await set(accessKey, "")
 		return true
-	} catch {
+	} catch (error) {
+		console.error("Failed to clear session:", error)
 		return false
-	}	
+	}
 }
 
 export const invalidateSession = (): boolean => {
   try {
     deinitialize()
     return true
-  } catch {
+  } catch (error) {
+    console.error("Failed to invalidate session:", error)
     return false
   }
 }

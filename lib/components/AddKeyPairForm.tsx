@@ -12,16 +12,14 @@ import {
 } from "@vanice/types"
 import { encodeSessionData } from "@/lib/container.ts"
 import ErrorDisplay from "./ErrorDisplay.tsx"
+import { useExtensionStateContext } from "@/lib/hooks/useExtensionStateContext.tsx"
 
-type Props = {
-  setData: (data: string) => Promise<void>
-}
-
-const AddKeyPairForm = ({ setData }: Props) => {
+const AddKeyPairForm = () => {
   const [identifier, setIdentifier] = useState("")
   const [privateKeyOrMnemonic, setPrivateKeyOrMnemonic] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<string[]>([])
+  const { setData } = useExtensionStateContext()
 
   const addKeyPair = async (identifier: Identifier, privateKeyOrMnemonic: PrivateKeyDisplay | MnemonicDisplayWithPassphrase) => {
     try {
