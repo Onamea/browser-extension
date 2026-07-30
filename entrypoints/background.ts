@@ -1,4 +1,5 @@
 import type { ContainerData } from "@/lib/container.ts"
+import type { AccessKey } from "@/lib/container/main.ts"
 import { checkStorage, set } from "@/lib/container/main.ts"
 import { backgroundState, backgroundDispatch, setContainerExists, setData, setAccessKey } from "@/lib/background/state.ts"
 import { getPendingRequest, handleSign, handleConfirmSign, handleRejectSign } from "@/lib/background/signFlow.ts"
@@ -7,6 +8,11 @@ type SetDataMessage = {
   type: "SET_DATA"
   data: string
   accessKey?: string
+}
+
+type SetAccessKeyMessage = {
+  type: "SET_ACCESS_KEY"
+  accessKey: AccessKey | undefined
 }
 
 type WriteDataMessage = {
@@ -40,7 +46,7 @@ type RejectSignMessage = {
 type GetStateMessage = { type: "GET_STATE" }
 type SetContainerExistsMessage = { type: "SET_CONTAINER_EXISTS", value: boolean | undefined }
 type ClearDataMessage = { type: "CLEAR_DATA" }
-type Message = SetDataMessage | WriteDataMessage | IdentifyMessage | SignMessage | GetPendingRequestMessage | ConfirmSignMessage | RejectSignMessage | GetStateMessage | SetContainerExistsMessage | ClearDataMessage
+type Message = SetDataMessage | SetAccessKeyMessage | WriteDataMessage | IdentifyMessage | SignMessage | GetPendingRequestMessage | ConfirmSignMessage | RejectSignMessage | GetStateMessage | SetContainerExistsMessage | ClearDataMessage
 
 const broadcastState = () => {
   browser.runtime.sendMessage({ type: "STATE_UPDATED", state: backgroundState })
@@ -96,6 +102,13 @@ export default defineBackground(() => {
         if (message.accessKey !== undefined) {
           setAccessKey(backgroundDispatch, message.accessKey)
         }
+        broadcastState()
+        sendResponse({ ok: true })
+        return false
+      }
+
+      case "SET_ACCESS_KEY": {
+        setAccessKey(backgroundDispatch, message.accessKey)
         broadcastState()
         sendResponse({ ok: true })
         return false

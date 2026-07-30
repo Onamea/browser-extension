@@ -3,9 +3,9 @@ import type { AccessKey } from "@/lib/container/main.ts"
 
 export type ExtensionState = {
   containerExists: boolean | undefined
+  accessKey: AccessKey | undefined
   raw: string | undefined
   data: ContainerData | undefined
-  accessKey: AccessKey | undefined
 }
 
 export type ExtensionAction =
@@ -16,9 +16,9 @@ export type ExtensionAction =
 
 export const initialState: ExtensionState = {
   containerExists: undefined,
+  accessKey: undefined,
   data: undefined,
-  raw: undefined,
-  accessKey: undefined
+  raw: undefined
 }
 
 export const extensionReducer = (
@@ -36,14 +36,14 @@ export const extensionReducer = (
       }
       const raw = action.payload
       const data = decodeSessionData(raw)
-      return { ...state, data, raw }
+      return { ...state, raw, data }
     }
     case "CLEAR_DATA":
       return {
         ...state,
-        data: undefined,
+        accessKey: undefined,
         raw: undefined,
-        accessKey: undefined
+        data: undefined
       }
     default:
       return state
@@ -58,8 +58,8 @@ export const setAccessKey = (dispatch: (action: ExtensionAction) => void, access
   dispatch({ type: "SET_ACCESS_KEY", payload: accessKey })
 }
 
-export const setData = (dispatch: (action: ExtensionAction) => void, data: string) => {
-  dispatch({ type: "SET_DATA", payload: data })
+export const setData = (dispatch: (action: ExtensionAction) => void, raw: string) => {
+  dispatch({ type: "SET_DATA", payload: raw })
 }
 
 export const clearData = (dispatch: (action: ExtensionAction) => void) => {

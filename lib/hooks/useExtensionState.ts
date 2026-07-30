@@ -1,4 +1,5 @@
 import { useReducer, useEffect } from "react"
+import type { ExtensionState } from "../background/state.ts"
 import {
   extensionReducer,
   initialState,
@@ -7,8 +8,8 @@ import {
   setData as setDataToDispatch,
   setAccessKey as setAccessKeyToDispatch
 } from "../background/state.ts"
-
-import type { ExtensionState } from "../background/state.ts"
+import isObject from "@/lib/utils/isObject.ts"
+import { type AccessKey } from "@/lib/container/main.ts"
 
 type StateUpdatedMessage = {
   type: "STATE_UPDATED"
@@ -20,15 +21,15 @@ type GetStateResponse = {
 }
 
 const isStateUpdatedMessage = (message: unknown): message is StateUpdatedMessage => {
-  if (typeof message !== "object" || message === null) return false
+  if (isObject(message) === false) return false
   const candidate = message as { type?: unknown, state?: unknown }
-  return candidate.type === "STATE_UPDATED" && typeof candidate.state === "object" && candidate.state !== null
+  return candidate.type === "STATE_UPDATED" && isObject(candidate.state)
 }
 
 const isGetStateResponse = (response: unknown): response is GetStateResponse => {
-  if (typeof response !== "object" || response === null) return false
+  if (isObject(response) === false) return false
   const candidate = response as { state?: unknown }
-  return candidate.state === undefined || (typeof candidate.state === "object" && candidate.state !== null)
+  return candidate.state === undefined || isObject(candidate.state)
 }
 
 const useExtensionState = () => {
@@ -36,8 +37,8 @@ const useExtensionState = () => {
 
   const syncState = (nextState: ExtensionState) => {
     dispatch({ type: "SET_CONTAINER_EXISTS", payload: nextState.containerExists })
-    dispatch({ type: "SET_DATA", payload: nextState.raw })
     dispatch({ type: "SET_ACCESS_KEY", payload: nextState.accessKey })
+    dispatch({ type: "SET_DATA", payload: nextState.raw })
   }
 
   // Fetch initial state from background on mount
@@ -65,6 +66,11 @@ const useExtensionState = () => {
     setContainerExistsToDispatch(dispatch, value)
   }
 
+  const setAccessKey = async (accessKey: AccessKey | undefined) => {
+    await browser.runtime.sendMessage({ type: "SET_ACCESS_KEY", accessKey })
+    setAccessKeyToDispatch(dispatch, accessKey)
+  }
+
   const setData = async (data: string, accessKey?: string) => {
     await browser.runtime.sendMessage({ type: "SET_DATA", data, accessKey })
     setContainerExistsToDispatch(dispatch, true)
@@ -81,9 +87,10 @@ const useExtensionState = () => {
 
   return {
     state,
-    clearData,
     setContainerExists,
-    setData
+    setAccessKey,
+    setData,
+    clearData
   }
 }
 
