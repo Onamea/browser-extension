@@ -1,6 +1,6 @@
 import PassphraseEntryForm from "@/lib/components/PassphraseEntryForm.tsx"
 
-const Signin = () => {
+const SignIn = () => {
   return (
     <div>
       <h1>Sign in</h1>
@@ -9,4 +9,4 @@ const Signin = () => {
   )
 }
 
-export default Signin
+export default SignIn

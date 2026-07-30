@@ -1,6 +1,6 @@
 import CreatePassphraseForm from "@/lib/components/CreatePassphraseForm.tsx"
 
-const Init = () => {
+const CreateContainer = () => {
   return (
     <div>
       <h1>Initialize</h1>
@@ -9,4 +9,4 @@ const Init = () => {
   )
 }
 
-export default Init
+export default CreateContainer

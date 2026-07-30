@@ -1,14 +1,15 @@
 import { createContext, useContext, type ReactNode } from "react"
-import type { AccessKey } from "@/lib/container/main.ts"
+import type { ContainerData } from "@/lib/background/ContainerData.ts"
 import type { ExtensionState } from "../background/state.ts"
 import useExtensionState from "./useExtensionState.ts"
 
 type ExtensionStateContextValue = {
   state: ExtensionState
-  setContainerExists: (value: boolean | undefined) => Promise<void>
-  setAccessKey: (accessKey: AccessKey | undefined) => Promise<void>
-  setData: (data: string, accessKey?: string) => Promise<void>
-  clearData: () => Promise<void>
+  initialize: () => Promise<void>
+  createContainer: (password: string) => Promise<boolean>
+  signIn: (password: string) => Promise<boolean>
+  writeData: (data: ContainerData) => Promise<boolean>
+  signOut: () => Promise<void>
 }
 
 const ExtensionStateContext = createContext<ExtensionStateContextValue | undefined>(undefined)

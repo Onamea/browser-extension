@@ -13,7 +13,7 @@ type Props = {
 const AccountEdit = ({ state }: Props) => {
 
   const navigate = useNavigate()
-  const { clearData } = useExtensionStateContext()
+  const { signOut } = useExtensionStateContext()
 
   const onClick = () => {
     navigate("/account")
@@ -23,7 +23,7 @@ const AccountEdit = ({ state }: Props) => {
     <div>
       <h1>Container</h1>
       <ContainerDisplay state={ state } />
-      { state.data !== undefined && <ClearContainerButton onClear={ clearData } /> }
+      { state.data !== undefined && <ClearContainerButton onClear={ signOut } /> }
       { state.data === undefined && <AddKeyPairForm /> }
       { state.data === undefined && <CreateKeyPairForm /> }
       <button type="button" onClick={ onClick }>cancel</button>

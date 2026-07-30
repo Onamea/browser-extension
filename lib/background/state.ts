@@ -1,21 +1,25 @@
-import { type ContainerData, decodeSessionData } from "../container.ts"
+import { type ContainerData, decodeSessionData } from "./ContainerData.ts"
 import type { AccessKey } from "@/lib/container/main.ts"
 
 export type ExtensionState = {
-  containerExists: boolean | undefined
+  isInitialized: boolean
+  hasContainer: boolean
+  isUnlocked: boolean
   accessKey: AccessKey | undefined
   raw: string | undefined
   data: ContainerData | undefined
 }
 
 export type ExtensionAction =
-  | { type: "SET_CONTAINER_EXISTS", payload: boolean | undefined }
-  | { type: "SET_ACCESS_KEY", payload: AccessKey | undefined }
-  | { type: "SET_DATA", payload: string | undefined }
-  | { type: "CLEAR_DATA" }
+  | { type: "INITIALIZE", payload: boolean | undefined }
+  | { type: "SIGNIN", payload: AccessKey | undefined }
+  | { type: "WRITE_DATA", payload: string | undefined }
+  | { type: "SIGNOUT" }
 
 export const initialState: ExtensionState = {
-  containerExists: undefined,
+  isInitialized: false,
+  hasContainer: false,
+  isUnlocked: false,
   accessKey: undefined,
   data: undefined,
   raw: undefined
@@ -26,21 +30,71 @@ export const extensionReducer = (
   action: ExtensionAction
 ): ExtensionState => {
   switch (action.type) {
-    case "SET_CONTAINER_EXISTS":
-      return { ...state, containerExists: action.payload }
-    case "SET_ACCESS_KEY":
-      return { ...state, accessKey: action.payload }
-    case "SET_DATA": {
+    case "INITIALIZE": {
+      if (action.payload === undefined) {
+        return {
+          ...state,
+          isInitialized: false,
+          hasContainer: false
+        }
+      }
+
+      if (action.payload === false) {
+        return {
+          ...state,
+          isInitialized: true,
+          hasContainer: false,
+          isUnlocked: false,
+          accessKey: undefined,
+          raw: undefined,
+          data: undefined
+        }
+      }
+
+      return {
+        ...state,
+        isInitialized: true,
+        hasContainer: true
+      }
+    }
+    case "SIGNIN":
+      if (action.payload === undefined) {
+        return {
+          ...state,
+          accessKey: undefined,
+          isUnlocked: false,
+          raw: undefined,
+          data: undefined
+        }
+      }
+
+      return {
+        ...state,
+        isInitialized: true,
+        hasContainer: true,
+        accessKey: action.payload,
+        isUnlocked: true
+      }
+    case "WRITE_DATA": {
       if (action.payload === undefined) {
         return { ...state, raw: undefined, data: undefined }
       }
       const raw = action.payload
       const data = decodeSessionData(raw)
-      return { ...state, raw, data }
-    }
-    case "CLEAR_DATA":
       return {
         ...state,
+        isInitialized: true,
+        hasContainer: true,
+        raw,
+        data
+      }
+    }
+    case "SIGNOUT":
+      return {
+        ...state,
+        isInitialized: true,
+        hasContainer: true,
+        isUnlocked: false,
         accessKey: undefined,
         raw: undefined,
         data: undefined
@@ -51,19 +105,19 @@ export const extensionReducer = (
 }
 
 export const setContainerExists = (dispatch: (action: ExtensionAction) => void, containerExists: boolean | undefined) => {
-  dispatch({ type: "SET_CONTAINER_EXISTS", payload: containerExists })
+  dispatch({ type: "INITIALIZE", payload: containerExists })
 }
 
 export const setAccessKey = (dispatch: (action: ExtensionAction) => void, accessKey: AccessKey | undefined) => {
-  dispatch({ type: "SET_ACCESS_KEY", payload: accessKey })
+  dispatch({ type: "SIGNIN", payload: accessKey })
 }
 
-export const setData = (dispatch: (action: ExtensionAction) => void, raw: string) => {
-  dispatch({ type: "SET_DATA", payload: raw })
+export const setData = (dispatch: (action: ExtensionAction) => void, raw: string | undefined) => {
+  dispatch({ type: "WRITE_DATA", payload: raw })
 }
 
 export const clearData = (dispatch: (action: ExtensionAction) => void) => {
-  dispatch({ type: "CLEAR_DATA" })
+  dispatch({ type: "SIGNOUT" })
 }
 
 export let backgroundState = initialState

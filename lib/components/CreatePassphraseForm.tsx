@@ -1,7 +1,6 @@
 import type { FormEvent } from "react"
 import { useState } from "react"
 import ErrorDisplay from "./ErrorDisplay.tsx"
-import { createSession } from "../container.ts"
 import { isPassword } from "../container/main.ts"
 import { useExtensionStateContext } from "@/lib/hooks/useExtensionStateContext.tsx"
 
@@ -10,7 +9,7 @@ const CreatePassphraseForm = () => {
   const [passphraseConfirm, setPassphraseConfirm] = useState("")
   const [errors, setErrors] = useState<string[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const { setContainerExists, setData } = useExtensionStateContext()
+  const { createContainer } = useExtensionStateContext()
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -25,10 +24,9 @@ const CreatePassphraseForm = () => {
     setErrors([])
     setIsSubmitting(true)
     try {
-      const result = await createSession(passphrase)
-      if (result?.accessKey !== undefined) {
-        setContainerExists(true)
-        setData("", result.accessKey)
+      const isSuccess = await createContainer(passphrase)
+      if (isSuccess === false) {
+        setErrors(["Failed to create container"])
       }
     } catch (error) {
       setErrors([String(error)])

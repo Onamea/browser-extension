@@ -5,7 +5,6 @@ import { type Name, type FingerprintDisplay, isName, isNameOrFingerprintedName, 
 import { createWorkerPool } from "@vanice/vanice-pool"
 import ErrorDisplay from "./ErrorDisplay.tsx"
 import MiningProgress from "./MiningProgress.tsx"
-import { encodeSessionData } from "../container.ts"
 import { useExtensionStateContext } from "@/lib/hooks/useExtensionStateContext.tsx"
 
 const url = new URL("../../assets/workers/worker.js", import.meta.url)
@@ -17,7 +16,7 @@ const CreateKeyPairForm = () => {
 	const [errors, setErrors] = useState<string[]>([])
 	const [progress, setProgress] = useState<{ totalAttempts: number }>()
 	const navigate = useNavigate()
-	const { setData } = useExtensionStateContext()
+	const { writeData } = useExtensionStateContext()
 
 	const onWorkerPoolStatusChange = ({ totalAttempts }: { totalAttempts: number }) => {
 		setProgress({ totalAttempts })
@@ -58,13 +57,10 @@ const CreateKeyPairForm = () => {
 						privateKeyDisplay: result.privateKeyDisplay!
 					}
 				}
-				const response = await browser.runtime.sendMessage(
-					{ type: "WRITE_DATA", data }
-				)
-				if (response.data === undefined) {
-					throw new Error(response.error ?? "WRITE_DATA failed")
+				const isSuccess = await writeData(data)
+				if (isSuccess === false) {
+					throw new Error("WRITE_DATA failed")
 				}
-				await setData(encodeSessionData(data))
 				await navigate("/account")
 			}
 		} catch (error) {

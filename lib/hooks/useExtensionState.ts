@@ -9,15 +9,17 @@ import {
   setAccessKey as setAccessKeyToDispatch
 } from "../background/state.ts"
 import isObject from "@/lib/utils/isObject.ts"
-import { type AccessKey } from "@/lib/container/main.ts"
+import { create, initialize as initializeSession, deinitialize, set as setSessionData } from "@/lib/container/main.ts"
+import type { ContainerData } from "@/lib/background/ContainerData.ts"
+import { encodeSessionData } from "@/lib/background/ContainerData.ts"
 
 type StateUpdatedMessage = {
   type: "STATE_UPDATED"
   state: ExtensionState
 }
 
-type GetStateResponse = {
-  state?: ExtensionState
+type InitializeResponse = {
+  state: ExtensionState
 }
 
 const isStateUpdatedMessage = (message: unknown): message is StateUpdatedMessage => {
@@ -26,25 +28,25 @@ const isStateUpdatedMessage = (message: unknown): message is StateUpdatedMessage
   return candidate.type === "STATE_UPDATED" && isObject(candidate.state)
 }
 
-const isGetStateResponse = (response: unknown): response is GetStateResponse => {
+const isInitializeResponse = (response: unknown): response is InitializeResponse => {
   if (isObject(response) === false) return false
   const candidate = response as { state?: unknown }
-  return candidate.state === undefined || isObject(candidate.state)
+  return isObject(candidate.state)
 }
 
 const useExtensionState = () => {
   const [state, dispatch] = useReducer(extensionReducer, initialState)
 
   const syncState = (nextState: ExtensionState) => {
-    dispatch({ type: "SET_CONTAINER_EXISTS", payload: nextState.containerExists })
-    dispatch({ type: "SET_ACCESS_KEY", payload: nextState.accessKey })
-    dispatch({ type: "SET_DATA", payload: nextState.raw })
+    setContainerExistsToDispatch(dispatch, nextState.hasContainer)
+    setAccessKeyToDispatch(dispatch, nextState.accessKey)
+    setDataToDispatch(dispatch, nextState.raw)
   }
 
-  // Fetch initial state from background on mount
+  // Hydrate state from background on mount
   useEffect(() => {
-    browser.runtime.sendMessage({ type: "GET_STATE" }).then((response: unknown) => {
-      if (isGetStateResponse(response) && response.state) {
+    browser.runtime.sendMessage({ type: "INITIALIZE" }).then((response: unknown) => {
+      if (isInitializeResponse(response)) {
         syncState(response.state)
       }
     })
@@ -61,36 +63,83 @@ const useExtensionState = () => {
     }
   }, [])
 
-  const setContainerExists = async (value: boolean | undefined) => {
-    await browser.runtime.sendMessage({ type: "SET_CONTAINER_EXISTS", value })
-    setContainerExistsToDispatch(dispatch, value)
-  }
-
-  const setAccessKey = async (accessKey: AccessKey | undefined) => {
-    await browser.runtime.sendMessage({ type: "SET_ACCESS_KEY", accessKey })
-    setAccessKeyToDispatch(dispatch, accessKey)
-  }
-
-  const setData = async (data: string, accessKey?: string) => {
-    await browser.runtime.sendMessage({ type: "SET_DATA", data, accessKey })
-    setContainerExistsToDispatch(dispatch, true)
-    setDataToDispatch(dispatch, data)
-    if (accessKey !== undefined) {
-      setAccessKeyToDispatch(dispatch, accessKey)
+  const initialize = async (): Promise<void> => {
+    const response = await browser.runtime.sendMessage({ type: "INITIALIZE" }) as InitializeResponse
+    if (isInitializeResponse(response)) {
+      syncState(response.state)
     }
   }
 
-  const clearData = async () => {
-    await browser.runtime.sendMessage({ type: "CLEAR_DATA" })
+  const createContainer = async (password: string): Promise<boolean> => {
+    try {
+      await create(password)
+      const result = await initializeSession(password)
+      if (result.hasContainer === false || result.accessKey === undefined) {
+        return false
+      }
+
+      const raw = result.content ?? ""
+      await browser.runtime.sendMessage({ type: "CREATE_CONTAINER", accessKey: result.accessKey })
+      setContainerExistsToDispatch(dispatch, true)
+      setAccessKeyToDispatch(dispatch, result.accessKey)
+      setDataToDispatch(dispatch, raw)
+      return true
+    } catch (_error) {
+      return false
+    }
+  }
+
+  const signIn = async (password: string): Promise<boolean> => {
+    try {
+      const result = await initializeSession(password)
+      if (result.hasContainer === false || result.accessKey === undefined) {
+        return false
+      }
+
+      const raw = result.content ?? ""
+      await browser.runtime.sendMessage({ type: "SIGNIN", raw, accessKey: result.accessKey })
+      setContainerExistsToDispatch(dispatch, true)
+      setAccessKeyToDispatch(dispatch, result.accessKey)
+      setDataToDispatch(dispatch, raw)
+      return true
+    } catch (_error) {
+      return false
+    }
+  }
+
+  const writeData = async (data: ContainerData): Promise<boolean> => {
+    const accessKey = state.accessKey
+    if (accessKey === undefined) {
+      return false
+    }
+
+    try {
+      const raw = encodeSessionData(data)
+      await setSessionData(accessKey, raw)
+      await browser.runtime.sendMessage({ type: "WRITE_DATA", raw, accessKey })
+      setContainerExistsToDispatch(dispatch, true)
+      setAccessKeyToDispatch(dispatch, accessKey)
+      setDataToDispatch(dispatch, raw)
+      return true
+    } catch (_error) {
+      return false
+    }
+  }
+
+  const signOut = async (): Promise<void> => {
+    deinitialize()
+    await browser.runtime.sendMessage({ type: "SIGNOUT" })
     clearDataToDispatch(dispatch)
+    setContainerExistsToDispatch(dispatch, true)
   }
 
   return {
     state,
-    setContainerExists,
-    setAccessKey,
-    setData,
-    clearData
+    initialize,
+    createContainer,
+    signIn,
+    writeData,
+    signOut
   }
 }
 

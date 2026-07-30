@@ -1,6 +1,5 @@
 import type { FormEvent } from "react"
 import { useState } from "react"
-import { readSession } from "@/lib/container.ts"
 import ErrorDisplay from "./ErrorDisplay.tsx"
 import { isPassword } from "@/lib/container/main.ts"
 import { useExtensionStateContext } from "@/lib/hooks/useExtensionStateContext.tsx"
@@ -9,7 +8,7 @@ const PassphraseEntryForm = () => {
   const [passphrase, setPassphrase] = useState("")
   const [errors, setErrors] = useState<string[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const { setData } = useExtensionStateContext()
+  const { signIn } = useExtensionStateContext()
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -20,11 +19,9 @@ const PassphraseEntryForm = () => {
     }
     setErrors([])
     setIsSubmitting(true)
-    const sessionResult = await readSession(passphrase)
+    const isSuccess = await signIn(passphrase)
     setIsSubmitting(false)
-    if (sessionResult !== undefined && sessionResult.accessKey !== undefined) {
-      setData(sessionResult.content ?? "", sessionResult.accessKey)
-    } else {
+    if (isSuccess === false) {
       setErrors(["Incorrect passphrase"])
     }
   }

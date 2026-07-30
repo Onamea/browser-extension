@@ -1,24 +1,30 @@
-import type { ContainerData } from "@/lib/container.ts"
-import type { AccessKey } from "@/lib/container/main.ts"
-import { checkStorage, set } from "@/lib/container/main.ts"
+import { checkStorage } from "@/lib/container/main.ts"
 import { backgroundState, backgroundDispatch, setContainerExists, setData, setAccessKey } from "@/lib/background/state.ts"
 import { getPendingRequest, handleSign, handleConfirmSign, handleRejectSign } from "@/lib/background/signFlow.ts"
 
-type SetDataMessage = {
-  type: "SET_DATA"
-  data: string
-  accessKey?: string
+type InitializeMessage = {
+  type: "INITIALIZE"
 }
 
-type SetAccessKeyMessage = {
-  type: "SET_ACCESS_KEY"
-  accessKey: AccessKey | undefined
+type CreateContainerMessage = {
+  type: "CREATE_CONTAINER"
+  accessKey: string
+}
+
+type SigninMessage = {
+  type: "SIGNIN"
+  raw: string
+  accessKey: string
 }
 
 type WriteDataMessage = {
   type: "WRITE_DATA"
-  data: ContainerData
-  accessKey?: string
+  raw: string
+  accessKey: string
+}
+
+type SignoutMessage = {
+  type: "SIGNOUT"
 }
 
 type IdentifyMessage = {
@@ -43,10 +49,7 @@ type RejectSignMessage = {
   type: "REJECT_SIGN"
 }
 
-type GetStateMessage = { type: "GET_STATE" }
-type SetContainerExistsMessage = { type: "SET_CONTAINER_EXISTS", value: boolean | undefined }
-type ClearDataMessage = { type: "CLEAR_DATA" }
-type Message = SetDataMessage | SetAccessKeyMessage | WriteDataMessage | IdentifyMessage | SignMessage | GetPendingRequestMessage | ConfirmSignMessage | RejectSignMessage | GetStateMessage | SetContainerExistsMessage | ClearDataMessage
+type Message = InitializeMessage | CreateContainerMessage | SigninMessage | WriteDataMessage | SignoutMessage | IdentifyMessage | SignMessage | GetPendingRequestMessage | ConfirmSignMessage | RejectSignMessage
 
 const broadcastState = () => {
   browser.runtime.sendMessage({ type: "STATE_UPDATED", state: backgroundState })
@@ -79,69 +82,53 @@ export default defineBackground(() => {
     // messages logic
     switch (message.type) {
 
-      case "GET_STATE": {
-        if (backgroundState.containerExists === undefined) {
-          checkStorage()
-            .then(exists => {
-              setContainerExists(backgroundDispatch, exists)
-              sendResponse({ state: backgroundState })
-            })
-            .catch(() => {
-              setContainerExists(backgroundDispatch, false)
-              sendResponse({ state: backgroundState })
-            })
-          return true
+      case "INITIALIZE": {
+        if (backgroundState.isInitialized) {
+          sendResponse({ state: backgroundState })
+          return false
         }
-        sendResponse({ state: backgroundState })
-        return false
+
+        checkStorage()
+          .then(exists => {
+            setContainerExists(backgroundDispatch, exists)
+            sendResponse({ state: backgroundState })
+          })
+          .catch(() => {
+            setContainerExists(backgroundDispatch, false)
+            sendResponse({ state: backgroundState })
+          })
+        return true
       }
 
-      case "SET_DATA": {
+      case "CREATE_CONTAINER": {
         setContainerExists(backgroundDispatch, true)
-        setData(backgroundDispatch, message.data)
-        if (message.accessKey !== undefined) {
-          setAccessKey(backgroundDispatch, message.accessKey)
-        }
-        broadcastState()
-        sendResponse({ ok: true })
-        return false
-      }
-
-      case "SET_ACCESS_KEY": {
+        setData(backgroundDispatch, "")
         setAccessKey(backgroundDispatch, message.accessKey)
         broadcastState()
         sendResponse({ ok: true })
         return false
       }
 
-      case "SET_CONTAINER_EXISTS": {
-        setContainerExists(backgroundDispatch, message.value)
+      case "SIGNIN": {
+        setContainerExists(backgroundDispatch, true)
+        setData(backgroundDispatch, message.raw)
+        setAccessKey(backgroundDispatch, message.accessKey)
         broadcastState()
         sendResponse({ ok: true })
         return false
       }
 
       case "WRITE_DATA": {
-        const accessKey = message.accessKey ?? backgroundState.accessKey
-        if (accessKey === undefined) {
-          sendResponse({ error: "No active session key" })
-          return false
-        }
-
-        set(accessKey, JSON.stringify(message.data))
-          .then(() => {
-            setContainerExists(backgroundDispatch, true)
-            setData(backgroundDispatch, JSON.stringify(message.data))
-            setAccessKey(backgroundDispatch, accessKey)
-            broadcastState()
-            sendResponse({ data: message.data })
-          })
-          .catch(error => sendResponse({ error: String(error) }))
-        return true
+        setContainerExists(backgroundDispatch, true)
+        setData(backgroundDispatch, message.raw)
+        setAccessKey(backgroundDispatch, message.accessKey)
+        broadcastState()
+        sendResponse({ ok: true })
+        return false
       }
 
-      case "CLEAR_DATA": {
-        backgroundDispatch({ type: "CLEAR_DATA" })
+      case "SIGNOUT": {
+        backgroundDispatch({ type: "SIGNOUT" })
         broadcastState()
         sendResponse({ ok: true })
         return false

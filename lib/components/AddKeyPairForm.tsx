@@ -10,7 +10,6 @@ import {
   isNameKey,
   nameKeyToFingerprintedName
 } from "@vanice/types"
-import { encodeSessionData } from "@/lib/container.ts"
 import ErrorDisplay from "./ErrorDisplay.tsx"
 import { useExtensionStateContext } from "@/lib/hooks/useExtensionStateContext.tsx"
 
@@ -19,7 +18,7 @@ const AddKeyPairForm = () => {
   const [privateKeyOrMnemonic, setPrivateKeyOrMnemonic] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<string[]>([])
-  const { setData } = useExtensionStateContext()
+  const { writeData } = useExtensionStateContext()
 
   const addKeyPair = async (identifier: Identifier, privateKeyOrMnemonic: PrivateKeyDisplay | MnemonicDisplayWithPassphrase) => {
     try {
@@ -33,13 +32,10 @@ const AddKeyPairForm = () => {
         fingerprintedName,
         keyPair
       }
-      const response = await browser.runtime.sendMessage(
-        { type: "WRITE_DATA", data }
-      )
-      if (response.data === undefined) {
-        throw new Error(response.error ?? "WRITE_DATA failed")
+      const isSuccess = await writeData(data)
+      if (isSuccess === false) {
+        throw new Error("WRITE_DATA failed")
       }
-      await setData(encodeSessionData(data))
     } catch (error) {
       setErrors([`Failed to identify key pair: ${ String(error) }`])
     }

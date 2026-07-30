@@ -9,18 +9,19 @@ import "./App.css"
 
 const App = () => {
 
-  const { state } = useExtensionState()
-  const containerExists = state.containerExists
+  const { state, initialize } = useExtensionState()
   const [pendingRequest, setPendingRequest] = useState<PendingRequest>()
 
   useEffect(() => {
-    (async () => {
+    initialize().catch(() => {})
+
+    ;(async () => {
       const response = await browser.runtime.sendMessage({ type: "GET_PENDING_REQUEST" })
       if (response.pendingRequest !== undefined) {
         setPendingRequest(response.pendingRequest)
       }
     })().catch(() => {})
-  }, [])
+  }, [initialize])
 
   const handleSignDone = () => {
     setPendingRequest(undefined)
@@ -31,10 +32,10 @@ const App = () => {
     browser.tabs.create({ url: browser.runtime.getURL("/index.html") })
   }
 
-  if (containerExists === undefined) return null
+  if (state.isInitialized === false) return null
 
-  const isUnlocked = state.raw !== undefined
-  const isInitialized = isUnlocked || containerExists === true
+  const isUnlocked = state.isUnlocked
+  const isInitialized = state.hasContainer || isUnlocked
   const showConfirmationForm = isUnlocked && pendingRequest !== undefined
 
   return (
