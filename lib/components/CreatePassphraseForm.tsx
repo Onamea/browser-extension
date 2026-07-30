@@ -3,7 +3,6 @@ import { useState } from "react"
 import ErrorDisplay from "./ErrorDisplay.tsx"
 import { createSession } from "../container.ts"
 import { isPassword } from "../container/main.ts"
-import { setContainerExists } from "../background/state.ts"
 
 type Props = {
   setData: (data: string, accessKey: string) => void
