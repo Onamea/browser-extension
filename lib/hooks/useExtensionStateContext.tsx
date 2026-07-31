@@ -5,7 +5,6 @@ import useExtensionState from "./useExtensionState.ts"
 
 type ExtensionStateContextValue = {
   state: ExtensionState
-  initialize: () => Promise<void>
   createContainer: (password: string) => Promise<boolean>
   signIn: (password: string) => Promise<boolean>
   writeData: (data: ContainerData) => Promise<boolean>

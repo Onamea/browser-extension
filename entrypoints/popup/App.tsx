@@ -9,19 +9,17 @@ import "./App.css"
 
 const App = () => {
 
-  const { state, initialize } = useExtensionState()
+  const { state } = useExtensionState()
   const [pendingRequest, setPendingRequest] = useState<PendingRequest>()
 
   useEffect(() => {
-    initialize().catch(() => {})
-
     ;(async () => {
       const response = await browser.runtime.sendMessage({ type: "GET_PENDING_REQUEST" })
       if (response.pendingRequest !== undefined) {
         setPendingRequest(response.pendingRequest)
       }
     })().catch(() => {})
-  }, [initialize])
+  }, [])
 
   const handleSignDone = () => {
     setPendingRequest(undefined)

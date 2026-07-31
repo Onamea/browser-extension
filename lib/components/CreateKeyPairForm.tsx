@@ -10,6 +10,7 @@ import { useExtensionStateContext } from "@/lib/hooks/useExtensionStateContext.t
 const url = new URL("../../assets/workers/worker.js", import.meta.url)
 
 const CreateKeyPairForm = () => {
+
 	const [name, setName] = useState("")
 	const [nameToMine, setNameToMine] = useState<string>()
 	const [isSubmitting, setIsSubmitting] = useState(false)

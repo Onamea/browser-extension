@@ -1,4 +1,3 @@
-import { useEffect } from "react"
 import { MemoryRouter, Route, Routes, useLocation, useNavigate } from "react-router-dom"
 import { useExtensionStateContext } from "@/lib/hooks/useExtensionStateContext.tsx"
 import { ExtensionStateProvider } from "@/lib/hooks/useExtensionStateContext.tsx"
@@ -10,14 +9,10 @@ import AccountEdit from "@/lib/routes/AccountEdit.tsx"
 import "./App.css"
 
 const AppRoutes = () => {
-  const { state, initialize } = useExtensionStateContext()
+  const { state } = useExtensionStateContext()
   const { hasContainer, isInitialized, isUnlocked, data } = state
   const navigate = useNavigate()
   const location = useLocation()
-
-  useEffect(() => {
-    initialize().catch(() => {})
-  }, [initialize])
 
   useEffect(() => {
     if (isInitialized === false) return

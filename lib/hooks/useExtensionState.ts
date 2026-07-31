@@ -63,13 +63,6 @@ const useExtensionState = () => {
     }
   }, [])
 
-  const initialize = async (): Promise<void> => {
-    const response = await browser.runtime.sendMessage({ type: "INITIALIZE" }) as InitializeResponse
-    if (isInitializeResponse(response)) {
-      syncState(response.state)
-    }
-  }
-
   const createContainer = async (password: string): Promise<boolean> => {
     try {
       await create(password)
@@ -135,7 +128,6 @@ const useExtensionState = () => {
 
   return {
     state,
-    initialize,
     createContainer,
     signIn,
     writeData,
