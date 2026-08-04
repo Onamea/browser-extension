@@ -15,8 +15,8 @@ importers:
         specifier: jsr:^0.3.7
         version: '@jsr/vanice__types@0.3.7'
       '@vanice/vanice-pool':
-        specifier: jsr:^0.3.2
-        version: '@jsr/vanice__vanice-pool@0.3.2'
+        specifier: jsr:0.3.4
+        version: '@jsr/vanice__vanice-pool@0.3.4'
       react:
         specifier: ^19.2.8
         version: 19.2.8
@@ -388,8 +388,8 @@ packages:
   '@jsr/vanice__types@0.3.7':
     resolution: {integrity: sha512-VBmqk8daIP8gPsQHTBtyjVd4a75lCpLx8lcuxNAwaQWJt8cE0lAfz5hbRITWRU7kFwres72tjO/NV7qLZMWAZw==, tarball: https://npm.jsr.io/~/11/@jsr/vanice__types/0.3.7.tgz}
 
-  '@jsr/vanice__vanice-pool@0.3.2':
-    resolution: {integrity: sha512-5/lUdTQ3yghj7wxY0yIwNPdDXDnPZO+rkLdbcJOIbYEyCityhMwuQVjLkd4qg9dWxvRYequmcN0jZoOBDNwNAQ==, tarball: https://npm.jsr.io/~/11/@jsr/vanice__vanice-pool/0.3.2.tgz}
+  '@jsr/vanice__vanice-pool@0.3.4':
+    resolution: {integrity: sha512-Xw2LT4DMaaY6mV+TxXYuGCjVksmXvtKM06R7Ea75Ks/toPq1tfSNTzIOOQoU09IOSyrPHmGYypiq8E9I9tDE1A==, tarball: https://npm.jsr.io/~/11/@jsr/vanice__vanice-pool/0.3.4.tgz}
 
   '@mdn/browser-compat-data@8.0.4':
     resolution: {integrity: sha512-up6DsNsaPt3jq5d2TGx4UOXIqBKU0D86dxWwcVmmOOEYqP1rFaV1XcAcwHxMvb6bbtMfY5JpjUCszzy/aVc4yA==}
@@ -2771,7 +2771,7 @@ snapshots:
       '@jsr/scure__bip32': 2.0.1
       '@jsr/scure__bip39': 2.0.1
 
-  '@jsr/vanice__vanice-pool@0.3.2':
+  '@jsr/vanice__vanice-pool@0.3.4':
     dependencies:
       '@jsr/vanice__types': 0.3.7
 
