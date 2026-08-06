@@ -1,14 +1,14 @@
-type Props = {
-	onClear: () => Promise<void>
-}
+import { useExtensionStateContext } from "../hooks/useExtensionStateContext.ts"
 
-const ClearContainerButton = ({ onClear }: Props) => {
+const ClearContainerButton = () => {
+
+	const { clearData } = useExtensionStateContext()
 
 	const handleClick = async () => {
 		const isConfirmed = globalThis.confirm("Are you sure you want to clear the Container?")
 		if (isConfirmed === false) return
 		try {
-			await onClear()
+			await clearData()
 		} catch (error) {
 			console.error("Failed to clear container:", error)
 		}

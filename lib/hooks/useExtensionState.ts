@@ -119,6 +119,22 @@ const useExtensionState = () => {
     }
   }
 
+  const clearData = async (): Promise<boolean> => {
+    const accessKey = state.accessKey
+    if (accessKey === undefined) {
+      return false
+    }
+    try {
+      await setSessionData(accessKey, "")
+      await browser.runtime.sendMessage({ type: "WRITE_DATA", raw: "", accessKey })
+      clearDataToDispatch(dispatch)
+      setContainerExistsToDispatch(dispatch, true)
+      return true
+    } catch (_error) {
+      return false
+    }
+  }
+
   const signOut = async (): Promise<void> => {
     deinitialize()
     await browser.runtime.sendMessage({ type: "SIGNOUT" })
@@ -131,6 +147,7 @@ const useExtensionState = () => {
     createContainer,
     signIn,
     writeData,
+    clearData,
     signOut
   }
 }

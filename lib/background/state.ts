@@ -117,6 +117,10 @@ export const setData = (dispatch: (action: ExtensionAction) => void, raw: string
 }
 
 export const clearData = (dispatch: (action: ExtensionAction) => void) => {
+  dispatch({ type: "WRITE_DATA", payload: "" })
+}
+
+export const clearSession = (dispatch: (action: ExtensionAction) => void) => {
   dispatch({ type: "SIGNOUT" })
 }
 

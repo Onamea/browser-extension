@@ -8,6 +8,7 @@ type ExtensionStateContextValue = {
   createContainer: (password: string) => Promise<boolean>
   signIn: (password: string) => Promise<boolean>
   writeData: (data: ContainerData) => Promise<boolean>
+  clearData: () => Promise<boolean>
   signOut: () => Promise<void>
 }
 
