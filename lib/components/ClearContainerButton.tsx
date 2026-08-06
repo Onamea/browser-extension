@@ -1,8 +1,8 @@
-import { useExtensionStateContext } from "../hooks/useExtensionStateContext.ts"
+import useExtensionState from "../hooks/useExtensionState.ts"
 
 const ClearContainerButton = () => {
 
-	const { clearData } = useExtensionStateContext()
+	const { clearData } = useExtensionState()
 
 	const handleClick = async () => {
 		const isConfirmed = globalThis.confirm("Are you sure you want to clear the Container?")
