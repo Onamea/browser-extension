@@ -21,7 +21,7 @@ export default defineContentScript({
             return
           }
           browser.runtime.sendMessage({ type: API_SIGN, data, requestId }, (response: Record<string, unknown>) => {
-            globalThis.postMessage({ type: "SIGN_RESPONSE", ...response }, event.origin)
+            globalThis.postMessage({ type: "SIGN_RESPONSE", ...response, requestId }, event.origin)
           })
         }
       }

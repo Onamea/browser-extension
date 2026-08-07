@@ -1,7 +1,7 @@
 import type { FingerprintDisplay, Name } from "@vanice/types"
 import { isUnparsedMiningResult } from "@/lib/types/MiningResult.ts"
 import isObject from "@/lib/utils/isObject.ts"
-import { isString } from "@/lib/container/utils/isString.ts"
+import { isString } from "@/lib/utils/isString.ts"
 
 export const MINING_START = "MINING:START"
 export const MINING_ABORT = "MINING:ABORT"

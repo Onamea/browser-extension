@@ -1,5 +1,6 @@
 import type { NameKey, FingerprintedName, KeyPairDisplay, KeyPairAsJSON } from "@vanice/types"
-import { isFingerprintedName, isKeyPairDisplay, isNameKey, parseKeyPairAsJSON } from "@vanice/types"
+import { isFingerprintedName, isKeyPairDisplay, isNameKey, nameKeyToFingerprintedName, parseKeyPairAsJSON } from "@vanice/types"
+import { parseMiningResult } from "@/lib/types/MiningResult.ts"
 import isObject from "../utils/isObject.ts"
 
 export type ContainerData = {
@@ -26,5 +27,21 @@ export const decodeSessionData = (data: string): ContainerData | undefined => {
 	} catch (error) {
 		console.error("Failed to decode Data:", error)
 		return undefined
+	}
+}
+
+export const buildContainerDataFromMiningResult = async (result: unknown): Promise<ContainerData> => {
+	const { nameKey, cryptoName, publicKey, publicKeyDisplay, privateKey, privateKeyDisplay } = parseMiningResult(result)
+
+	return {
+		nameKey,
+		fingerprintedName: await nameKeyToFingerprintedName(nameKey),
+		keyPair: {
+			cryptoName,
+			publicKey,
+			publicKeyDisplay,
+			privateKey,
+			privateKeyDisplay
+		}
 	}
 }

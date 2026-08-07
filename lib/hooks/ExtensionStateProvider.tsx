@@ -12,14 +12,13 @@ import {
 import type { ExtensionState } from "../background/state.ts"
 import { create, deinitialize, initialize as initializeSession, set as setSessionData } from "@/lib/container/main.ts"
 import {
-  STATE_CREATE_CONTAINER,
-  STATE_INIT,
-  STATE_SIGNIN,
-  STATE_SIGNOUT,
-  STATE_WRITE_DATA,
-  isStateInitializeResponse,
-  isStateUpdatedMessage
-} from "@/lib/messaging/state.ts"
+  createContainerState,
+  initializeState,
+  onStateUpdated,
+  signInState,
+  signOutState,
+  writeStateData
+} from "@/lib/messaging/client/stateClient.ts"
 
 export type ExtensionStateContextValue = {
   state: ExtensionState
@@ -46,23 +45,15 @@ const useExtensionStateStore = () => {
       setDataToDispatch(dispatch, nextState.raw)
     }
 
-    browser.runtime.sendMessage({ type: STATE_INIT }).then((response: unknown) => {
-      if (isStateInitializeResponse(response)) {
-        syncState(response.state)
+    initializeState().then(stateResponse => {
+      if (stateResponse !== undefined) {
+        syncState(stateResponse)
       }
     }).catch((error) => {
       console.error("Failed to initialize extension state:", error)
     })
 
-    const listener = (message: unknown) => {
-      if (isStateUpdatedMessage(message)) {
-        syncState(message.state)
-      }
-    }
-    browser.runtime.onMessage.addListener(listener)
-    return () => {
-      browser.runtime.onMessage.removeListener(listener)
-    }
+    return onStateUpdated(syncState)
   }, [])
 
   const createContainer = async (password: string): Promise<boolean> => {
@@ -74,7 +65,7 @@ const useExtensionStateStore = () => {
       }
 
       const raw = result.content ?? ""
-      await browser.runtime.sendMessage({ type: STATE_CREATE_CONTAINER, accessKey: result.accessKey })
+      await createContainerState(result.accessKey)
       setContainerExistsToDispatch(dispatch, true)
       setAccessKeyToDispatch(dispatch, result.accessKey)
       setDataToDispatch(dispatch, raw)
@@ -92,7 +83,7 @@ const useExtensionStateStore = () => {
       }
 
       const raw = result.content ?? ""
-      await browser.runtime.sendMessage({ type: STATE_SIGNIN, raw, accessKey: result.accessKey })
+      await signInState(raw, result.accessKey)
       setContainerExistsToDispatch(dispatch, true)
       setAccessKeyToDispatch(dispatch, result.accessKey)
       setDataToDispatch(dispatch, raw)
@@ -111,7 +102,7 @@ const useExtensionStateStore = () => {
     try {
       const raw = encodeSessionData(data)
       await setSessionData(accessKey, raw)
-      await browser.runtime.sendMessage({ type: STATE_WRITE_DATA, raw, accessKey })
+      await writeStateData(raw, accessKey)
       setContainerExistsToDispatch(dispatch, true)
       setAccessKeyToDispatch(dispatch, accessKey)
       setDataToDispatch(dispatch, raw)
@@ -128,7 +119,7 @@ const useExtensionStateStore = () => {
     }
     try {
       await setSessionData(accessKey, "")
-      await browser.runtime.sendMessage({ type: STATE_WRITE_DATA, raw: "", accessKey })
+      await writeStateData("", accessKey)
       clearDataToDispatch(dispatch)
       setContainerExistsToDispatch(dispatch, true)
       return true
@@ -139,7 +130,7 @@ const useExtensionStateStore = () => {
 
   const signOut = async (): Promise<void> => {
     deinitialize()
-    await browser.runtime.sendMessage({ type: STATE_SIGNOUT })
+    await signOutState()
     clearDataToDispatch(dispatch)
   }
 

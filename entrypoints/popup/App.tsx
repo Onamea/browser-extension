@@ -1,6 +1,4 @@
-import { useEffect, useState } from "react"
-import type { PendingRequest } from "@/lib/background/signFlow.ts"
-import { API_GET_PENDING_REQUEST } from "@/lib/messaging/api.ts"
+import usePendingRequest from "@/lib/hooks/usePendingRequest.ts"
 import { ExtensionStateProvider } from "@/lib/hooks/ExtensionStateProvider.tsx"
 import useExtensionState from "@/lib/hooks/useExtensionState.ts"
 import PassphraseEntryForm from "@/lib/components/PassphraseEntryForm.tsx"
@@ -11,19 +9,10 @@ import "./App.css"
 
 const AppContent = () => {
   const { state } = useExtensionState()
-  const [pendingRequest, setPendingRequest] = useState<PendingRequest>()
-
-  useEffect(() => {
-    ;(async () => {
-      const response = await browser.runtime.sendMessage({ type: API_GET_PENDING_REQUEST })
-      if (response.pendingRequest !== undefined) {
-        setPendingRequest(response.pendingRequest)
-      }
-    })().catch(() => {})
-  }, [])
+  const { pendingRequest, clearPendingRequest } = usePendingRequest()
 
   const handleSignDone = () => {
-    setPendingRequest(undefined)
+    clearPendingRequest()
     globalThis.close()
   }
 

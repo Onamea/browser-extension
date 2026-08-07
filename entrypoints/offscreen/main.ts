@@ -9,6 +9,9 @@ import {
   type OffscreenStartMiningMessage,
   type OffscreenMiningControlMessage
 } from "@/lib/messaging/mining.ts"
+import type { SenderScopePolicy } from "@/lib/messaging/senderPolicy.ts"
+import { isSenderAuthorized } from "@/lib/messaging/senderPolicy.ts"
+import { isRuntimeMessage } from "@/lib/messaging/runtimeMessage.ts"
 
 type RequestId = string
 
@@ -17,6 +20,10 @@ type Message = OffscreenMiningControlMessage | OffscreenStartMiningMessage | Off
 const MAX_MINING_DURATION_MS = 30_000
 const NUM_WORKERS = 8 
 const WORKER_PROGRESS_INTERVAL_MS = 500
+const OFFSCREEN_MESSAGE_SCOPE_POLICY: SenderScopePolicy = new Map([
+  [MINING_OFFSCREEN_START, "extension"],
+  [MINING_OFFSCREEN_ABORT, "extension"]
+])
 
 let activeMiningAbort: (() => void) | undefined
 let activeMiningRequestId: RequestId | undefined
@@ -37,8 +44,17 @@ const stopActiveMining = () => {
 }
 
 browser.runtime.onMessage.addListener((message: Message, sender, sendResponse) => {
-  const isFromExtension = sender.url === undefined || sender.url?.startsWith(browser.runtime.getURL("")) === true
-  if (isFromExtension === false) {
+  if (isRuntimeMessage(message) === false) {
+    sendResponse({ error: "Invalid message" })
+    return false
+  }
+
+  const extensionBaseUrl = browser.runtime.getURL("")
+  if (OFFSCREEN_MESSAGE_SCOPE_POLICY.has(message.type) === false) {
+    return false
+  }
+
+  if (isSenderAuthorized(message.type, sender.url, extensionBaseUrl, OFFSCREEN_MESSAGE_SCOPE_POLICY) === false) {
     sendResponse({ error: "Forbidden" })
     return false
   }

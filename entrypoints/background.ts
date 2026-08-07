@@ -29,6 +29,9 @@ import {
   STATE_WRITE_DATA,
   type StateMessage
 } from "@/lib/messaging/state.ts"
+import type { SenderScopePolicy } from "@/lib/messaging/senderPolicy.ts"
+import { isSenderAuthorized } from "@/lib/messaging/senderPolicy.ts"
+import { isRuntimeMessage } from "@/lib/messaging/runtimeMessage.ts"
 
 type ChromeOffscreenApi = {
   runtime: {
@@ -46,6 +49,24 @@ type ChromeOffscreenApi = {
 type Message = StateMessage | ApiMessage | MiningControlMessage | MiningMessage
 
 const OFFSCREEN_DOCUMENT_PATH = "/offscreen.html"
+const MESSAGE_SCOPE_POLICY: SenderScopePolicy = new Map([
+  [API_SIGN, "web"],
+  [API_IDENTIFY, "web"],
+  [API_GET_PENDING_REQUEST, "extension"],
+  [API_CONFIRM_SIGN, "extension"],
+  [API_REJECT_SIGN, "extension"],
+  [STATE_INIT, "extension"],
+  [STATE_CREATE_CONTAINER, "extension"],
+  [STATE_SIGNIN, "extension"],
+  [STATE_WRITE_DATA, "extension"],
+  [STATE_SIGNOUT, "extension"],
+  [MINING_START, "extension"],
+  [MINING_ABORT, "extension"],
+  [MINING_PROGRESS, "extension"],
+  [MINING_RESULT, "extension"],
+  [MINING_ERROR, "extension"]
+])
+
 const hasOffscreenMiningDocument = async (chromeApi: ChromeOffscreenApi) => {
   const getContexts = chromeApi.runtime.getContexts?.bind(chromeApi.runtime)
   if (getContexts === undefined) {
@@ -90,26 +111,16 @@ const broadcastState = () => {
 
 export default defineBackground(() => {
   browser.runtime.onMessage.addListener((message: Message, sender: { tab?: unknown, url?: string }, sendResponse: (response: unknown) => void) => {
+    if (isRuntimeMessage(message) === false) {
+      sendResponse({ error: "Invalid message" })
+      return false
+    }
 
-    // guard
-    // SIGN must originate from a content script (sender.tab defined, url not from extension)
-    // all other messages must originate from extension pages (url starts with extension base url)
-    const isFromExtension = sender.url === undefined || sender.url?.startsWith(browser.runtime.getURL("")) === true
-    switch (message.type) {
-      case API_SIGN:
-      case API_IDENTIFY: {
-        if (sender.tab === undefined || isFromExtension) {
-          sendResponse({ error: "Forbidden" })
-          return false
-        }
-        break
-      }
-      default: {
-        if (isFromExtension === false) {
-          sendResponse({ error: "Forbidden" })
-          return false
-        }
-      }
+    // centralized message authorization policy by sender scope
+    const extensionBaseUrl = browser.runtime.getURL("")
+    if (isSenderAuthorized(message.type, sender.url, extensionBaseUrl, MESSAGE_SCOPE_POLICY) === false) {
+      sendResponse({ error: "Forbidden" })
+      return false
     }
 
     // messages logic
