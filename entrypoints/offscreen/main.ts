@@ -1,21 +1,18 @@
-import type { FingerprintDisplay, Name } from "@vanice/types"
 import { createWorkerPool } from "@vanice/vanice-pool"
+import {
+  MINING_ERROR,
+  MINING_OFFSCREEN_ABORT,
+  MINING_OFFSCREEN_START,
+  MINING_PROGRESS,
+  MINING_RESULT,
+  type OffscreenAbortMiningMessage,
+  type OffscreenStartMiningMessage,
+  type OffscreenMiningControlMessage
+} from "@/lib/messaging/mining.ts"
 
 type RequestId = string
 
-type StartMiningMessage = {
-  type: "OFFSCREEN_START_MINING"
-  requestId: RequestId
-  name: Name
-  fingerprintDisplay?: FingerprintDisplay
-}
-
-type AbortMiningMessage = {
-  type: "OFFSCREEN_ABORT_MINING"
-  requestId?: RequestId
-}
-
-type Message = StartMiningMessage | AbortMiningMessage
+type Message = OffscreenMiningControlMessage | OffscreenStartMiningMessage | OffscreenAbortMiningMessage
 
 const MAX_MINING_DURATION_MS = 30_000
 const NUM_WORKERS = 8 
@@ -47,7 +44,7 @@ browser.runtime.onMessage.addListener((message: Message, sender, sendResponse) =
   }
 
   switch (message.type) {
-    case "OFFSCREEN_START_MINING": {
+    case MINING_OFFSCREEN_START: {
       stopActiveMining()
       const miningWorkerUrl = new URL(browser.runtime.getURL("/workers/worker.js"))
       activeMiningRequestId = message.requestId
@@ -64,7 +61,7 @@ browser.runtime.onMessage.addListener((message: Message, sender, sendResponse) =
               return
             }
             browser.runtime.sendMessage({
-              type: "MINING_PROGRESS",
+              type: MINING_PROGRESS,
               requestId: message.requestId,
               totalAttempts
             })
@@ -91,14 +88,14 @@ browser.runtime.onMessage.addListener((message: Message, sender, sendResponse) =
             }
             if (result === undefined || result.privateKey === undefined || result.privateKeyDisplay === undefined) {
               browser.runtime.sendMessage({
-                type: "MINING_ERROR",
+                type: MINING_ERROR,
                 requestId: message.requestId,
                 error: "Mining timed out. Try a shorter name."
               })
               return
             }
             browser.runtime.sendMessage({
-              type: "MINING_RESULT",
+              type: MINING_RESULT,
               requestId: message.requestId,
               result
             })
@@ -108,7 +105,7 @@ browser.runtime.onMessage.addListener((message: Message, sender, sendResponse) =
               return
             }
             browser.runtime.sendMessage({
-              type: "MINING_ERROR",
+              type: MINING_ERROR,
               requestId: message.requestId,
               error: String(error)
             })
@@ -130,7 +127,7 @@ browser.runtime.onMessage.addListener((message: Message, sender, sendResponse) =
       }
     }
 
-    case "OFFSCREEN_ABORT_MINING": {
+    case MINING_OFFSCREEN_ABORT: {
       if (message.requestId === undefined || message.requestId === activeMiningRequestId) {
         stopActiveMining()
       }

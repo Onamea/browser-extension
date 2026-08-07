@@ -1,84 +1,34 @@
-import { type AccessKey, checkStorage } from "@/lib/container/main.ts"
+import { checkStorage } from "@/lib/container/main.ts"
 import { backgroundState, backgroundDispatch, setContainerExists, setData, setAccessKey } from "@/lib/background/state.ts"
 import { getPendingRequest, handleSign, handleConfirmSign, handleRejectSign } from "@/lib/background/signFlow.ts"
-import type { FingerprintDisplay, Name } from "@vanice/types"
-
-type InitializeMessage = {
-  type: "INITIALIZE"
-}
-
-type CreateContainerMessage = {
-  type: "CREATE_CONTAINER"
-  accessKey: AccessKey
-}
-
-type SigninMessage = {
-  type: "SIGNIN"
-  raw: string
-  accessKey: AccessKey
-}
-
-type WriteDataMessage = {
-  type: "WRITE_DATA"
-  raw: string
-  accessKey: AccessKey
-}
-
-type SignoutMessage = {
-  type: "SIGNOUT"
-}
-
-type IdentifyMessage = {
-  type: "IDENTIFY"
-}
-
-type SignMessage = {
-  type: "SIGN"
-  data: unknown
-  requestId: string
-}
-
-type GetPendingRequestMessage = {
-  type: "GET_PENDING_REQUEST"
-}
-
-type ConfirmSignMessage = {
-  type: "CONFIRM_SIGN"
-}
-
-type RejectSignMessage = {
-  type: "REJECT_SIGN"
-}
-
-type StartMiningMessage = {
-  type: "START_MINING"
-  requestId: string
-  name: Name
-  fingerprintDisplay?: FingerprintDisplay
-}
-
-type AbortMiningMessage = {
-  type: "ABORT_MINING"
-  requestId?: string
-}
-
-type MiningProgressMessage = {
-  type: "MINING_PROGRESS"
-  requestId: string
-  totalAttempts: number
-}
-
-type MiningResultMessage = {
-  type: "MINING_RESULT"
-  requestId: string
-  result: unknown
-}
-
-type MiningErrorMessage = {
-  type: "MINING_ERROR"
-  requestId: string
-  error: string
-}
+import {
+  API_CONFIRM_SIGN,
+  API_GET_PENDING_REQUEST,
+  API_IDENTIFY,
+  API_REJECT_SIGN,
+  API_SIGN,
+  type ApiMessage
+} from "@/lib/messaging/api.ts"
+import {
+  MINING_ABORT,
+  MINING_ERROR,
+  MINING_OFFSCREEN_ABORT,
+  MINING_OFFSCREEN_START,
+  MINING_PROGRESS,
+  MINING_RESULT,
+  MINING_START,
+  type MiningControlMessage,
+  type MiningMessage
+} from "@/lib/messaging/mining.ts"
+import {
+  STATE_CREATE_CONTAINER,
+  STATE_INIT,
+  STATE_SIGNIN,
+  STATE_SIGNOUT,
+  STATE_UPDATED,
+  STATE_WRITE_DATA,
+  type StateMessage
+} from "@/lib/messaging/state.ts"
 
 type ChromeOffscreenApi = {
   runtime: {
@@ -93,7 +43,7 @@ type ChromeOffscreenApi = {
   }
 }
 
-type Message = InitializeMessage | CreateContainerMessage | SigninMessage | WriteDataMessage | SignoutMessage | IdentifyMessage | SignMessage | GetPendingRequestMessage | ConfirmSignMessage | RejectSignMessage | StartMiningMessage | AbortMiningMessage | MiningProgressMessage | MiningResultMessage | MiningErrorMessage
+type Message = StateMessage | ApiMessage | MiningControlMessage | MiningMessage
 
 const OFFSCREEN_DOCUMENT_PATH = "/offscreen.html"
 const hasOffscreenMiningDocument = async (chromeApi: ChromeOffscreenApi) => {
@@ -135,7 +85,7 @@ const ensureOffscreenMiningDocument = async () => {
 }
 
 const broadcastState = () => {
-  browser.runtime.sendMessage({ type: "STATE_UPDATED", state: backgroundState })
+  browser.runtime.sendMessage({ type: STATE_UPDATED, state: backgroundState })
 }
 
 export default defineBackground(() => {
@@ -146,8 +96,8 @@ export default defineBackground(() => {
     // all other messages must originate from extension pages (url starts with extension base url)
     const isFromExtension = sender.url === undefined || sender.url?.startsWith(browser.runtime.getURL("")) === true
     switch (message.type) {
-      case "SIGN": 
-      case "IDENTIFY": {
+      case API_SIGN:
+      case API_IDENTIFY: {
         if (sender.tab === undefined || isFromExtension) {
           sendResponse({ error: "Forbidden" })
           return false
@@ -165,7 +115,7 @@ export default defineBackground(() => {
     // messages logic
     switch (message.type) {
 
-      case "INITIALIZE": {
+      case STATE_INIT: {
         if (backgroundState.isInitialized) {
           sendResponse({ state: backgroundState })
           return false
@@ -183,7 +133,7 @@ export default defineBackground(() => {
         return true
       }
 
-      case "CREATE_CONTAINER": {
+      case STATE_CREATE_CONTAINER: {
         setContainerExists(backgroundDispatch, true)
         setData(backgroundDispatch, "")
         setAccessKey(backgroundDispatch, message.accessKey)
@@ -192,7 +142,7 @@ export default defineBackground(() => {
         return false
       }
 
-      case "SIGNIN": {
+      case STATE_SIGNIN: {
         setContainerExists(backgroundDispatch, true)
         setData(backgroundDispatch, message.raw)
         setAccessKey(backgroundDispatch, message.accessKey)
@@ -201,7 +151,7 @@ export default defineBackground(() => {
         return false
       }
 
-      case "WRITE_DATA": {
+      case STATE_WRITE_DATA: {
         setContainerExists(backgroundDispatch, true)
         setData(backgroundDispatch, message.raw)
         setAccessKey(backgroundDispatch, message.accessKey)
@@ -210,14 +160,14 @@ export default defineBackground(() => {
         return false
       }
 
-      case "SIGNOUT": {
+      case STATE_SIGNOUT: {
         backgroundDispatch({ type: "SIGNOUT" })
         broadcastState()
         sendResponse({ ok: true })
         return false
       }
 
-      case "START_MINING": {
+      case MINING_START: {
         void (async () => {
           try {
             await ensureOffscreenMiningDocument()
@@ -228,7 +178,7 @@ export default defineBackground(() => {
             for (let attempt = 0; attempt < 10; attempt++) {
               try {
                 startResponse = await browser.runtime.sendMessage({
-                  type: "OFFSCREEN_START_MINING",
+                  type: MINING_OFFSCREEN_START,
                   requestId: message.requestId,
                   name: message.name,
                   fingerprintDisplay: message.fingerprintDisplay
@@ -255,13 +205,13 @@ export default defineBackground(() => {
         return true
       }
 
-      case "ABORT_MINING": {
-        void browser.runtime.sendMessage({ type: "OFFSCREEN_ABORT_MINING", requestId: message.requestId })
+      case MINING_ABORT: {
+        void browser.runtime.sendMessage({ type: MINING_OFFSCREEN_ABORT, requestId: message.requestId })
         sendResponse({ ok: true })
         return false
       }
 
-      case "IDENTIFY": {
+      case API_IDENTIFY: {
         if (backgroundState.data === undefined) {
           sendResponse({ error: "Not initialized" })
           return false
@@ -270,7 +220,7 @@ export default defineBackground(() => {
         return false
       }
 
-      case "GET_PENDING_REQUEST": {
+      case API_GET_PENDING_REQUEST: {
         const buildResponse = () => ({
           pendingRequest: getPendingRequest(),
           data: backgroundState.data
@@ -279,24 +229,24 @@ export default defineBackground(() => {
         return false
       }
 
-      case "SIGN": {
+      case API_SIGN: {
         const { data, requestId } = message
         const origin = sender.url ?? ""
         return handleSign(data, requestId, origin, sendResponse, () => browser.action.openPopup().catch(() => {}))
       }
 
-      case "CONFIRM_SIGN": {
+      case API_CONFIRM_SIGN: {
         return handleConfirmSign(backgroundState, sendResponse)
       }
 
-      case "REJECT_SIGN": {
+      case API_REJECT_SIGN: {
         return handleRejectSign(sendResponse)
       }
 
       // offscreen documents cannot send messages directly to extension pages in MV3
-      case "MINING_PROGRESS":
-      case "MINING_RESULT":
-      case "MINING_ERROR": {
+      case MINING_PROGRESS:
+      case MINING_RESULT:
+      case MINING_ERROR: {
         void browser.runtime.sendMessage(message)
         sendResponse({ ok: true })
         return false

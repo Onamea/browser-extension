@@ -12,78 +12,18 @@ import {
 import ErrorDisplay from "./ErrorDisplay.tsx"
 import MiningProgress from "./MiningProgress.tsx"
 import useExtensionState from "@/lib/hooks/useExtensionState.ts"
-import { isUnparsedMiningResult, parseMiningResult, type MiningResult } from "@/lib/types/MiningResult.ts"
-import isObject from "../utils/isObject.ts"
-import { isString } from "../container/utils/isString.ts"
-
-type AbstractMiningMessage = {
-	type: string
-	requestId: string
-}
-
-type MiningProgressMessage = AbstractMiningMessage & {
-	type: "MINING_PROGRESS"
-	totalAttempts: number
-}
-
-type MiningResultMessage = AbstractMiningMessage & {
-	type: "MINING_RESULT"
-	result: MiningResult
-}
-
-type MiningErrorMessage = AbstractMiningMessage & {
-	type: "MINING_ERROR"
-	error: string
-}
-
-type MiningMessage = MiningProgressMessage | MiningResultMessage | MiningErrorMessage
-
-const isAbstractMiningMessage = (message: unknown): message is AbstractMiningMessage => {
-	if (isObject(message) === false) {
-		return false
-	}
-	const candidate = message as { type?: unknown, requestId?: unknown }
-	if (isString(candidate.type) === false || ["MINING_PROGRESS", "MINING_RESULT", "MINING_ERROR"].includes(candidate.type) === false) {
-		return false
-	}
-	if (isString(candidate.requestId) === false) {
-		return false
-	}
-	return true
-}
-
-const isMiningProgressMessage = (message: unknown): message is MiningProgressMessage => {
-	if (isAbstractMiningMessage(message) === false) {
-		return false
-	}
-	if (message.type !== "MINING_PROGRESS") {
-		return false
-	}
-	const candidate = message as AbstractMiningMessage & { totalAttempts?: unknown }
-	return typeof candidate.totalAttempts === "number"
-}
-
-const isMiningErrorMessage = (message: unknown): message is MiningErrorMessage => {
-	if (isAbstractMiningMessage(message) === false) {
-		return false
-	}
-	if (message.type !== "MINING_ERROR") {
-		return false
-	}
-	const candidate = message as AbstractMiningMessage & { error?: unknown }
-	return isString(candidate.error)
-}
-
-const isMiningResultMessage = (message: unknown): message is MiningResultMessage => {
-	if (isAbstractMiningMessage(message) === false) {
-		return false
-	}
-	if (message.type !== "MINING_RESULT") {
-		return false
-	}
-	const candidate = message as AbstractMiningMessage & { result?: unknown }
-	return isUnparsedMiningResult(candidate.result)
-}
+import { parseMiningResult } from "@/lib/types/MiningResult.ts"
+import {
+	MINING_ABORT,
+	MINING_ERROR,
+	MINING_PROGRESS,
+	MINING_RESULT,
+	MINING_START,
+	isMiningErrorMessage,
+	isMiningProgressMessage,
+	isMiningResultMessage,
+	type MiningMessage
+} from "@/lib/messaging/mining.ts"
 
 const CreateKeyPairForm = () => {
 
@@ -108,12 +48,12 @@ const CreateKeyPairForm = () => {
 				return
 			}
 
-			if (miningMessage.type === "MINING_PROGRESS") {
+			if (miningMessage.type === MINING_PROGRESS) {
 				setProgress({ totalAttempts: miningMessage.totalAttempts })
 				return
 			}
 
-			if (miningMessage.type === "MINING_ERROR") {
+			if (miningMessage.type === MINING_ERROR) {
 				activeRequestIdRef.current = undefined
 				setErrors([miningMessage.error])
 				setProgress(undefined)
@@ -121,7 +61,7 @@ const CreateKeyPairForm = () => {
 				return
 			}
 
-			if (miningMessage.type !== "MINING_RESULT") {
+			if (miningMessage.type !== MINING_RESULT) {
 				return
 			}
 
@@ -166,7 +106,7 @@ const CreateKeyPairForm = () => {
 			browser.runtime.onMessage.removeListener(listener)
 			if (activeRequestIdRef.current !== undefined) {
 				void browser.runtime.sendMessage({
-					type: "ABORT_MINING",
+					type: MINING_ABORT,
 					requestId: activeRequestIdRef.current
 				})
 			}
@@ -197,13 +137,13 @@ const CreateKeyPairForm = () => {
 			const requestId = crypto.randomUUID()
 			if (activeRequestIdRef.current !== undefined) {
 				await browser.runtime.sendMessage({
-					type: "ABORT_MINING",
+					type: MINING_ABORT,
 					requestId: activeRequestIdRef.current
 				})
 			}
 			activeRequestIdRef.current = requestId
 			const response = await browser.runtime.sendMessage({
-				type: "START_MINING",
+				type: MINING_START,
 				requestId,
 				name: targetName,
 				fingerprintDisplay

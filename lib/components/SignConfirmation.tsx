@@ -1,4 +1,5 @@
 import type { PendingRequest } from "../background/signFlow.ts"
+import { API_CONFIRM_SIGN, API_REJECT_SIGN } from "@/lib/messaging/api.ts"
 import SignConfirmationForm from "../components/SignConfirmationForm.tsx"
 
 type Props = {
@@ -8,12 +9,12 @@ type Props = {
 
 const SignConfirmation = ({ pendingRequest, onDone }: Props) => {
   const handleConfirm = async () => {
-    await browser.runtime.sendMessage({ type: "CONFIRM_SIGN" })
+    await browser.runtime.sendMessage({ type: API_CONFIRM_SIGN })
     onDone()
   }
 
   const handleReject = async () => {
-    await browser.runtime.sendMessage({ type: "REJECT_SIGN" })
+    await browser.runtime.sendMessage({ type: API_REJECT_SIGN })
     onDone()
   }
 

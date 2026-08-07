@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react"
 import type { PendingRequest } from "@/lib/background/signFlow.ts"
+import { API_GET_PENDING_REQUEST } from "@/lib/messaging/api.ts"
 import { ExtensionStateProvider } from "@/lib/hooks/ExtensionStateProvider.tsx"
 import useExtensionState from "@/lib/hooks/useExtensionState.ts"
 import PassphraseEntryForm from "@/lib/components/PassphraseEntryForm.tsx"
@@ -14,7 +15,7 @@ const AppContent = () => {
 
   useEffect(() => {
     ;(async () => {
-      const response = await browser.runtime.sendMessage({ type: "GET_PENDING_REQUEST" })
+      const response = await browser.runtime.sendMessage({ type: API_GET_PENDING_REQUEST })
       if (response.pendingRequest !== undefined) {
         setPendingRequest(response.pendingRequest)
       }
