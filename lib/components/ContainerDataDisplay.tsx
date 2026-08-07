@@ -1,4 +1,4 @@
-import type { ContainerData } from "../background/ContainerData.ts"
+import type { ContainerData } from "../types/ContainerData.ts"
 
 type Props = {
   data: ContainerData

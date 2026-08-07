@@ -1,6 +1,6 @@
 import { useEffect, useReducer, type ReactNode, createContext } from "react"
-import type { ContainerData } from "@/lib/background/ContainerData.ts"
-import { encodeSessionData } from "@/lib/background/ContainerData.ts"
+import type { ContainerData } from "@/lib/types/ContainerData.ts"
+import { encodeSessionData } from "@/lib/types/ContainerData.ts"
 import {
   extensionReducer,
   initialState,

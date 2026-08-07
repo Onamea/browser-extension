@@ -1,4 +1,4 @@
-import { type ContainerData, decodeSessionData } from "./ContainerData.ts"
+import { type ContainerData, decodeSessionData } from "../types/ContainerData.ts"
 import type { AccessKey } from "@/lib/container/main.ts"
 
 export type ExtensionState = {
