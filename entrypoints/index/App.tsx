@@ -1,6 +1,6 @@
 import { MemoryRouter, Route, Routes, useLocation, useNavigate } from "react-router-dom"
-import { useExtensionStateContext } from "@/lib/hooks/useExtensionStateContext.tsx"
-import { ExtensionStateProvider } from "@/lib/hooks/useExtensionStateContext.tsx"
+import useExtensionState from "@/lib/hooks/useExtensionState.ts"
+import { ExtensionStateProvider } from "@/lib/hooks/ExtensionStateProvider.tsx"
 import SignIn from "@/lib/routes/SignIn.tsx"
 import CreateContainer from "@/lib/routes/CreateContainer.tsx"
 import Account from "@/lib/routes/Account.tsx"
@@ -9,7 +9,7 @@ import AccountEdit from "@/lib/routes/AccountEdit.tsx"
 import "./App.css"
 
 const AppRoutes = () => {
-  const { state } = useExtensionStateContext()
+  const { state } = useExtensionState()
   const { hasContainer, isInitialized, isUnlocked, data } = state
   const navigate = useNavigate()
   const location = useLocation()

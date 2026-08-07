@@ -2,13 +2,13 @@ import type { FormEvent } from "react"
 import { useState } from "react"
 import ErrorDisplay from "./ErrorDisplay.tsx"
 import { isPassword } from "@/lib/container/main.ts"
-import { useExtensionStateContext } from "@/lib/hooks/useExtensionStateContext.tsx"
+import useExtensionState from "@/lib/hooks/useExtensionState.ts"
 
 const PassphraseEntryForm = () => {
   const [passphrase, setPassphrase] = useState("")
   const [errors, setErrors] = useState<string[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const { signIn } = useExtensionStateContext()
+  const { signIn } = useExtensionState()
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()

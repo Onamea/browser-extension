@@ -11,14 +11,14 @@ import {
   nameKeyToFingerprintedName
 } from "@vanice/types"
 import ErrorDisplay from "./ErrorDisplay.tsx"
-import { useExtensionStateContext } from "@/lib/hooks/useExtensionStateContext.tsx"
+import useExtensionState from "@/lib/hooks/useExtensionState.ts"
 
 const AddKeyPairForm = () => {
   const [identifier, setIdentifier] = useState("")
   const [privateKeyOrMnemonic, setPrivateKeyOrMnemonic] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<string[]>([])
-  const { writeData } = useExtensionStateContext()
+  const { writeData } = useExtensionState()
 
   const addKeyPair = async (identifier: Identifier, privateKeyOrMnemonic: PrivateKeyDisplay | MnemonicDisplayWithPassphrase) => {
     try {

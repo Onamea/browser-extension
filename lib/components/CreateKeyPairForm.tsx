@@ -11,7 +11,7 @@ import {
 } from "@vanice/types"
 import ErrorDisplay from "./ErrorDisplay.tsx"
 import MiningProgress from "./MiningProgress.tsx"
-import { useExtensionStateContext } from "@/lib/hooks/useExtensionStateContext.tsx"
+import useExtensionState from "@/lib/hooks/useExtensionState.ts"
 import { isUnparsedMiningResult, parseMiningResult, type MiningResult } from "@/lib/types/MiningResult.ts"
 import isObject from "../utils/isObject.ts"
 import { isString } from "../container/utils/isString.ts"
@@ -93,7 +93,7 @@ const CreateKeyPairForm = () => {
 	const [errors, setErrors] = useState<string[]>([])
 	const [progress, setProgress] = useState<{ totalAttempts: number }>()
 	const navigate = useNavigate()
-	const { writeData } = useExtensionStateContext()
+	const { writeData } = useExtensionState()
   const activeRequestIdRef = useRef<string | undefined>(undefined)
 
 	useEffect(() => {
