@@ -105,6 +105,13 @@ const useCreateKeyPairMining = ({ writeData, onSuccess }: UseCreateKeyPairMining
   const startMiningForNameInput = async (nameInput: string): Promise<void> => {
     setIsSubmitting(true)
 
+    // TODO: Move both these validations to component
+    if (nameInput.trim() === "") {
+      setErrors(["Name cannot be empty"])
+      setIsSubmitting(false)
+      return
+    }
+
     if (isNameOrFingerprintedName(nameInput) === false) {
       setErrors(["Invalid name"])
       setIsSubmitting(false)
