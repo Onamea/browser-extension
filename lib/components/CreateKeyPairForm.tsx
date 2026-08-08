@@ -30,22 +30,23 @@ const CreateKeyPairForm = () => {
 	}
 
 	return (
-		<form onSubmit={ handleSubmit }>
-			<div>
-				<label htmlFor="name">Name:</label>
-				<input
-					id="name"
-					type="text"
-					value={ name }
-					onChange={ event => setName(event.target.value) }
-					placeholder="Name"
-					disabled={ isSubmitting }
-				/>
-			</div>
-			{ progress !== undefined && nameToMine !== undefined && <MiningProgress nameLength={ nameToMine.length } totalAttempts={ progress.totalAttempts } /> }
-			<button type="submit" disabled={ isSubmitting }>Mine</button>
-			{ errors.length > 0 && <ErrorDisplay errors={ errors } /> }
-		</form>
+		<section>
+			<form onSubmit={ handleSubmit }>
+				<div>
+					<label htmlFor="name">Choose a name:</label>
+					<input
+						id="name"
+						type="text"
+						value={ name }
+						onChange={ event => setName(event.target.value) }
+						disabled={ isSubmitting }
+					/>
+				</div>
+				{ progress !== undefined && nameToMine !== undefined && <MiningProgress nameLength={ nameToMine.length } totalAttempts={ progress.totalAttempts } /> }
+				<button type="submit" disabled={ isSubmitting }>Generate</button>
+				{ errors.length > 0 && <ErrorDisplay errors={ errors } /> }
+			</form>
+		</section>
 	)
 }
 

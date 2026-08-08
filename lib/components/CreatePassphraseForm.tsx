@@ -38,27 +38,25 @@ const CreatePassphraseForm = () => {
   return (
     <form onSubmit={ handleSubmit }>
       <div>
-        <label htmlFor="passphrase">Passphrase:</label>
+        <label htmlFor="passphrase">Password:</label>
         <input
           id="passphrase"
           type="password"
           value={ passphrase }
           onChange={ event => setPassphrase(event.target.value) }
-          placeholder="Passphrase"
         />
       </div>
       <div>
-        <label htmlFor="passphraseConfirm">Confirm passphrase:</label>
+        <label htmlFor="passphraseConfirm">Confirm password:</label>
         <input
           id="passphraseConfirm"
           type="password"
           value={ passphraseConfirm }
           onChange={ event => setPassphraseConfirm(event.target.value) }
-          placeholder="Confirm passphrase"
         />
       </div>
       <ErrorDisplay errors={ errors } />
-      <button type="submit" disabled={ isSubmitting }>{ isSubmitting ? "..." : "Create" }</button>
+      <button type="submit" disabled={ isSubmitting }>{ isSubmitting ? "..." : "Save" }</button>
     </form>
   )
 }

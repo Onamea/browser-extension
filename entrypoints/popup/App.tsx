@@ -30,10 +30,10 @@ const AppContent = () => {
     showConfirmationForm
       ? <SignConfirmation pendingRequest={ pendingRequest } onDone={ handleSignDone } />
       : <>
-          { isInitialized === false && <p>Not initialized</p> }
+          { isInitialized === false && <p>Extension not set up, yet</p> }
           { isInitialized && isUnlocked === false && <PassphraseEntryForm /> }
           { isUnlocked && <ContainerDisplay state={ state } /> }
-          <button type="button" onClick={ handleOpenIndex }>Open Key Manager</button>
+          <button type="button" onClick={ handleOpenIndex }>Open App</button>
         </>
   )
 }

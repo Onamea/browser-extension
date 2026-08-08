@@ -7,7 +7,7 @@ type Props = {
 const ErrorDisplay = ({ errors }: Props) => (
   <>
     { errors.map(error => (
-      <p key={ error }>{ error }</p>
+      <p className="error" key={ error }>{ error }</p>
     )) }
   </>
 )

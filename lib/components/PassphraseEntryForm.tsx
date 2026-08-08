@@ -12,7 +12,12 @@ const PassphraseEntryForm = () => {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const errors = isPassword(passphrase) ? [] : ["Invalid passphrase"]
+    const errors = []
+    if (passphrase.length === 0) {
+      errors.push("Password required")
+    } else if (isPassword(passphrase) === false) {
+      errors.push("Invalid password")
+    }
     if (errors.length > 0) {
       setErrors(errors)
       return
@@ -22,23 +27,26 @@ const PassphraseEntryForm = () => {
     const isSuccess = await signIn(passphrase)
     setIsSubmitting(false)
     if (isSuccess === false) {
-      setErrors(["Incorrect passphrase"])
+      setErrors(["Incorrect password"])
     }
   }
 
   return (
-    <form onSubmit={ handleSubmit }>
-      <label htmlFor="passphrase">Passphrase:</label>
-      <input
-        id="passphrase"
-        type="password"
-        value={ passphrase }
-        onChange={ event => setPassphrase(event.target.value) }
-        placeholder="Passphrase"
-      />
-      <button type="submit" disabled={ isSubmitting }>{ isSubmitting ? "..." : "Submit" }</button>
-      <ErrorDisplay errors={ errors } />
-    </form>
+    <section>
+      <form onSubmit={ handleSubmit }>
+        <div>
+          <label htmlFor="passphrase">Password:</label>
+          <input
+            id="passphrase"
+            type="password"
+            value={ passphrase }
+            onChange={ event => setPassphrase(event.target.value) }
+          />
+        </div>
+        <button type="submit" disabled={ isSubmitting }>{ isSubmitting ? "..." : "Submit" }</button>
+        <ErrorDisplay errors={ errors } />
+      </form>
+    </section>
   )
 }
 

@@ -59,30 +59,30 @@ const AddKeyPairForm = () => {
   }
 
   return (
-    <form onSubmit={ handleSubmit }>
-      <div>
-        <label htmlFor="identifier">Identifier:</label>
-        <input
-          id="identifier"
-          type="text"
-          value={ identifier }
-          onChange={ event => setIdentifier(event.target.value) }
-          placeholder="Identifier"
-        />
-      </div>
-      <div>
-        <label htmlFor="privateKeyOrMnemonic">Private key or mnemonic:</label>
-        <input
-          id="privateKeyOrMnemonic"
-          type="password"
-          value={ privateKeyOrMnemonic }
-          onChange={ event => setPrivateKeyOrMnemonic(event.target.value) }
-          placeholder="Private key or mnemonic"
-        />
-      </div>
-      <ErrorDisplay errors={ errors } />
-      <button type="submit" disabled={ isSubmitting }>{ isSubmitting ? "..." : "Add" }</button>
-    </form>
+    <section>
+      <form onSubmit={ handleSubmit }>
+        <div>
+          <label htmlFor="identifier">Fingerprinted Name or NameKey:</label>
+          <input
+            id="identifier"
+            type="text"
+            value={ identifier }
+            onChange={ event => setIdentifier(event.target.value) }
+          />
+        </div>
+        <div>
+          <label htmlFor="privateKeyOrMnemonic">Private key or mnemonic:</label>
+          <input
+            id="privateKeyOrMnemonic"
+            type="password"
+            value={ privateKeyOrMnemonic }
+            onChange={ event => setPrivateKeyOrMnemonic(event.target.value) }
+          />
+        </div>
+        <ErrorDisplay errors={ errors } />
+        <button type="submit" disabled={ isSubmitting }>{ isSubmitting ? "..." : "Import" }</button>
+      </form>
+    </section>
   )
 }
 

@@ -19,12 +19,11 @@ const AccountEdit = ({ state }: Props) => {
 
   return (
     <div>
-      <h1>Container</h1>
       <ContainerDisplay state={ state } />
-      { state.data !== undefined && <ClearContainerButton /> }
-      { state.data === undefined && <AddKeyPairForm /> }
+      { state.data !== undefined && <section><ClearContainerButton /></section> }
+      { state.data !== undefined && <section><button type="button" onClick={ onClick }>Cancel</button></section> }
       { state.data === undefined && <CreateKeyPairForm /> }
-      <button type="button" onClick={ onClick }>cancel</button>
+      { state.data === undefined && <AddKeyPairForm /> }
     </div>
   )
 }
