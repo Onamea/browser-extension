@@ -1,10 +1,3 @@
 # TODO
-- mine name
-- manage account
-- immediate and confirmable browser EVENTS
-- browser interface on window
-- namespace events from postMessage
-- styling
-- master password + sub accounts
-- views for key pairs (Fingvrprint, Nostr, BTC, DID)
+- seperate views for key pairs of other networks (Onamea, Nostr, BTC, DID)
 - encrypt browser event queue

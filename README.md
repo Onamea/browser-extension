@@ -1,3 +1,3 @@
-# WXT + React
+# Onamea Browser Extension
 
-This template should help get you started developing with React in WXT.
+Build using WXT. Targeting Chrome.
