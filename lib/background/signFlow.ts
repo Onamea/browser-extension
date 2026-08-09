@@ -7,10 +7,33 @@ export type PendingRequest = {
   origin: string
 }
 
-let pendingRequest: PendingRequest | undefined
-let pendingSendResponse: ((response: unknown) => void) | undefined
+type PendingSignRequest = PendingRequest & {
+  sendResponse: (response: unknown) => void
+}
 
-export const getPendingRequest = () => pendingRequest
+const MAX_PENDING_SIGN_REQUESTS = 8
+
+let pendingRequests: PendingSignRequest[] = []
+
+export const getPendingRequest = (): PendingRequest | undefined => {
+  const pendingRequest = pendingRequests[0]
+  if (pendingRequest === undefined) {
+    return undefined
+  }
+
+  const { data, requestId, origin } = pendingRequest
+  return { data, requestId, origin }
+}
+
+const getActivePendingRequest = (): PendingSignRequest | undefined => pendingRequests[0]
+
+const dequeuePendingRequest = () => {
+  pendingRequests = pendingRequests.slice(1)
+}
+
+const enqueuePendingRequest = (request: PendingSignRequest) => {
+  pendingRequests = [...pendingRequests, request]
+}
 
 export const handleSign = (
   data: unknown,
@@ -18,10 +41,19 @@ export const handleSign = (
   origin: string,
   sendResponse: (response: unknown) => void,
   openPopup: () => void
-): true => {
-  pendingRequest = { data, requestId, origin }
-  pendingSendResponse = sendResponse
-  openPopup()
+): boolean => {
+  if (pendingRequests.length >= MAX_PENDING_SIGN_REQUESTS) {
+    sendResponse({ error: "Too many pending sign requests", requestId })
+    return false
+  }
+
+  const wasEmpty = pendingRequests.length === 0
+  enqueuePendingRequest({ data, requestId, origin, sendResponse })
+
+  if (wasEmpty) {
+    openPopup()
+  }
+
   return true
 }
 
@@ -29,31 +61,31 @@ export const handleConfirmSign = (
   state: ExtensionState | undefined,
   sendResponse: (response: unknown) => void
 ): false => {
-  if (pendingRequest === undefined || pendingSendResponse === undefined || state?.data === undefined) {
+  const pendingRequest = getActivePendingRequest()
+  if (pendingRequest === undefined || state?.data === undefined) {
     sendResponse({ error: "No pending request" })
     return false
   }
+
   const { data, requestId } = pendingRequest
-  const resolve = pendingSendResponse
-  pendingRequest = undefined
-  pendingSendResponse = undefined
+  dequeuePendingRequest()
   sendResponse({ ok: true })
   if (isOperation(data) === false) {
-    resolve({ error: "Data is not a valid Operation", requestId })
+    pendingRequest.sendResponse({ error: "Data is not a valid Operation", requestId })
     return false
   }
   const keyPair = state.data.keyPair
   signOperation(data, keyPair)
-    .then(signedMessage => resolve({ signedMessage, requestId }))
-    .catch(error => resolve({ error: String(error), requestId }))
+    .then(signedMessage => pendingRequest.sendResponse({ signedMessage, requestId }))
+    .catch(error => pendingRequest.sendResponse({ error: String(error), requestId }))
   return false
 }
 
 export const handleRejectSign = (sendResponse: (response: unknown) => void): false => {
-  if (pendingRequest !== undefined && pendingSendResponse !== undefined) {
-    pendingSendResponse({ error: "rejected", requestId: pendingRequest.requestId })
-    pendingRequest = undefined
-    pendingSendResponse = undefined
+  const pendingRequest = getActivePendingRequest()
+  if (pendingRequest !== undefined) {
+    dequeuePendingRequest()
+    pendingRequest.sendResponse({ error: "rejected", requestId: pendingRequest.requestId })
   }
   sendResponse({ ok: true })
   return false

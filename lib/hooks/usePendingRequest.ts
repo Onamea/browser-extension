@@ -5,7 +5,7 @@ import { getPendingRequest } from "@/lib/messaging/client/apiClient.ts"
 type UsePendingRequestResult = {
   pendingRequest: PendingRequest | undefined
   clearPendingRequest: () => void
-  refreshPendingRequest: () => Promise<void>
+  refreshPendingRequest: () => Promise<PendingRequest | undefined>
 }
 
 const usePendingRequest = (): UsePendingRequestResult => {
@@ -14,6 +14,7 @@ const usePendingRequest = (): UsePendingRequestResult => {
   const refreshPendingRequest = useCallback(async () => {
     const pending = await getPendingRequest()
     setPendingRequest(pending)
+    return pending
   }, [])
 
   const clearPendingRequest = () => {
