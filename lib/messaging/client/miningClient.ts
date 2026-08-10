@@ -1,4 +1,4 @@
-import type { FingerprintDisplay, Name } from "@vanice/types"
+import type { FingerprintDisplay, Name } from "@onamea/types"
 import type {
   MiningErrorMessage,
   MiningMessage,

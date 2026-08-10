@@ -1,4 +1,4 @@
-import { createWorkerPool } from "@vanice/vanice-pool"
+import { createWorkerPool } from "@onamea/workers"
 import {
   MINING_ERROR,
   MINING_OFFSCREEN_ABORT,

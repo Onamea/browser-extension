@@ -1,4 +1,4 @@
-import { isOperation, signOperation } from "@vanice/crdt"
+import { isOperation, signOperation } from "@onamea/crdt"
 import type { ExtensionState } from "./state.ts"
 
 export type PendingRequest = {

@@ -1,5 +1,5 @@
-import type { NameKey, FingerprintedName, KeyPairDisplay, KeyPairAsJSON } from "@vanice/types"
-import { isFingerprintedName, isKeyPairDisplay, isNameKey, nameKeyToFingerprintedName, parseKeyPairAsJSON } from "@vanice/types"
+import type { NameKey, FingerprintedName, KeyPairDisplay, KeyPairAsJSON } from "@onamea/types"
+import { isFingerprintedName, isKeyPairDisplay, isNameKey, nameKeyToFingerprintedName, parseKeyPairAsJSON } from "@onamea/types"
 import { parseMiningResult } from "@/lib/types/MiningResult.ts"
 import isObject from "../utils/isObject.ts"
 

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import type { FingerprintDisplay, Name } from "@vanice/types"
-import { isName, isNameOrFingerprintedName, parseFingerprintedName } from "@vanice/types"
+import type { FingerprintDisplay, Name } from "@onamea/types"
+import { isName, isNameOrFingerprintedName, parseFingerprintedName } from "@onamea/types"
 import { buildContainerDataFromMiningResult, type ContainerData } from "@/lib/types/ContainerData.ts"
 import {
   abortMining,

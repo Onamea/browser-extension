@@ -1,5 +1,5 @@
-import { isCryptoName, isNameKey, isPrivateKey, isPrivateKeyDisplay, isPublicKey, isPublicKeyDisplay, type CryptoName, type NameKey, type PrivateKey, type PrivateKeyDisplay, type PublicKey, type PublicKeyDisplay } from "@vanice/types"
-import { parseUint8ArrayObject } from "@vanice/crdt"
+import { isCryptoName, isNameKey, isPrivateKey, isPrivateKeyDisplay, isPublicKey, isPublicKeyDisplay, type CryptoName, type NameKey, type PrivateKey, type PrivateKeyDisplay, type PublicKey, type PublicKeyDisplay } from "@onamea/types"
+import { parseUint8ArrayObject } from "@onamea/crdt"
 import isObject from "../utils/isObject.ts"
 
 type Uint8ArrayObject = Record<string, number>

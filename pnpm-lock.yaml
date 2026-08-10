@@ -8,15 +8,15 @@ importers:
 
   .:
     dependencies:
-      '@vanice/crdt':
+      '@onamea/crdt':
         specifier: jsr:^0.3.9
-        version: '@jsr/vanice__crdt@0.3.9'
-      '@vanice/types':
+        version: '@jsr/onamea__crdt@0.3.9'
+      '@onamea/types':
         specifier: jsr:^0.3.7
-        version: '@jsr/vanice__types@0.3.7'
-      '@vanice/vanice-pool':
-        specifier: jsr:0.3.4
-        version: '@jsr/vanice__vanice-pool@0.3.4'
+        version: '@jsr/onamea__types@0.3.7'
+      '@onamea/workers':
+        specifier: jsr:^0.3.4
+        version: '@jsr/onamea__workers@0.3.4'
       react:
         specifier: ^19.2.8
         version: 19.2.8
@@ -358,8 +358,8 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@jsr/noble__curves@2.0.1':
-    resolution: {integrity: sha512-W9f7/HjpYhYPz7aShh9KqdBV0oCLJFJOuoalSnTyHsqm3ZzJYKlM7Km3Vj0ClmxqYVzWuiPnWkz11fSEe5yNIQ==, tarball: https://npm.jsr.io/~/11/@jsr/noble__curves/2.0.1.tgz}
+  '@jsr/noble__curves@2.2.0':
+    resolution: {integrity: sha512-OwEbov82Pzu+tWf2jShvnUE187mWPK+3v2wdPwNcJ/sZSkxtUfNbit7h5xoxgtUa1lISXxnOhPZ2vo9pSsvZhQ==, tarball: https://npm.jsr.io/~/11/@jsr/noble__curves/2.2.0.tgz}
 
   '@jsr/noble__ed25519@3.1.0':
     resolution: {integrity: sha512-/o/goYKeh0o5b7xWYN+HIaCIcYzQNO1WNkuv8wyHHRFObJwAAdIlTYFwipLbKWC4I7a2AK1xlta3BUHoQ7qpKw==, tarball: https://npm.jsr.io/~/11/@jsr/noble__ed25519/3.1.0.tgz}
@@ -367,29 +367,29 @@ packages:
   '@jsr/noble__hashes@1.8.0':
     resolution: {integrity: sha512-Q82YZQ/e1LLXXyrwt4X5nle+ys9B0zuZaG8NzHvhmtw0nX5V4KzYnlu3vP9sBCiAbZluB82X3k7Q8kjhI5eC2g==, tarball: https://npm.jsr.io/~/11/@jsr/noble__hashes/1.8.0.tgz}
 
-  '@jsr/noble__hashes@2.0.1':
-    resolution: {integrity: sha512-dmQSiSKzmUJOyMalZcFr4Qg3bl2aenVxEWEUrqZmTFGnkGNu0mvZJWAYx/FHEJmr+uN/T1WZAbpV3fEcUysGjw==, tarball: https://npm.jsr.io/~/11/@jsr/noble__hashes/2.0.1.tgz}
+  '@jsr/noble__hashes@2.2.0':
+    resolution: {integrity: sha512-S49F+0IyCCQm29gkj30ABoqeyX7tDovIqQsCEsfPhokbZqVB80oAu1t7nSdVItJD5tQ/hvUsd/wm8UL9C4GsiA==, tarball: https://npm.jsr.io/~/11/@jsr/noble__hashes/2.2.0.tgz}
 
   '@jsr/noble__secp256k1@3.1.0':
     resolution: {integrity: sha512-cW0KkKdMtCdLwn9V66bDThsDYG36H2zwjJDR2+RTXfNeQUT4AqKrFdJ5L8PfWkDd8jaqGpxewu4Pw4GPJ/pOnw==, tarball: https://npm.jsr.io/~/11/@jsr/noble__secp256k1/3.1.0.tgz}
 
-  '@jsr/scure__base@2.0.0':
-    resolution: {integrity: sha512-um6TO/LfMyhcWvbCv1aQm+Ix0ZY2VFqKShPg/kF6V+XJbryHyJOR8lFNCVdHZudMEVW2lHbUOTPSVivt5RtvxA==, tarball: https://npm.jsr.io/~/11/@jsr/scure__base/2.0.0.tgz}
+  '@jsr/onamea__crdt@0.3.9':
+    resolution: {integrity: sha512-oQdh/ZPuCAYH37ljYRXWm+3aL5sfb8kHkH+fqf2E3oHmUlvDqs/eXLLq+1dYq9cWuLW0gm2wVRLYHE2GGVdR8Q==, tarball: https://npm.jsr.io/~/11/@jsr/onamea__crdt/0.3.9.tgz}
 
-  '@jsr/scure__bip32@2.0.1':
-    resolution: {integrity: sha512-/+64ZfWc9r0uuJ611B1vMUo1SSM5VLrlZmYNvQEqQKkG71BnCxPqpn7UFXtHG8ql0lvcBbjoOK2B0/uTDMafbg==, tarball: https://npm.jsr.io/~/11/@jsr/scure__bip32/2.0.1.tgz}
+  '@jsr/onamea__types@0.3.7':
+    resolution: {integrity: sha512-4zzd4U3S5Q0eA48Z1fyy7VFgVlX0cONyLB7FvZrMYkFsSg/g9HoNXiYKQfytD0/WIUeJrL54lTYUDhMmidDljg==, tarball: https://npm.jsr.io/~/11/@jsr/onamea__types/0.3.7.tgz}
 
-  '@jsr/scure__bip39@2.0.1':
-    resolution: {integrity: sha512-3+WqsT1K0+4OteY8gXBmSh383xTdNgIwYqleIGmUVr/rePRBnl2oENT7TPxveYhTPYMaD01DA8I7ttZS+HZVsg==, tarball: https://npm.jsr.io/~/11/@jsr/scure__bip39/2.0.1.tgz}
+  '@jsr/onamea__workers@0.3.4':
+    resolution: {integrity: sha512-9VBetSn1xVozRhH64gKzIWegZZE9+7FkjAar5KFuRdleYEA8fI4yFIVhhJ5A+xMifaRh+OwidVFBBIBnl9DZBA==, tarball: https://npm.jsr.io/~/11/@jsr/onamea__workers/0.3.4.tgz}
 
-  '@jsr/vanice__crdt@0.3.9':
-    resolution: {integrity: sha512-XNgVyHTbwcIyiJCIVY0ltaFXg5HsqSZAnF+9yeS79VCz1epePSynEQcgE8iF1v0AoSQ6TqcZZzdBjLHzJoO6yw==, tarball: https://npm.jsr.io/~/11/@jsr/vanice__crdt/0.3.9.tgz}
+  '@jsr/scure__base@2.2.0':
+    resolution: {integrity: sha512-vbtLeulZF8AIk2O6AybUsGZLhHHGDxmX4pZnsvzjz0e52KDT7je3X6svQRvJFr9DrxUzcSXVYtIBDnow/1JBRw==, tarball: https://npm.jsr.io/~/11/@jsr/scure__base/2.2.0.tgz}
 
-  '@jsr/vanice__types@0.3.7':
-    resolution: {integrity: sha512-VBmqk8daIP8gPsQHTBtyjVd4a75lCpLx8lcuxNAwaQWJt8cE0lAfz5hbRITWRU7kFwres72tjO/NV7qLZMWAZw==, tarball: https://npm.jsr.io/~/11/@jsr/vanice__types/0.3.7.tgz}
+  '@jsr/scure__bip32@2.2.0':
+    resolution: {integrity: sha512-rOrDneRk4cYU5waXT0UNxdJ7ZWFUjqLvG2xFi8M2DgkoDdmhZ9ghN6Mj5RVUk9iCfdetPMASQUBLr43kO5G/Nw==, tarball: https://npm.jsr.io/~/11/@jsr/scure__bip32/2.2.0.tgz}
 
-  '@jsr/vanice__vanice-pool@0.3.4':
-    resolution: {integrity: sha512-Xw2LT4DMaaY6mV+TxXYuGCjVksmXvtKM06R7Ea75Ks/toPq1tfSNTzIOOQoU09IOSyrPHmGYypiq8E9I9tDE1A==, tarball: https://npm.jsr.io/~/11/@jsr/vanice__vanice-pool/0.3.4.tgz}
+  '@jsr/scure__bip39@2.2.0':
+    resolution: {integrity: sha512-3mr0yLjsVbLfzxcz2m/AAO5LweoEaKV3gXjh9gekdsrYMrt0V7inNPb00gSWCXcRJFRsX/tGWfG/RMRZJHv6Uw==, tarball: https://npm.jsr.io/~/11/@jsr/scure__bip39/2.2.0.tgz}
 
   '@mdn/browser-compat-data@8.0.4':
     resolution: {integrity: sha512-up6DsNsaPt3jq5d2TGx4UOXIqBKU0D86dxWwcVmmOOEYqP1rFaV1XcAcwHxMvb6bbtMfY5JpjUCszzy/aVc4yA==}
@@ -2733,47 +2733,47 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@jsr/noble__curves@2.0.1':
+  '@jsr/noble__curves@2.2.0':
     dependencies:
-      '@jsr/noble__hashes': 2.0.1
+      '@jsr/noble__hashes': 2.2.0
 
   '@jsr/noble__ed25519@3.1.0': {}
 
   '@jsr/noble__hashes@1.8.0': {}
 
-  '@jsr/noble__hashes@2.0.1': {}
+  '@jsr/noble__hashes@2.2.0': {}
 
   '@jsr/noble__secp256k1@3.1.0': {}
 
-  '@jsr/scure__base@2.0.0': {}
-
-  '@jsr/scure__bip32@2.0.1':
-    dependencies:
-      '@jsr/noble__curves': 2.0.1
-      '@jsr/noble__hashes': 2.0.1
-      '@jsr/scure__base': 2.0.0
-
-  '@jsr/scure__bip39@2.0.1':
-    dependencies:
-      '@jsr/noble__hashes': 2.0.1
-      '@jsr/scure__base': 2.0.0
-
-  '@jsr/vanice__crdt@0.3.9':
+  '@jsr/onamea__crdt@0.3.9':
     dependencies:
       '@cfworker/json-schema': 4.1.1
-      '@jsr/vanice__types': 0.3.7
+      '@jsr/onamea__types': 0.3.7
 
-  '@jsr/vanice__types@0.3.7':
+  '@jsr/onamea__types@0.3.7':
     dependencies:
       '@jsr/noble__ed25519': 3.1.0
       '@jsr/noble__hashes': 1.8.0
       '@jsr/noble__secp256k1': 3.1.0
-      '@jsr/scure__bip32': 2.0.1
-      '@jsr/scure__bip39': 2.0.1
+      '@jsr/scure__bip32': 2.2.0
+      '@jsr/scure__bip39': 2.2.0
 
-  '@jsr/vanice__vanice-pool@0.3.4':
+  '@jsr/onamea__workers@0.3.4':
     dependencies:
-      '@jsr/vanice__types': 0.3.7
+      '@jsr/onamea__types': 0.3.7
+
+  '@jsr/scure__base@2.2.0': {}
+
+  '@jsr/scure__bip32@2.2.0':
+    dependencies:
+      '@jsr/noble__curves': 2.2.0
+      '@jsr/noble__hashes': 2.2.0
+      '@jsr/scure__base': 2.2.0
+
+  '@jsr/scure__bip39@2.2.0':
+    dependencies:
+      '@jsr/noble__hashes': 2.2.0
+      '@jsr/scure__base': 2.2.0
 
   '@mdn/browser-compat-data@8.0.4': {}
 

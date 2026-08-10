@@ -2,4 +2,6 @@ allowBuilds:
   esbuild: true
   spawn-sync: true
 minimumReleaseAgeExclude:
-  - '@jsr/vanice__vanice-pool@0.3.3 || 0.3.4'
+  - '@jsr/onamea__types@0.3.7'
+  - '@jsr/onamea__crdt@0.3.9'
+  - '@jsr/onamea__workers@0.3.4'

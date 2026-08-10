@@ -1,7 +1,7 @@
 import type { FormEvent } from "react"
 import { useState } from "react"
-import type { Identifier } from "@vanice/crdt"
-import { identify, isIdentifier } from "@vanice/crdt"
+import type { Identifier } from "@onamea/crdt"
+import { identify, isIdentifier } from "@onamea/crdt"
 import { 
   type MnemonicDisplayWithPassphrase, 
   type PrivateKeyDisplay, 
@@ -9,7 +9,7 @@ import {
   isPrivateKeyDisplay,
   isNameKey,
   nameKeyToFingerprintedName
-} from "@vanice/types"
+} from "@onamea/types"
 import ErrorDisplay from "./ErrorDisplay.tsx"
 import useExtensionState from "@/lib/hooks/useExtensionState.ts"
 

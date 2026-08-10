@@ -1,4 +1,4 @@
-import { validateOperation } from "@vanice/crdt"
+import { validateOperation } from "@onamea/crdt"
 import { API_IDENTIFY, API_SIGN } from "@/lib/messaging/api.ts"
 
 export default defineContentScript({
