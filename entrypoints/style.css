@@ -61,7 +61,7 @@ label {
   font-weight: 500;
 }
 
-input {
+input[type="text"], input[type="password"] {
   margin-bottom: 12px;
   padding: 6px;
   width: 300px;
