@@ -4,7 +4,7 @@ var __export = (target, all) => {
     __defProp(target, name, { get: all[name], enumerable: true });
 };
 
-// deno:https://jsr.io/@vanice/types/0.3.4/lib/crypto/Crypto_Ed25519.ts
+// deno:https://jsr.io/@onamea/types/0.3.7/lib/crypto/Crypto_Ed25519.ts
 var Crypto_Ed25519_exports = {};
 __export(Crypto_Ed25519_exports, {
   INDEX: () => INDEX,
@@ -1084,18 +1084,18 @@ var sha512 = /* @__PURE__ */ createHasher(() => new SHA512());
 // deno:https://jsr.io/@noble/hashes/1.8.0/src/sha512.ts
 var sha5122 = sha512;
 
-// deno:https://jsr.io/@vanice/types/0.3.4/lib/utils/isNumber.ts
+// deno:https://jsr.io/@onamea/types/0.3.7/lib/utils/isNumber.ts
 var isNumber_default = (value) => {
   return typeof value === "number" && !isNaN(value) && isFinite(value);
 };
 
-// deno:https://jsr.io/@vanice/types/0.3.4/lib/utils/isString.ts
+// deno:https://jsr.io/@onamea/types/0.3.7/lib/utils/isString.ts
 var isString = (value) => {
   return typeof value === "string";
 };
 var isString_default = isString;
 
-// deno:https://jsr.io/@vanice/types/0.3.4/lib/crypto/CryptoNames.ts
+// deno:https://jsr.io/@onamea/types/0.3.7/lib/crypto/CryptoNames.ts
 var cryptoNames = [
   "Ed25519",
   "ECDSA",
@@ -6410,10 +6410,10 @@ var HDKey = class _HDKey {
   }
 };
 
-// deno:https://jsr.io/@vanice/types/0.3.4/lib/utils/isArray.ts
+// deno:https://jsr.io/@onamea/types/0.3.7/lib/utils/isArray.ts
 var isArray_default = (value) => Array.isArray(value);
 
-// deno:https://jsr.io/@vanice/types/0.3.4/lib/crypto/Mnemonic.ts
+// deno:https://jsr.io/@onamea/types/0.3.7/lib/crypto/Mnemonic.ts
 var displayMnemonic = (mnemonic) => {
   return mnemonic.join(" ");
 };
@@ -6437,7 +6437,7 @@ var mnemonicToPrivateKey = (mnemonic, passphrase) => {
   return privateKey;
 };
 
-// deno:https://jsr.io/@vanice/types/0.3.4/lib/Hex.ts
+// deno:https://jsr.io/@onamea/types/0.3.7/lib/Hex.ts
 var isHexString = (value) => {
   return isString_default(value) && value.length % 2 === 0 && /^[0-9a-f]*$/.test(value);
 };
@@ -6456,7 +6456,7 @@ var fromHex = (hex) => {
   return new Uint8Array(bytes);
 };
 
-// deno:https://jsr.io/@vanice/types/0.3.4/lib/crypto/KeyPair.ts
+// deno:https://jsr.io/@onamea/types/0.3.7/lib/crypto/KeyPair.ts
 var displayPublicKey = (publicKey) => {
   return toHex(publicKey);
 };
@@ -6478,7 +6478,7 @@ var displayKeyPair = (keyPair) => {
   };
 };
 
-// deno:https://jsr.io/@vanice/types/0.3.4/lib/characters.json
+// deno:https://jsr.io/@onamea/types/0.3.7/lib/characters.json
 var characters_default = [
   { index: 0, primary: "0", secondary: "Oo_", fingerprint: [{ character: "\u{1F600}", codePoints: ["U+1F600"] }, { character: "\u{1F60A}", codePoints: ["U+1F60A"] }] },
   { index: 1, primary: "1", secondary: "IiLl", fingerprint: [{ character: "\u2712\uFE0F", codePoints: ["U+2712", "U+FE0F"] }, { character: "\u2712", codePoints: ["U+2712"] }] },
@@ -6514,7 +6514,7 @@ var characters_default = [
   { index: 31, primary: "Y", secondary: "y", fingerprint: [{ character: "\u23F0", codePoints: ["U+23F0"] }] }
 ];
 
-// deno:https://jsr.io/@vanice/types/0.3.4/lib/characters.ts
+// deno:https://jsr.io/@onamea/types/0.3.7/lib/characters.ts
 var createCharsString = (key) => {
   return characters_default.map((c) => c[key]).join("");
 };
@@ -6529,7 +6529,7 @@ var isPrimaryChars = (value) => {
   return isString_default(value) && primaryCharsRegex.test(value);
 };
 
-// deno:https://jsr.io/@vanice/types/0.3.4/lib/utils/getUTF8StringLength.ts
+// deno:https://jsr.io/@onamea/types/0.3.7/lib/utils/getUTF8StringLength.ts
 var getUTF8StringLength_default = (str) => {
   const segmenter = new Intl.Segmenter("en", {
     granularity: "grapheme"
@@ -6539,7 +6539,7 @@ var getUTF8StringLength_default = (str) => {
   ].length;
 };
 
-// deno:https://jsr.io/@vanice/types/0.3.4/lib/Base32.ts
+// deno:https://jsr.io/@onamea/types/0.3.7/lib/Base32.ts
 var isBase32 = (value) => {
   return isNumber_default(value) && Number.isInteger(value) && value >= 0 && value < 32;
 };
@@ -6607,7 +6607,7 @@ var decode = (str, alphabet2) => {
   });
 };
 
-// deno:https://jsr.io/@vanice/types/0.3.4/lib/codec.ts
+// deno:https://jsr.io/@onamea/types/0.3.7/lib/codec.ts
 var hashToFingerprint = (hash) => {
   return uint8ArrayToBase32Array(hash);
 };
@@ -6618,7 +6618,7 @@ var primaryCharsToUint8Array = (chars) => {
   return base32ToUint8Array(decode(chars, primaryAlphabet));
 };
 
-// deno:https://jsr.io/@vanice/types/0.3.4/lib/utils/isUint8Array.ts
+// deno:https://jsr.io/@onamea/types/0.3.7/lib/utils/isUint8Array.ts
 var isUint8Array = (value) => {
   return value instanceof Uint8Array;
 };
@@ -6626,7 +6626,7 @@ var isUint8ArrayOfLength = (value, length) => {
   return isUint8Array(value) && value.length === length;
 };
 
-// deno:https://jsr.io/@vanice/types/0.3.4/lib/utils/last.ts
+// deno:https://jsr.io/@onamea/types/0.3.7/lib/utils/last.ts
 var last_default = (s, n = 0) => {
   if (n > s.length) throw new Error("Index out of range");
   const i = Math.abs(n);
@@ -6637,17 +6637,17 @@ var last_default = (s, n = 0) => {
   }
 };
 
-// deno:https://jsr.io/@vanice/types/0.3.4/lib/utils/digest.ts
+// deno:https://jsr.io/@onamea/types/0.3.7/lib/utils/digest.ts
 var digest_default = async (arr) => {
   return new Uint8Array(await crypto.subtle.digest("SHA-256", new Uint8Array(arr)));
 };
 
-// deno:https://jsr.io/@vanice/types/0.3.4/lib/Hash.ts
+// deno:https://jsr.io/@onamea/types/0.3.7/lib/Hash.ts
 var isHash = (value) => {
   return isHexString(value) && value.length === 64;
 };
 
-// deno:https://jsr.io/@vanice/types/0.3.4/lib/crypto/Crypto.ts
+// deno:https://jsr.io/@onamea/types/0.3.7/lib/crypto/Crypto.ts
 var isPublicKey = (length) => (value) => {
   return isUint8ArrayOfLength(value, length);
 };
@@ -6770,21 +6770,22 @@ var keyPairFromMnemonic = (cryptoName, keyPairFromPrivateKey5) => (mnemonic, mne
   const keyPair = keyPairFromPrivateKey5(privateKey);
   return displayKeyPair({
     ...keyPair,
-    mnemonic
+    mnemonic,
+    mnemonicPassphrase
   });
 };
 
-// deno:https://jsr.io/@vanice/types/0.3.4/lib/crypto/toPrimaryKeyLength.ts
+// deno:https://jsr.io/@onamea/types/0.3.7/lib/crypto/toPrimaryKeyLength.ts
 var toPrimaryKeyLength = (bytesLength) => {
   return toBase32Length(bytesLength) + 1;
 };
 
-// deno:https://jsr.io/@vanice/types/0.3.4/lib/utils/toBuffer.ts
+// deno:https://jsr.io/@onamea/types/0.3.7/lib/utils/toBuffer.ts
 var toBuffer_default = (arr) => {
   return new Uint8Array(arr).buffer;
 };
 
-// deno:https://jsr.io/@vanice/types/0.3.4/lib/crypto/Crypto_Ed25519.ts
+// deno:https://jsr.io/@onamea/types/0.3.7/lib/crypto/Crypto_Ed25519.ts
 var NAME = "Ed25519";
 var INDEX = indexOfCrypto(NAME);
 var PUBLIC_KEY_LENGTH = 32;
@@ -6860,7 +6861,7 @@ var keyPairFromPrivateKey2 = (privateKeyDisplay) => {
 };
 var keyPairFromMnemonic2 = keyPairFromMnemonic(NAME, keyPairFromPrivateKey2);
 
-// deno:https://jsr.io/@vanice/types/0.3.4/lib/crypto/Crypto_ECDSA.ts
+// deno:https://jsr.io/@onamea/types/0.3.7/lib/crypto/Crypto_ECDSA.ts
 var Crypto_ECDSA_exports = {};
 __export(Crypto_ECDSA_exports, {
   INDEX: () => INDEX2,
@@ -7628,7 +7629,7 @@ var wNAF3 = (n) => {
   };
 };
 
-// deno:https://jsr.io/@vanice/types/0.3.4/lib/crypto/Crypto_ECDSA.ts
+// deno:https://jsr.io/@onamea/types/0.3.7/lib/crypto/Crypto_ECDSA.ts
 var NAME2 = "ECDSA";
 var INDEX2 = indexOfCrypto(NAME2);
 var PRIVATE_KEY_LENGTH2 = 32;
@@ -7768,7 +7769,7 @@ var primaryKeyToPublicKey3 = (primaryKey) => {
   return prependFlagToPublicKeyX(primaryCharsToUint8Array(primaryChars2), flag);
 };
 
-// deno:https://jsr.io/@vanice/types/0.3.4/lib/crypto/Crypto_Schnorr.ts
+// deno:https://jsr.io/@onamea/types/0.3.7/lib/crypto/Crypto_Schnorr.ts
 var Crypto_Schnorr_exports = {};
 __export(Crypto_Schnorr_exports, {
   INDEX: () => INDEX3,
@@ -7826,7 +7827,7 @@ var keyPairFromPrivateKey4 = keyPairFromPrivateKey(NAME3, getPublicKey3);
 var keyPairFromMnemonic4 = keyPairFromMnemonic(NAME3, keyPairFromPrivateKey4);
 var derivePublicKeyFromXPub4 = derivePublicKeyFromXPub(NAME3);
 
-// deno:https://jsr.io/@vanice/types/0.3.4/lib/crypto/Cryptos.ts
+// deno:https://jsr.io/@onamea/types/0.3.7/lib/crypto/Cryptos.ts
 var cryptos = {
   Ed25519: Crypto_Ed25519_exports,
   ECDSA: Crypto_ECDSA_exports,
@@ -7848,10 +7849,10 @@ var derivePublicKeyFromXPub5 = (name, xpub, index) => {
   return cryptos[name].derivePublicKeyFromXPub(xpub, index);
 };
 
-// deno:https://jsr.io/@vanice/types/0.3.4/lib/crypto/XPub.ts
+// deno:https://jsr.io/@onamea/types/0.3.7/lib/crypto/XPub.ts
 var maxIndex = 2 ** 31 - 1;
 
-// deno:https://jsr.io/@vanice/types/0.3.4/Crypto.ts
+// deno:https://jsr.io/@onamea/types/0.3.7/Crypto.ts
 var displayPublicKey6 = (publicKey) => {
   for (const cryptoName of cryptoNames) {
     if (isPublicKeyByCryptoName(cryptoName, publicKey)) {
@@ -7861,7 +7862,7 @@ var displayPublicKey6 = (publicKey) => {
   throw new Error("Invalid PublicKey");
 };
 
-// deno:https://jsr.io/@vanice/types/0.3.4/Fingerprint.ts
+// deno:https://jsr.io/@onamea/types/0.3.7/Fingerprint.ts
 var uint8ArrayToFingerprint = async (uint8Array) => {
   const hash = await digest_default(uint8Array);
   return hashToFingerprint(hash);
