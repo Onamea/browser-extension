@@ -65,9 +65,11 @@ browser.runtime.onMessage.addListener((message: Message, sender, sendResponse) =
       const miningWorkerUrl = new URL(browser.runtime.getURL("/workers/worker.js"))
       activeMiningRequestId = message.requestId
 
+      const cryptoName = message.shouldGenerateMnemonic ? "Schnorr" : "Ed25519"
+
       try {
         const { promise, abort } = createWorkerPool(
-          "Ed25519",
+          cryptoName,
           message.name,
           message.fingerprintDisplay,
           NUM_WORKERS,
@@ -83,7 +85,7 @@ browser.runtime.onMessage.addListener((message: Message, sender, sendResponse) =
             })
           },
           1000,
-          false,
+          message.shouldGenerateMnemonic,
           undefined,
           undefined,
           WORKER_PROGRESS_INTERVAL_MS

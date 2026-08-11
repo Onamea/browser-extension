@@ -6,11 +6,9 @@ type Props = {
 }
 
 const ContainerDataDisplay = ({ data }: Props) => {
+
   const { nameKey, fingerprintedName, keyPair } = data
-  const { cryptoName, publicKeyDisplay, privateKeyDisplay } = keyPair
-  const mnemonicDisplayWithPassphrase = "mnemonicDisplayWithPassphrase" in keyPair
-    ? keyPair.mnemonicDisplayWithPassphrase
-    : undefined
+  const { cryptoName, publicKeyDisplay, privateKeyDisplay, mnemonicDisplayWithPassphrase } = keyPair
 
   return (
     <div>

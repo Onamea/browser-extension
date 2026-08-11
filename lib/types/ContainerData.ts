@@ -31,7 +31,15 @@ export const decodeSessionData = (data: string): ContainerData | undefined => {
 }
 
 export const buildContainerDataFromMiningResult = async (result: unknown): Promise<ContainerData> => {
-	const { nameKey, cryptoName, publicKey, publicKeyDisplay, privateKey, privateKeyDisplay } = parseMiningResult(result)
+	const {
+		nameKey,
+		cryptoName,
+		publicKey,
+		publicKeyDisplay,
+		privateKey,
+		privateKeyDisplay,
+		mnemonicDisplayWithPassphrase
+	} = parseMiningResult(result)
 
 	return {
 		nameKey,
@@ -41,7 +49,8 @@ export const buildContainerDataFromMiningResult = async (result: unknown): Promi
 			publicKey,
 			publicKeyDisplay,
 			privateKey,
-			privateKeyDisplay
+			privateKeyDisplay,
+			mnemonicDisplayWithPassphrase
 		}
 	}
 }

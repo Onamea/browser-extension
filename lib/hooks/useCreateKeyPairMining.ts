@@ -22,7 +22,7 @@ type UseCreateKeyPairMiningResult = {
   errors: string[]
   progress: { totalAttempts: number } | undefined
   nameToMine: string | undefined
-  startMiningForNameInput: (nameInput: string) => Promise<void>
+  startMiningForNameInput: (nameInput: string, shouldGenerateMnemonic?: boolean) => Promise<void>
   cancelMining: () => Promise<void>
 }
 
@@ -102,7 +102,7 @@ const useCreateKeyPairMining = ({ writeData, onSuccess }: UseCreateKeyPairMining
     })()
   }
 
-  const startMiningForNameInput = async (nameInput: string): Promise<void> => {
+  const startMiningForNameInput = async (nameInput: string, shouldGenerateMnemonic = false): Promise<void> => {
     setIsSubmitting(true)
 
     // TODO: Move both these validations to component
@@ -132,7 +132,7 @@ const useCreateKeyPairMining = ({ writeData, onSuccess }: UseCreateKeyPairMining
     try {
       await cancelMining()
 
-      const requestId = await startMining(targetName, fingerprintDisplay)
+      const requestId = await startMining(targetName, fingerprintDisplay, shouldGenerateMnemonic)
       activeRequestIdRef.current = requestId
       unsubscribeMiningRef.current = onMiningMessage(requestId, handleMiningMessage)
     } catch (error) {

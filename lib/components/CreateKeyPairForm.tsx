@@ -9,6 +9,7 @@ import useCreateKeyPairMining from "@/lib/hooks/useCreateKeyPairMining.ts"
 const CreateKeyPairForm = () => {
 
 	const [name, setName] = useState("")
+	const [shouldGenerateMnemonic, setShouldGenerateMnemonic] = useState(false)
 	const navigate = useNavigate()
 	const { writeData } = useExtensionState()
 	const {
@@ -26,7 +27,7 @@ const CreateKeyPairForm = () => {
 
 	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault()
-		await startMiningForNameInput(name)
+		await startMiningForNameInput(name, shouldGenerateMnemonic)
 	}
 
 	return (
@@ -39,6 +40,16 @@ const CreateKeyPairForm = () => {
 						type="text"
 						value={ name }
 						onChange={ event => setName(event.target.value) }
+						disabled={ isSubmitting }
+					/>
+				</div>
+				<div>
+					<label htmlFor="shouldGenerateMnemonic">Generate mnemonic:</label>
+					<input
+						id="shouldGenerateMnemonic"
+						type="checkbox"
+						checked={ shouldGenerateMnemonic }
+						onChange={ event => setShouldGenerateMnemonic(event.target.checked) }
 						disabled={ isSubmitting }
 					/>
 				</div>

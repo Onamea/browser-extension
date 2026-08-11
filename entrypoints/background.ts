@@ -192,7 +192,8 @@ export default defineBackground(() => {
                   type: MINING_OFFSCREEN_START,
                   requestId: message.requestId,
                   name: message.name,
-                  fingerprintDisplay: message.fingerprintDisplay
+                  fingerprintDisplay: message.fingerprintDisplay,
+                  shouldGenerateMnemonic: message.shouldGenerateMnemonic
                 }) as { ok?: boolean, error?: string }
                 if (startResponse?.ok === true || startResponse?.error !== undefined) {
                   break

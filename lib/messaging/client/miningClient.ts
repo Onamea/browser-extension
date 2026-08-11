@@ -24,13 +24,18 @@ type StartMiningResponse = {
 
 export type MiningMessageListener = (message: MiningMessage) => void
 
-export const startMining = async (name: Name, fingerprintDisplay?: FingerprintDisplay): Promise<string> => {
+export const startMining = async (
+  name: Name,
+  fingerprintDisplay?: FingerprintDisplay,
+  shouldGenerateMnemonic = false
+): Promise<string> => {
   const requestId = crypto.randomUUID()
   const response = await sendRuntimeMessage<StartMiningResponse>({
     type: MINING_START,
     requestId,
     name,
-    fingerprintDisplay
+    fingerprintDisplay,
+    shouldGenerateMnemonic
   })
 
   if (response?.error !== undefined) {

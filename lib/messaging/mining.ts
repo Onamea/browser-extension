@@ -21,6 +21,7 @@ export type StartMiningMessage = {
   requestId: string
   name: Name
   fingerprintDisplay?: FingerprintDisplay
+  shouldGenerateMnemonic?: boolean
 }
 
 export type AbortMiningMessage = {
@@ -33,6 +34,7 @@ export type OffscreenStartMiningMessage = {
   requestId: string
   name: Name
   fingerprintDisplay?: FingerprintDisplay
+  shouldGenerateMnemonic?: boolean
 }
 
 export type OffscreenAbortMiningMessage = {
