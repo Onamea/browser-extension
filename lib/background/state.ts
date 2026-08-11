@@ -14,6 +14,7 @@ export type ExtensionAction =
   | { type: "INITIALIZE", payload: boolean | undefined }
   | { type: "SIGNIN", payload: AccessKey | undefined }
   | { type: "WRITE_DATA", payload: string | undefined }
+  | { type: "CLEAR_DATA" }
   | { type: "SIGNOUT" }
 
 export const initialState: ExtensionState = {
@@ -89,6 +90,14 @@ export const extensionReducer = (
         data
       }
     }
+    case "CLEAR_DATA":
+      return {
+        ...state,
+        isInitialized: true,
+        hasContainer: true,
+        raw: "",
+        data: undefined
+      }
     case "SIGNOUT":
       return {
         ...state,
@@ -117,7 +126,7 @@ export const setData = (dispatch: (action: ExtensionAction) => void, raw: string
 }
 
 export const clearData = (dispatch: (action: ExtensionAction) => void) => {
-  dispatch({ type: "WRITE_DATA", payload: "" })
+  dispatch({ type: "CLEAR_DATA" })
 }
 
 export const clearSession = (dispatch: (action: ExtensionAction) => void) => {

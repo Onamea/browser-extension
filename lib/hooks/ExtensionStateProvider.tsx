@@ -10,7 +10,7 @@ import {
   setAccessKey as setAccessKeyToDispatch
 } from "../background/state.ts"
 import type { ExtensionState } from "../background/state.ts"
-import { create, deinitialize, initialize as initializeSession, set as setSessionData } from "@/lib/container/main.ts"
+import { create, deinitialize, initialize, set } from "@/lib/container/main.ts"
 import {
   createContainerState,
   initializeState,
@@ -59,7 +59,7 @@ const useExtensionStateStore = () => {
   const createContainer = async (password: string): Promise<boolean> => {
     try {
       await create(password)
-      const result = await initializeSession(password)
+      const result = await initialize(password)
       if (result.hasContainer === false || result.accessKey === undefined) {
         return false
       }
@@ -77,7 +77,7 @@ const useExtensionStateStore = () => {
 
   const signIn = async (password: string): Promise<boolean> => {
     try {
-      const result = await initializeSession(password)
+      const result = await initialize(password)
       if (result.hasContainer === false || result.accessKey === undefined) {
         return false
       }
@@ -101,7 +101,7 @@ const useExtensionStateStore = () => {
 
     try {
       const raw = encodeSessionData(data)
-      await setSessionData(accessKey, raw)
+      await set(accessKey, raw)
       await writeStateData(raw, accessKey)
       setContainerExistsToDispatch(dispatch, true)
       setAccessKeyToDispatch(dispatch, accessKey)
@@ -118,10 +118,9 @@ const useExtensionStateStore = () => {
       return false
     }
     try {
-      await setSessionData(accessKey, "")
+      await set(accessKey, "")
       await writeStateData("", accessKey)
       clearDataToDispatch(dispatch)
-      setContainerExistsToDispatch(dispatch, true)
       return true
     } catch (_error) {
       return false
