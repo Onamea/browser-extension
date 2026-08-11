@@ -17,7 +17,6 @@ type RequestId = string
 
 type Message = OffscreenMiningControlMessage | OffscreenStartMiningMessage | OffscreenAbortMiningMessage
 
-const MAX_MINING_DURATION_MS = 30_000
 const NUM_WORKERS = 8 
 const WORKER_PROGRESS_INTERVAL_MS = 500
 const OFFSCREEN_MESSAGE_SCOPE_POLICY: SenderScopePolicy = new Map([
@@ -68,7 +67,7 @@ browser.runtime.onMessage.addListener((message: Message, sender, sendResponse) =
       const cryptoName = message.shouldGenerateMnemonic ? "Schnorr" : "Ed25519"
 
       try {
-        const { promise, abort } = createWorkerPool(
+        const { promise } = createWorkerPool(
           cryptoName,
           message.name,
           message.fingerprintDisplay,
@@ -91,19 +90,11 @@ browser.runtime.onMessage.addListener((message: Message, sender, sendResponse) =
           WORKER_PROGRESS_INTERVAL_MS
         )
 
-        activeMiningAbort = abort
-        activeMiningTimeout = setTimeout(() => {
-          if (activeMiningRequestId !== message.requestId) {
-            return
-          }
-          activeMiningAbort?.()
-        }, MAX_MINING_DURATION_MS)
-
         void promise
           .then(result => {
-            if (activeMiningRequestId !== message.requestId) {
-              return
-            }
+            // guard
+            if (activeMiningRequestId !== message.requestId) return
+
             if (result === undefined || result.privateKey === undefined || result.privateKeyDisplay === undefined) {
               browser.runtime.sendMessage({
                 type: MINING_ERROR,
@@ -119,9 +110,9 @@ browser.runtime.onMessage.addListener((message: Message, sender, sendResponse) =
             })
           })
           .catch(error => {
-            if (activeMiningRequestId !== message.requestId) {
-              return
-            }
+            // guard
+            if (activeMiningRequestId !== message.requestId) return
+
             browser.runtime.sendMessage({
               type: MINING_ERROR,
               requestId: message.requestId,
@@ -129,11 +120,12 @@ browser.runtime.onMessage.addListener((message: Message, sender, sendResponse) =
             })
           })
           .finally(() => {
-            if (activeMiningRequestId === message.requestId) {
-              clearActiveMiningTimeout()
-              activeMiningAbort = undefined
-              activeMiningRequestId = undefined
-            }
+            //guard
+            if (activeMiningRequestId !== message.requestId) return
+
+            clearActiveMiningTimeout()
+            activeMiningAbort = undefined
+            activeMiningRequestId = undefined
           })
 
         sendResponse({ ok: true })
