@@ -13,7 +13,7 @@ const getLocalStorage = (): LocalStorage => {
 		chrome?: { storage?: { local?: LocalStorage } }
 		browser?: { storage?: { local?: LocalStorage } }
 	}
-	const localStorage = g.chrome?.storage?.local ?? g.browser?.storage?.local
+	const localStorage = g.browser?.storage?.local ?? g.chrome?.storage?.local
 	if (localStorage === undefined) {
 		throw new Error("Extension storage API is unavailable")
 	}

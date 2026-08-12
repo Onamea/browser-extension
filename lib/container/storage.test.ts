@@ -119,4 +119,45 @@ describe("storage", () => {
 		await expect(write(container)).resolves.toBeUndefined()
 		expect(storageState[CONTAINER_STORAGE_KEY]).toEqual(container)
 	})
+
+	it("prefers browser.storage.local when both browser and chrome are available", async () => {
+		const g = globalThis as typeof globalThis & {
+			chrome?: { storage?: { local?: StubLocalStorage } }
+			browser?: { storage?: { local?: StubLocalStorage } }
+		}
+
+		const container = {
+			salt: "AQIDBAUGBwgJCgsMDQ4PEA==",
+			iv: "AQIDBAUGBwgJCgsM",
+			ciphertext: "AQIDBAUGBwgJCgsMDQ4PEA==",
+			version: 1
+		}
+
+		g.chrome = {
+			storage: {
+				local: {
+					get: (_key: string): Promise<StorageShape> => Promise.reject(new Error("chrome get should not be called")),
+					set: (_items: StorageShape): Promise<void> => Promise.reject(new Error("chrome set should not be called"))
+				}
+			}
+		}
+
+		g.browser = {
+			storage: {
+				local: {
+					get: (key: string): Promise<StorageShape> => Promise.resolve({ [key]: storageState[key] }),
+					set: (items: StorageShape): Promise<void> => {
+						storageState = { ...storageState, ...items }
+						return Promise.resolve()
+					}
+				}
+			}
+		}
+
+		storageState[CONTAINER_STORAGE_KEY] = container
+
+		await expect(read()).resolves.toEqual(container)
+		await expect(write(container)).resolves.toBeUndefined()
+		expect(storageState[CONTAINER_STORAGE_KEY]).toEqual(container)
+	})
 })

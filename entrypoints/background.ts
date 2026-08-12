@@ -1,6 +1,7 @@
 import { checkStorage } from "@/lib/container/main.ts"
 import { backgroundState, backgroundDispatch, setContainerExists, setData, setAccessKey } from "@/lib/background/state.ts"
 import { getPendingRequest, handleSign, handleConfirmSign, handleRejectSign } from "@/lib/background/signFlow.ts"
+import { shouldUseOffscreenMining, startMining } from "@/lib/background/mining.ts"
 import {
   API_CONFIRM_SIGN,
   API_GET_PENDING_REQUEST,
@@ -49,6 +50,8 @@ type ChromeOffscreenApi = {
 type Message = StateMessage | ApiMessage | MiningControlMessage | MiningMessage
 
 const OFFSCREEN_DOCUMENT_PATH = "/offscreen.html"
+let activeMiningAbort: (() => void) | undefined
+let activeMiningRequestId: string | undefined
 const MESSAGE_SCOPE_POLICY: SenderScopePolicy = new Map([
   [API_SIGN, "web"],
   [API_IDENTIFY, "web"],
@@ -107,6 +110,12 @@ const ensureOffscreenMiningDocument = async () => {
 
 const broadcastState = () => {
   browser.runtime.sendMessage({ type: STATE_UPDATED, state: backgroundState })
+}
+
+const stopActiveMining = () => {
+  activeMiningAbort?.()
+  activeMiningAbort = undefined
+  activeMiningRequestId = undefined
 }
 
 export default defineBackground(() => {
@@ -179,46 +188,117 @@ export default defineBackground(() => {
       }
 
       case MINING_START: {
-        void (async () => {
-          try {
-            await ensureOffscreenMiningDocument()
+        if (shouldUseOffscreenMining()) {
+          void (async () => {
+            try {
+              await ensureOffscreenMiningDocument()
 
-            // createDocument resolves before the module script loads and registers its
-            // onMessage listener, so retry until the offscreen document responds.
-            let startResponse: { ok?: boolean, error?: string } | undefined
-            for (let attempt = 0; attempt < 10; attempt++) {
-              try {
-                startResponse = await browser.runtime.sendMessage({
-                  type: MINING_OFFSCREEN_START,
-                  requestId: message.requestId,
-                  name: message.name,
-                  fingerprintDisplay: message.fingerprintDisplay,
-                  shouldGenerateMnemonic: message.shouldGenerateMnemonic
-                }) as { ok?: boolean, error?: string }
-                if (startResponse?.ok === true || startResponse?.error !== undefined) {
-                  break
+              // createDocument resolves before the module script loads and registers its
+              // onMessage listener, so retry until the offscreen document responds.
+              let startResponse: { ok?: boolean, error?: string } | undefined
+              for (let attempt = 0; attempt < 10; attempt++) {
+                try {
+                  startResponse = await browser.runtime.sendMessage({
+                    type: MINING_OFFSCREEN_START,
+                    requestId: message.requestId,
+                    name: message.name,
+                    fingerprintDisplay: message.fingerprintDisplay,
+                    shouldGenerateMnemonic: message.shouldGenerateMnemonic
+                  }) as { ok?: boolean, error?: string }
+                  if (startResponse?.ok === true || startResponse?.error !== undefined) {
+                    break
+                  }
+                } catch {
+                  // listener not ready yet
                 }
-              } catch {
-                // listener not ready yet
+                await new Promise<void>(r => setTimeout(r, 50))
               }
-              await new Promise<void>(r => setTimeout(r, 50))
-            }
 
-            if (startResponse?.ok !== true) {
-              sendResponse({ error: startResponse?.error ?? "Offscreen document did not respond" })
-              return
-            }
+              if (startResponse?.ok !== true) {
+                sendResponse({ error: startResponse?.error ?? "Offscreen document did not respond" })
+                return
+              }
 
-            sendResponse({ ok: true })
-          } catch (error) {
-            sendResponse({ error: String(error) })
-          }
+              sendResponse({ ok: true })
+            } catch (error) {
+              sendResponse({ error: String(error) })
+            }
+          })()
+          return true
+        }
+
+        void (() => {
+          void (() => {
+            try {
+              stopActiveMining()
+              activeMiningRequestId = message.requestId
+              const { abort } = startMining(
+              {
+                name: message.name,
+                fingerprintDisplay: message.fingerprintDisplay,
+                shouldGenerateMnemonic: message.shouldGenerateMnemonic
+              },
+              {
+                onProgress: totalAttempts => {
+                  if (activeMiningRequestId !== message.requestId) {
+                    return
+                  }
+
+                  void browser.runtime.sendMessage({
+                    type: MINING_PROGRESS,
+                    requestId: message.requestId,
+                    totalAttempts
+                  })
+                },
+                onResult: result => {
+                  if (activeMiningRequestId !== message.requestId) {
+                    return
+                  }
+
+                  void browser.runtime.sendMessage({
+                    type: MINING_RESULT,
+                    requestId: message.requestId,
+                    result
+                  })
+                },
+                onError: error => {
+                  if (activeMiningRequestId !== message.requestId) {
+                    return
+                  }
+
+                  void browser.runtime.sendMessage({
+                    type: MINING_ERROR,
+                    requestId: message.requestId,
+                    error
+                  })
+                },
+                onComplete: () => {
+                  if (activeMiningRequestId !== message.requestId) {
+                    return
+                  }
+
+                  activeMiningAbort = undefined
+                  activeMiningRequestId = undefined
+                }
+              }
+            )
+
+              activeMiningAbort = abort
+              sendResponse({ ok: true })
+            } catch (error) {
+              sendResponse({ error: String(error) })
+            }
+          })()
         })()
         return true
       }
 
       case MINING_ABORT: {
-        void browser.runtime.sendMessage({ type: MINING_OFFSCREEN_ABORT, requestId: message.requestId })
+        if (shouldUseOffscreenMining()) {
+          void browser.runtime.sendMessage({ type: MINING_OFFSCREEN_ABORT, requestId: message.requestId })
+        } else if (message.requestId === undefined || message.requestId === activeMiningRequestId) {
+          stopActiveMining()
+        }
         sendResponse({ ok: true })
         return false
       }

@@ -1,4 +1,3 @@
-import { createWorkerPool } from "@onamea/workers"
 import {
   MINING_ERROR,
   MINING_OFFSCREEN_ABORT,
@@ -9,6 +8,7 @@ import {
   type OffscreenStartMiningMessage,
   type OffscreenMiningControlMessage
 } from "@/lib/messaging/mining.ts"
+import { startMining } from "@/lib/background/mining.ts"
 import type { SenderScopePolicy } from "@/lib/messaging/senderPolicy.ts"
 import { isSenderAuthorized } from "@/lib/messaging/senderPolicy.ts"
 import { isRuntimeMessage } from "@/lib/messaging/runtimeMessage.ts"
@@ -17,8 +17,6 @@ type RequestId = string
 
 type Message = OffscreenMiningControlMessage | OffscreenStartMiningMessage | OffscreenAbortMiningMessage
 
-const NUM_WORKERS = 8 
-const WORKER_PROGRESS_INTERVAL_MS = 500
 const OFFSCREEN_MESSAGE_SCOPE_POLICY: SenderScopePolicy = new Map([
   [MINING_OFFSCREEN_START, "extension"],
   [MINING_OFFSCREEN_ABORT, "extension"]
@@ -61,73 +59,62 @@ browser.runtime.onMessage.addListener((message: Message, sender, sendResponse) =
   switch (message.type) {
     case MINING_OFFSCREEN_START: {
       stopActiveMining()
-      const miningWorkerUrl = new URL(browser.runtime.getURL("/workers/worker.js"))
       activeMiningRequestId = message.requestId
 
-      const cryptoName = message.shouldGenerateMnemonic ? "Schnorr" : "Ed25519"
-
       try {
-        const { promise } = createWorkerPool(
-          cryptoName,
-          message.name,
-          message.fingerprintDisplay,
-          NUM_WORKERS,
-          miningWorkerUrl,
-          ({ totalAttempts }) => {
-            if (activeMiningRequestId !== message.requestId) {
-              return
-            }
-            browser.runtime.sendMessage({
-              type: MINING_PROGRESS,
-              requestId: message.requestId,
-              totalAttempts
-            })
+        const { abort } = startMining(
+          {
+            name: message.name,
+            fingerprintDisplay: message.fingerprintDisplay,
+            shouldGenerateMnemonic: message.shouldGenerateMnemonic
           },
-          1000,
-          message.shouldGenerateMnemonic,
-          undefined,
-          undefined,
-          WORKER_PROGRESS_INTERVAL_MS
-        )
+          {
+            onProgress: totalAttempts => {
+              if (activeMiningRequestId !== message.requestId) {
+                return
+              }
 
-        void promise
-          .then(result => {
-            // guard
-            if (activeMiningRequestId !== message.requestId) return
+              browser.runtime.sendMessage({
+                type: MINING_PROGRESS,
+                requestId: message.requestId,
+                totalAttempts
+              })
+            },
+            onResult: result => {
+              if (activeMiningRequestId !== message.requestId) {
+                return
+              }
 
-            if (result === undefined || result.privateKey === undefined || result.privateKeyDisplay === undefined) {
+              browser.runtime.sendMessage({
+                type: MINING_RESULT,
+                requestId: message.requestId,
+                result
+              })
+            },
+            onError: error => {
+              if (activeMiningRequestId !== message.requestId) {
+                return
+              }
+
               browser.runtime.sendMessage({
                 type: MINING_ERROR,
                 requestId: message.requestId,
-                error: "Mining timed out. Try a shorter name."
+                error
               })
-              return
+            },
+            onComplete: () => {
+              if (activeMiningRequestId !== message.requestId) {
+                return
+              }
+
+              clearActiveMiningTimeout()
+              activeMiningAbort = undefined
+              activeMiningRequestId = undefined
             }
-            browser.runtime.sendMessage({
-              type: MINING_RESULT,
-              requestId: message.requestId,
-              result
-            })
-          })
-          .catch(error => {
-            // guard
-            if (activeMiningRequestId !== message.requestId) return
+          }
+        )
 
-            browser.runtime.sendMessage({
-              type: MINING_ERROR,
-              requestId: message.requestId,
-              error: String(error)
-            })
-          })
-          .finally(() => {
-            //guard
-            if (activeMiningRequestId !== message.requestId) return
-
-            clearActiveMiningTimeout()
-            activeMiningAbort = undefined
-            activeMiningRequestId = undefined
-          })
-
+        activeMiningAbort = abort
         sendResponse({ ok: true })
         return false
       } catch (error) {
