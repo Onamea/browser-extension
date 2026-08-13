@@ -38,7 +38,7 @@ export const buildContainerDataFromMiningResult = async (result: unknown): Promi
 		publicKeyDisplay,
 		privateKey,
 		privateKeyDisplay,
-		mnemonicDisplayWithPassphrase
+		mnemonicDisplay
 	} = parseMiningResult(result)
 
 	return {
@@ -50,7 +50,7 @@ export const buildContainerDataFromMiningResult = async (result: unknown): Promi
 			publicKeyDisplay,
 			privateKey,
 			privateKeyDisplay,
-			mnemonicDisplayWithPassphrase
+			mnemonicDisplay
 		}
 	}
 }

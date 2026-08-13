@@ -17,6 +17,7 @@ describe("parseMiningResult", () => {
       mnemonicDisplay
     })
 
-    expect(parsed.mnemonicDisplayWithPassphrase).toBe(mnemonicDisplay)
+    expect(parsed.publicKey instanceof Uint8Array).toBeTruthy()
+    expect(parsed.privateKey instanceof Uint8Array).toBeTruthy()
   })
 })

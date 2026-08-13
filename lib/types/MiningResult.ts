@@ -1,4 +1,5 @@
-import { isCryptoName, isMnemonicDisplay, isMnemonicDisplayWithPassphrase, isMnemonicPassphrase, isNameKey, isPrivateKey, isPrivateKeyDisplay, isPublicKey, isPublicKeyDisplay, type CryptoName, type MnemonicDisplay, type MnemonicDisplayWithPassphrase, type MnemonicPassphrase, type NameKey, type PrivateKey, type PrivateKeyDisplay, type PublicKey, type PublicKeyDisplay } from "@onamea/types"
+import type { CryptoName, MnemonicDisplay, NameKey, PrivateKey, PrivateKeyDisplay, PublicKey, PublicKeyDisplay } from "@onamea/types"
+import { isCryptoName, isMnemonicDisplay, isNameKey, isPrivateKey, isPrivateKeyDisplay, isPublicKey, isPublicKeyDisplay } from "@onamea/types"
 import { parseUint8ArrayObject } from "@onamea/crdt"
 import isObject from "../utils/isObject.ts"
 
@@ -19,14 +20,12 @@ export type MiningResult = {
 	publicKeyDisplay: PublicKeyDisplay
 	privateKey: PrivateKey
 	privateKeyDisplay: PrivateKeyDisplay
-	mnemonicDisplayWithPassphrase?: MnemonicDisplayWithPassphrase
+	mnemonicDisplay?: MnemonicDisplay 
 }
 
 export type UnparsedMiningResult = MiningResult & {
 	publicKey: Uint8ArrayObject
 	privateKey: Uint8ArrayObject
-	mnemonicDisplay?: MnemonicDisplay 
-	mnemonicPassphrase?: MnemonicPassphrase
 }
 
 export const parseMiningResult = (result: unknown): MiningResult => {
@@ -34,13 +33,10 @@ export const parseMiningResult = (result: unknown): MiningResult => {
 		throw new Error("Invalid UnparsedMiningResult")
 	}
 
-	const mnemonicDisplayWithPassphrase = result.mnemonicDisplay !== undefined ? `${ result.mnemonicDisplay }${ result.mnemonicPassphrase ? ` ${ result.mnemonicPassphrase }` : "" }` : undefined
-
 	return {
 		...result,
 		publicKey: parseUint8ArrayObject(result.publicKey),
 		privateKey: parseUint8ArrayObject(result.privateKey),
-		mnemonicDisplayWithPassphrase
 	}
 }
 
@@ -61,8 +57,6 @@ const isMiningResultShape = (
 		privateKey?: unknown
 		privateKeyDisplay?: unknown
 		mnemonicDisplay?: unknown
-		mnemonicPassphrase?: unknown
-		mnemonicDisplayWithPassphrase?: unknown
 	}
 
 	if (isNameKey(candidate.nameKey) === false) {
@@ -84,13 +78,6 @@ const isMiningResultShape = (
 		return false
 	}
 	if (candidate.mnemonicDisplay !== undefined && isMnemonicDisplay(candidate.mnemonicDisplay) === false) {
-		return false
-	}
-	if (candidate.mnemonicPassphrase !== undefined && isMnemonicPassphrase(candidate.mnemonicPassphrase) === false) {
-		return false
-	}
-
-	if (candidate.mnemonicDisplayWithPassphrase !== undefined && isMnemonicDisplayWithPassphrase(candidate.mnemonicDisplayWithPassphrase) === false) {
 		return false
 	}
 
