@@ -11,7 +11,7 @@ export type ExtensionState = {
 }
 
 export type ExtensionAction =
-  | { type: "INITIALIZE", payload: boolean | undefined }
+  | { type: "INITIALIZE", payload: boolean }
   | { type: "SIGNIN", payload: AccessKey | undefined }
   | { type: "WRITE_DATA", payload: string | undefined }
   | { type: "CLEAR_DATA" }
@@ -32,31 +32,21 @@ export const extensionReducer = (
 ): ExtensionState => {
   switch (action.type) {
     case "INITIALIZE": {
-      if (action.payload === undefined) {
-        return {
-          ...state,
-          isInitialized: false,
-          hasContainer: false
-        }
-      }
-
-      if (action.payload === false) {
-        return {
-          ...state,
-          isInitialized: true,
-          hasContainer: false,
-          isUnlocked: false,
-          accessKey: undefined,
-          raw: undefined,
-          data: undefined
-        }
-      }
-
-      return {
-        ...state,
-        isInitialized: true,
-        hasContainer: true
-      }
+      return action.payload === false
+        ? {
+            ...state,
+            isInitialized: true,
+            hasContainer: false,
+            isUnlocked: false,
+            accessKey: undefined,
+            raw: undefined,
+            data: undefined
+          }
+        : {
+            ...state,
+            isInitialized: true,
+            hasContainer: true
+          }
     }
     case "SIGNIN":
       if (action.payload === undefined) {
@@ -113,7 +103,7 @@ export const extensionReducer = (
   }
 }
 
-export const setContainerExists = (dispatch: (action: ExtensionAction) => void, containerExists: boolean | undefined) => {
+export const setContainerExists = (dispatch: (action: ExtensionAction) => void, containerExists: boolean) => {
   dispatch({ type: "INITIALIZE", payload: containerExists })
 }
 

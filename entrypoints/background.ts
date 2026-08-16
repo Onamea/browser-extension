@@ -118,6 +118,14 @@ const stopActiveMining = () => {
   activeMiningRequestId = undefined
 }
 
+const openSignRequestUi = async () => {
+  try {
+    await browser.action.openPopup()
+  } catch {
+    // Firefox can reject programmatic popup opening when there is no direct user gesture.
+  }
+}
+
 export default defineBackground(() => {
   browser.runtime.onMessage.addListener((message: Message, sender: { tab?: unknown, url?: string }, sendResponse: (response: unknown) => void) => {
     if (isRuntimeMessage(message) === false) {
@@ -324,7 +332,7 @@ export default defineBackground(() => {
       case API_SIGN: {
         const { data, requestId } = message
         const origin = sender.url ?? ""
-        return handleSign(data, requestId, origin, sendResponse, () => browser.action.openPopup().catch(() => {}))
+        return handleSign(data, requestId, origin, sendResponse, () => void openSignRequestUi())
       }
 
       case API_CONFIRM_SIGN: {

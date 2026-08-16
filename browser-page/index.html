@@ -7,37 +7,33 @@
   </head>
   <body>
     <h1>Sign Request Demo</h1>
-    <button id="identify-btn">Send IDENTIFY_REQUEST</button>
-    <button id="sign-btn">Send SIGN_REQUEST</button>
+    <button id="identify-btn">Call ONAMEA.identify()</button>
+    <button id="sign-btn">Call ONAMEA.sign()</button>
     <pre id="output"></pre>
     <script>
+      const ONAMEA_KEY = "ONAMEA"
       const output = document.getElementById("output")
 
-      document.getElementById("identify-btn").addEventListener("click", () => {
-        const requestId = crypto.randomUUID()
-        output.textContent = `Sending IDENTIFY_REQUEST (requestId: ${ requestId })...`
-
-        const onMessage = event => {
-          console.log(event)
-          if (event.data?.type !== "IDENTIFY_RESPONSE" || event.data?.requestId !== requestId) return
-          output.textContent = JSON.stringify(event.data, null, 2)
-          window.removeEventListener("message", onMessage)
+      const getOnameaApi = () => {
+        const api = window[ONAMEA_KEY]
+        if (api === undefined) {
+          throw new Error("window.ONAMEA is unavailable")
         }
-        window.addEventListener("message", onMessage)
+        return api
+      }
 
-        window.postMessage({ type: "IDENTIFY_REQUEST", requestId }, "*")
+      document.getElementById("identify-btn").addEventListener("click", async () => {
+        output.textContent = "Calling ONAMEA.identify()..."
+        try {
+          const response = await getOnameaApi().identify()
+          output.textContent = JSON.stringify(response, null, 2)
+        } catch (error) {
+          output.textContent = JSON.stringify(error, null, 2)
+        }
       })
 
-      document.getElementById("sign-btn").addEventListener("click", () => {
-        const requestId = crypto.randomUUID()
-        output.textContent = `Sending SIGN_REQUEST (requestId: ${ requestId })...`
-
-        const onMessage = event => {
-          if (event.data?.type !== "SIGN_RESPONSE" || event.data?.requestId !== requestId) return
-          output.textContent = JSON.stringify(event.data, null, 2)
-          window.removeEventListener("message", onMessage)
-        }
-        window.addEventListener("message", onMessage)
+      document.getElementById("sign-btn").addEventListener("click", async () => {
+        output.textContent = "Calling ONAMEA.sign()..."
 
         const operation = {
           hash: "5168977c13e5aced3556c919a8c66d220cdec88f137a7296891c346bfe6bf770",
@@ -45,7 +41,12 @@
           type: "CREATE"
         }
 
-        window.postMessage({ type: "SIGN_REQUEST", data: operation, requestId }, "*")
+        try {
+          const response = await getOnameaApi().sign(operation)
+          output.textContent = JSON.stringify(response, null, 2)
+        } catch (error) {
+          output.textContent = JSON.stringify(error, null, 2)
+        }
       })
     </script>
   </body>

@@ -14,6 +14,17 @@ export type SignMessage = {
   requestId: string
 }
 
+export type IdentifyResponse = {
+  nameKey: string
+}
+
+export type SignResponse = {
+  ok?: boolean
+  error?: string
+  requestId?: string
+  signedMessage?: unknown
+}
+
 export type GetPendingRequestMessage = {
   type: typeof API_GET_PENDING_REQUEST
 }
@@ -32,3 +43,16 @@ export type ApiMessage =
   | GetPendingRequestMessage
   | ConfirmSignMessage
   | RejectSignMessage
+
+export type ApiResponseMap = {
+  [API_IDENTIFY]: IdentifyResponse
+  [API_SIGN]: SignResponse
+}
+
+export type ApiResponse<TType extends keyof ApiResponseMap> = ApiResponseMap[TType]
+
+export const sendApiMessage = <TType extends keyof ApiResponseMap>(
+  message: Extract<ApiMessage, { type: TType }>
+): Promise<ApiResponse<TType>> => {
+  return browser.runtime.sendMessage(message) as Promise<ApiResponse<TType>>
+}
