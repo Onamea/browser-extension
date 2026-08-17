@@ -52,6 +52,12 @@ type Message = StateMessage | ApiMessage | MiningControlMessage | MiningMessage
 const OFFSCREEN_DOCUMENT_PATH = "/offscreen.html"
 let activeMiningAbort: (() => void) | undefined
 let activeMiningRequestId: string | undefined
+
+type PendingUnlockedRequest = {
+  run: () => boolean
+}
+
+const pendingUnlockedRequests: PendingUnlockedRequest[] = []
 const MESSAGE_SCOPE_POLICY: SenderScopePolicy = new Map([
   [API_SIGN, "web"],
   [API_IDENTIFY, "web"],
@@ -126,6 +132,35 @@ const openSignRequestUi = async () => {
   }
 }
 
+const withUnlockedSession = (execute: () => boolean): boolean => {
+  if (backgroundState.isInitialized === false) {
+    return false
+  }
+
+  if (backgroundState.isUnlocked === false) {
+    void openSignRequestUi()
+    pendingUnlockedRequests.push({ run: execute })
+    return true
+  }
+
+  return execute()
+}
+
+const flushPendingUnlockedRequests = () => {
+  if (backgroundState.isUnlocked === false) {
+    return
+  }
+
+  while (pendingUnlockedRequests.length > 0) {
+    const pendingRequest = pendingUnlockedRequests.shift()
+    if (pendingRequest === undefined) {
+      return
+    }
+
+    pendingRequest.run()
+  }
+}
+
 export default defineBackground(() => {
   browser.runtime.onMessage.addListener((message: Message, sender: { tab?: unknown, url?: string }, sendResponse: (response: unknown) => void) => {
     if (isRuntimeMessage(message) === false) {
@@ -166,6 +201,7 @@ export default defineBackground(() => {
         setSessionData(backgroundDispatch, "")
         setAccessKey(backgroundDispatch, message.accessKey)
         broadcastState()
+        flushPendingUnlockedRequests()
         sendResponse({ ok: true })
         return false
       }
@@ -175,6 +211,7 @@ export default defineBackground(() => {
         setSessionData(backgroundDispatch, message.raw)
         setAccessKey(backgroundDispatch, message.accessKey)
         broadcastState()
+        flushPendingUnlockedRequests()
         sendResponse({ ok: true })
         return false
       }
@@ -312,12 +349,20 @@ export default defineBackground(() => {
       }
 
       case API_IDENTIFY: {
-        if (backgroundState.data === undefined) {
-          sendResponse({ error: "Not initialized" })
+        if (backgroundState.isInitialized === false) {
+          sendResponse({ error: "Extension not initialized" })
           return false
         }
-        sendResponse({ nameKey: backgroundState.data.nameKey })
-        return false
+
+        return withUnlockedSession(() => {
+          if (backgroundState.data === undefined) {
+            sendResponse({ error: "Extension not initialized" })
+            return false
+          }
+
+          sendResponse({ nameKey: backgroundState.data.nameKey })
+          return false
+        })
       }
 
       case API_GET_PENDING_REQUEST: {
@@ -330,9 +375,16 @@ export default defineBackground(() => {
       }
 
       case API_SIGN: {
-        const { data, requestId } = message
-        const origin = sender.url ?? ""
-        return handleSign(data, requestId, origin, sendResponse, () => void openSignRequestUi())
+        if (backgroundState.isInitialized === false) {
+          sendResponse({ error: "Extension not initialized" })
+          return false
+        }
+
+        return withUnlockedSession(() => {
+          const { data, requestId } = message
+          const origin = sender.url ?? ""
+          return handleSign(data, requestId, origin, sendResponse, () => void openSignRequestUi())
+        })
       }
 
       case API_CONFIRM_SIGN: {
