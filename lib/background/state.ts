@@ -11,11 +11,11 @@ export type ExtensionState = {
 }
 
 export type ExtensionAction =
-  | { type: "INITIALIZE", payload: boolean }
-  | { type: "SIGNIN", payload: AccessKey | undefined }
-  | { type: "WRITE_DATA", payload: string | undefined }
-  | { type: "CLEAR_DATA" }
-  | { type: "SIGNOUT" }
+  | { type: "SET_CONTAINER_STATUS", payload: boolean }
+  | { type: "SET_ACCESS_KEY", payload: AccessKey }
+  | { type: "SET_SESSION_DATA", payload: string }
+  | { type: "CLEAR_SESSION_DATA" }
+  | { type: "SIGN_OUT" }
 
 export const initialState: ExtensionState = {
   isInitialized: false,
@@ -31,10 +31,9 @@ export const extensionReducer = (
   action: ExtensionAction
 ): ExtensionState => {
   switch (action.type) {
-    case "INITIALIZE": {
+    case "SET_CONTAINER_STATUS": {
       return action.payload === false
         ? {
-            ...state,
             isInitialized: true,
             hasContainer: false,
             isUnlocked: false,
@@ -48,17 +47,7 @@ export const extensionReducer = (
             hasContainer: true
           }
     }
-    case "SIGNIN":
-      if (action.payload === undefined) {
-        return {
-          ...state,
-          accessKey: undefined,
-          isUnlocked: false,
-          raw: undefined,
-          data: undefined
-        }
-      }
-
+    case "SET_ACCESS_KEY":
       return {
         ...state,
         isInitialized: true,
@@ -66,10 +55,7 @@ export const extensionReducer = (
         accessKey: action.payload,
         isUnlocked: true
       }
-    case "WRITE_DATA": {
-      if (action.payload === undefined) {
-        return { ...state, raw: undefined, data: undefined }
-      }
+    case "SET_SESSION_DATA": {
       const raw = action.payload
       const data = decodeSessionData(raw)
       return {
@@ -80,7 +66,7 @@ export const extensionReducer = (
         data
       }
     }
-    case "CLEAR_DATA":
+    case "CLEAR_SESSION_DATA":
       return {
         ...state,
         isInitialized: true,
@@ -88,9 +74,8 @@ export const extensionReducer = (
         raw: "",
         data: undefined
       }
-    case "SIGNOUT":
+    case "SIGN_OUT":
       return {
-        ...state,
         isInitialized: true,
         hasContainer: true,
         isUnlocked: false,
@@ -103,24 +88,24 @@ export const extensionReducer = (
   }
 }
 
-export const setContainerExists = (dispatch: (action: ExtensionAction) => void, containerExists: boolean) => {
-  dispatch({ type: "INITIALIZE", payload: containerExists })
+export const setContainerStatus = (dispatch: (action: ExtensionAction) => void, containerExists: boolean) => {
+  dispatch({ type: "SET_CONTAINER_STATUS", payload: containerExists })
 }
 
-export const setAccessKey = (dispatch: (action: ExtensionAction) => void, accessKey: AccessKey | undefined) => {
-  dispatch({ type: "SIGNIN", payload: accessKey })
+export const setAccessKey = (dispatch: (action: ExtensionAction) => void, accessKey: AccessKey) => {
+  dispatch({ type: "SET_ACCESS_KEY", payload: accessKey })
 }
 
-export const setData = (dispatch: (action: ExtensionAction) => void, raw: string | undefined) => {
-  dispatch({ type: "WRITE_DATA", payload: raw })
+export const setSessionData = (dispatch: (action: ExtensionAction) => void, raw: string) => {
+  dispatch({ type: "SET_SESSION_DATA", payload: raw })
 }
 
-export const clearData = (dispatch: (action: ExtensionAction) => void) => {
-  dispatch({ type: "CLEAR_DATA" })
+export const clearSessionData = (dispatch: (action: ExtensionAction) => void) => {
+  dispatch({ type: "CLEAR_SESSION_DATA" })
 }
 
-export const clearSession = (dispatch: (action: ExtensionAction) => void) => {
-  dispatch({ type: "SIGNOUT" })
+export const signOut = (dispatch: (action: ExtensionAction) => void) => {
+  dispatch({ type: "SIGN_OUT" })
 }
 
 export let backgroundState = initialState

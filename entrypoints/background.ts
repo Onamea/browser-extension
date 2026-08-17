@@ -1,5 +1,5 @@
 import { checkStorage } from "@/lib/container/main.ts"
-import { backgroundState, backgroundDispatch, setContainerExists, setData, setAccessKey } from "@/lib/background/state.ts"
+import { backgroundState, backgroundDispatch, setContainerStatus, setSessionData, setAccessKey, signOut } from "@/lib/background/state.ts"
 import { getPendingRequest, handleSign, handleConfirmSign, handleRejectSign } from "@/lib/background/signFlow.ts"
 import { shouldUseOffscreenMining, startMining } from "@/lib/background/mining.ts"
 import {
@@ -151,19 +151,19 @@ export default defineBackground(() => {
 
         checkStorage()
           .then(exists => {
-            setContainerExists(backgroundDispatch, exists)
+            setContainerStatus(backgroundDispatch, exists)
             sendResponse({ state: backgroundState })
           })
           .catch(() => {
-            setContainerExists(backgroundDispatch, false)
+            setContainerStatus(backgroundDispatch, false)
             sendResponse({ state: backgroundState })
           })
         return true
       }
 
       case STATE_CREATE_CONTAINER: {
-        setContainerExists(backgroundDispatch, true)
-        setData(backgroundDispatch, "")
+        setContainerStatus(backgroundDispatch, true)
+        setSessionData(backgroundDispatch, "")
         setAccessKey(backgroundDispatch, message.accessKey)
         broadcastState()
         sendResponse({ ok: true })
@@ -171,8 +171,8 @@ export default defineBackground(() => {
       }
 
       case STATE_SIGNIN: {
-        setContainerExists(backgroundDispatch, true)
-        setData(backgroundDispatch, message.raw)
+        setContainerStatus(backgroundDispatch, true)
+        setSessionData(backgroundDispatch, message.raw)
         setAccessKey(backgroundDispatch, message.accessKey)
         broadcastState()
         sendResponse({ ok: true })
@@ -180,8 +180,8 @@ export default defineBackground(() => {
       }
 
       case STATE_WRITE_DATA: {
-        setContainerExists(backgroundDispatch, true)
-        setData(backgroundDispatch, message.raw)
+        setContainerStatus(backgroundDispatch, true)
+        setSessionData(backgroundDispatch, message.raw)
         setAccessKey(backgroundDispatch, message.accessKey)
         broadcastState()
         sendResponse({ ok: true })
@@ -189,7 +189,7 @@ export default defineBackground(() => {
       }
 
       case STATE_SIGNOUT: {
-        backgroundDispatch({ type: "SIGNOUT" })
+        signOut(backgroundDispatch)
         broadcastState()
         sendResponse({ ok: true })
         return false

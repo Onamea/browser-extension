@@ -4,9 +4,9 @@ import { encodeSessionData } from "@/lib/types/ContainerData.ts"
 import {
   extensionReducer,
   initialState,
-  clearData as clearDataToDispatch,
-  setContainerExists as setContainerExistsToDispatch,
-  setData as setDataToDispatch,
+  clearSessionData as clearSessionDataToDispatch,
+  setContainerStatus as setContainerStatusToDispatch,
+  setSessionData as setSessionDataToDispatch,
   setAccessKey as setAccessKeyToDispatch
 } from "../background/state.ts"
 import type { ExtensionState } from "../background/state.ts"
@@ -40,9 +40,13 @@ const useExtensionStateStore = () => {
 
   useEffect(() => {
     const syncState = (nextState: ExtensionState) => {
-      setContainerExistsToDispatch(dispatch, nextState.hasContainer)
-      setAccessKeyToDispatch(dispatch, nextState.accessKey)
-      setDataToDispatch(dispatch, nextState.raw)
+      setContainerStatusToDispatch(dispatch, nextState.hasContainer)
+      if (nextState.accessKey !== undefined) {
+        setAccessKeyToDispatch(dispatch, nextState.accessKey)
+      }
+      if (nextState.raw !== undefined) {
+        setSessionDataToDispatch(dispatch, nextState.raw)
+      }
     }
 
     initializeState().then(stateResponse => {
@@ -66,9 +70,9 @@ const useExtensionStateStore = () => {
 
       const raw = result.content ?? ""
       await createContainerState(result.accessKey)
-      setContainerExistsToDispatch(dispatch, true)
+      setContainerStatusToDispatch(dispatch, true)
       setAccessKeyToDispatch(dispatch, result.accessKey)
-      setDataToDispatch(dispatch, raw)
+      setSessionDataToDispatch(dispatch, raw)
       return true
     } catch (_error) {
       return false
@@ -84,9 +88,9 @@ const useExtensionStateStore = () => {
 
       const raw = result.content ?? ""
       await signInState(raw, result.accessKey)
-      setContainerExistsToDispatch(dispatch, true)
+      setContainerStatusToDispatch(dispatch, true)
       setAccessKeyToDispatch(dispatch, result.accessKey)
-      setDataToDispatch(dispatch, raw)
+      setSessionDataToDispatch(dispatch, raw)
       return true
     } catch (_error) {
       return false
@@ -103,9 +107,9 @@ const useExtensionStateStore = () => {
       const raw = encodeSessionData(data)
       await set(accessKey, raw)
       await writeStateData(raw, accessKey)
-      setContainerExistsToDispatch(dispatch, true)
+      setContainerStatusToDispatch(dispatch, true)
       setAccessKeyToDispatch(dispatch, accessKey)
-      setDataToDispatch(dispatch, raw)
+      setSessionDataToDispatch(dispatch, raw)
       return true
     } catch (_error) {
       return false
@@ -120,7 +124,7 @@ const useExtensionStateStore = () => {
     try {
       await set(accessKey, "")
       await writeStateData("", accessKey)
-      clearDataToDispatch(dispatch)
+      clearSessionDataToDispatch(dispatch)
       return true
     } catch (_error) {
       return false
@@ -130,7 +134,7 @@ const useExtensionStateStore = () => {
   const signOut = async (): Promise<void> => {
     deinitialize()
     await signOutState()
-    clearDataToDispatch(dispatch)
+    clearSessionDataToDispatch(dispatch)
   }
 
   return {

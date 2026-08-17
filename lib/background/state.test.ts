@@ -12,7 +12,7 @@ describe("extensionReducer", () => {
       data: { nameKey: "name-key" } as never
     }
 
-    const clearedState = extensionReducer(populatedState, { type: "CLEAR_DATA" })
+    const clearedState = extensionReducer(populatedState, { type: "CLEAR_SESSION_DATA" })
 
     expect(clearedState.raw).toBe("")
     expect(clearedState.data).toBeUndefined()
