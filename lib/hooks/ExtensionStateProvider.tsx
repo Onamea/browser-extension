@@ -19,6 +19,8 @@ import {
   signOutState,
   writeStateData
 } from "@/lib/messaging/client/stateClient.ts"
+import { clearMessages, writeMessage } from "../storage/identityMessagesStorage.ts"
+import { createCreateOperation, signOperation } from "@onamea/crdt"
 
 export type ExtensionStateContextValue = {
   state: ExtensionState
@@ -110,6 +112,13 @@ const useExtensionStateStore = () => {
       setContainerStatusToDispatch(dispatch, true)
       setAccessKeyToDispatch(dispatch, accessKey)
       setSessionDataToDispatch(dispatch, raw)
+
+      // extension storage
+      const { nameKey, keyPair } = data
+      const createOperation = await createCreateOperation(nameKey)
+      const message = await signOperation(createOperation, keyPair, Date.now())
+      await writeMessage(message)
+
       return true
     } catch (_error) {
       return false
@@ -125,6 +134,10 @@ const useExtensionStateStore = () => {
       await set(accessKey, "")
       await writeStateData("", accessKey)
       clearSessionDataToDispatch(dispatch)
+
+      // extension storage
+      await clearMessages()
+
       return true
     } catch (_error) {
       return false

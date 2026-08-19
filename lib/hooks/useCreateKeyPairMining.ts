@@ -88,7 +88,6 @@ const useCreateKeyPairMining = ({ writeData, onSuccess }: UseCreateKeyPairMining
         if (isSuccess === false) {
           throw new Error("WRITE_DATA failed")
         }
-
         await onSuccessRef.current()
       } catch (error) {
         setErrors([String(error)])

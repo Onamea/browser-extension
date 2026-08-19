@@ -11,13 +11,13 @@
     <button id="sign-btn">Call ONAMEA.sign()</button>
     <pre id="output"></pre>
     <script>
-      const ONAMEA_KEY = "ONAMEA"
+      const ONAMEA_KEY = "Onamea"
       const output = document.getElementById("output")
 
       const getOnameaApi = () => {
         const api = window[ONAMEA_KEY]
         if (api === undefined) {
-          throw new Error("window.ONAMEA is unavailable")
+          throw new Error(`window.${ ONAMEA_KEY } is unavailable`)
         }
         return api
       }
@@ -28,7 +28,7 @@
           const response = await getOnameaApi().identify()
           output.textContent = JSON.stringify(response, null, 2)
         } catch (error) {
-          output.textContent = JSON.stringify(error, null, 2)
+          output.textContent = String(error)
         }
       })
 

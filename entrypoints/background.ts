@@ -33,6 +33,7 @@ import {
 import type { SenderScopePolicy } from "@/lib/messaging/senderPolicy.ts"
 import { isSenderAuthorized } from "@/lib/messaging/senderPolicy.ts"
 import { isRuntimeMessage } from "@/lib/messaging/runtimeMessage.ts"
+import { getIdentityFromMessages } from "@/lib/storage/identityMessagesStorage.ts"
 
 type ChromeOffscreenApi = {
   runtime: {
@@ -354,15 +355,30 @@ export default defineBackground(() => {
           return false
         }
 
-        return withUnlockedSession(() => {
-          if (backgroundState.data === undefined) {
-            sendResponse({ error: "Extension not initialized" })
-            return false
-          }
+        void (async () => {
+          try {
+            const identity = await getIdentityFromMessages()
+            if (identity !== undefined) {
+              sendResponse(identity)
+              return true
+            }
 
-          sendResponse({ nameKey: backgroundState.data.nameKey })
-          return false
-        })
+            withUnlockedSession(() => {
+              if (backgroundState.data === undefined) {
+                sendResponse({ error: "Extension not initialized" })
+                return false
+              }
+
+              // TODO: Respond with identity. And make sure storage and container are in sync.
+              sendResponse({ nameKey: backgroundState.data.nameKey })
+              return false
+            })
+          } catch (error) {
+            sendResponse({ error: String(error) })
+          }
+        })()
+
+        return true
       }
 
       case API_GET_PENDING_REQUEST: {

@@ -1,3 +1,5 @@
+import type { IdentityWithMessages } from "@onamea/crdt"
+
 export const API_IDENTIFY = "API:IDENTIFY"
 export const API_SIGN = "API:SIGN"
 export const API_GET_PENDING_REQUEST = "API:GET_PENDING_REQUEST"
@@ -14,9 +16,7 @@ export type SignMessage = {
   requestId: string
 }
 
-export type IdentifyResponse = {
-  nameKey: string
-}
+export type IdentifyResponse = IdentityWithMessages
 
 export type SignResponse = {
   ok?: boolean
