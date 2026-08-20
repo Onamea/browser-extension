@@ -41,7 +41,7 @@ const AppRoutes = () => {
       <Route path="/" element={ null } />
       <Route path="/signin" element={ <SignIn /> } />
       <Route path="/init" element={ <CreateContainer /> } />
-      <Route path="/account" element={ isUnlocked ? <Account state={ state } /> : null } />
+      <Route path="/account" element={ isUnlocked ? <Account state={ state } identity={ state.local.identity } /> : null } />
       <Route path="/account/edit" element={ isUnlocked ? <AccountEdit state={ state } /> : null } />
     </Routes>
   )
