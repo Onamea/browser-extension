@@ -4,6 +4,7 @@ import { encodeSessionData } from "@/lib/types/ContainerData.ts"
 import {
   extensionReducer,
   initialState,
+  replaceState as replaceStateToDispatch,
   clearSessionData as clearSessionDataToDispatch,
   setContainerStatus as setContainerStatusToDispatch,
   setSessionData as setSessionDataToDispatch,
@@ -17,6 +18,7 @@ import {
   onStateUpdated,
   signInState,
   signOutState,
+  syncLocalStateFromStorage,
   writeStateData
 } from "@/lib/messaging/client/stateClient.ts"
 import { clearMessages, writeMessage } from "../storage/identityMessagesStorage.ts"
@@ -42,13 +44,7 @@ const useExtensionStateStore = () => {
 
   useEffect(() => {
     const syncState = (nextState: ExtensionState) => {
-      setContainerStatusToDispatch(dispatch, nextState.hasContainer)
-      if (nextState.accessKey !== undefined) {
-        setAccessKeyToDispatch(dispatch, nextState.accessKey)
-      }
-      if (nextState.raw !== undefined) {
-        setSessionDataToDispatch(dispatch, nextState.raw)
-      }
+      replaceStateToDispatch(dispatch, nextState)
     }
 
     initializeState().then(stateResponse => {
@@ -100,7 +96,7 @@ const useExtensionStateStore = () => {
   }
 
   const writeData = async (data: ContainerData): Promise<boolean> => {
-    const accessKey = state.accessKey
+    const accessKey = state.container.accessKey
     if (accessKey === undefined) {
       return false
     }
@@ -118,6 +114,7 @@ const useExtensionStateStore = () => {
       const createOperation = await createCreateOperation(nameKey)
       const message = await signOperation(createOperation, keyPair, Date.now())
       await writeMessage(message)
+      await syncLocalStateFromStorage()
 
       return true
     } catch (_error) {
@@ -126,7 +123,7 @@ const useExtensionStateStore = () => {
   }
 
   const clearData = async (): Promise<boolean> => {
-    const accessKey = state.accessKey
+    const accessKey = state.container.accessKey
     if (accessKey === undefined) {
       return false
     }
@@ -137,6 +134,7 @@ const useExtensionStateStore = () => {
 
       // extension storage
       await clearMessages()
+      await syncLocalStateFromStorage()
 
       return true
     } catch (_error) {

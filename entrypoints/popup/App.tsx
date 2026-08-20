@@ -18,7 +18,8 @@ const AppButton = ({ onClick, children }: { onClick: () => void; children: React
 const AppContent = () => {
 
   const { state } = useExtensionState()
-  const { isInitialized, hasContainer, isUnlocked } = state
+  const { isInitialized } = state
+  const { hasContainer, isUnlocked } = state.container
   const { pendingRequest } = usePendingRequest()
 
   const handleOpenIndex = () => {
@@ -41,7 +42,7 @@ const AppContent = () => {
   } else if (isUnlocked) {
     return (
       <>
-        <ContainerDisplay state={ state } />
+        <ContainerDisplay container={ state.container } />
         <AppButton onClick={ handleOpenIndex }>Open App</AppButton>
       </>
     )

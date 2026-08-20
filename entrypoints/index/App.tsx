@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import { MemoryRouter, Route, Routes, useLocation, useNavigate } from "react-router-dom"
 import useExtensionState from "@/lib/hooks/useExtensionState.ts"
 import { ExtensionStateProvider } from "@/lib/hooks/ExtensionStateProvider.tsx"
@@ -10,7 +11,8 @@ import "./App.css"
 
 const AppRoutes = () => {
   const { state } = useExtensionState()
-  const { hasContainer, isInitialized, isUnlocked, data } = state
+  const { isInitialized } = state
+  const { hasContainer, isUnlocked, data } = state.container
   const navigate = useNavigate()
   const location = useLocation()
 

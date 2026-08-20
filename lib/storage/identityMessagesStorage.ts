@@ -63,16 +63,25 @@ export const clearMessages = async (): Promise<void> => {
 	}
 }
 
-export const getIdentityFromMessages = async (): Promise<IdentityWithMessages | undefined> => {
+export const getLocalStateFromMessages = async (): Promise<{ messages: Messages, identity: IdentityWithMessages | undefined }> => {
 	const messages = await getMessages()
+	const identity = await getIdentityFromMessages(messages)
+	return {
+		messages,
+		identity
+	}
+}
+
+export const getIdentityFromMessages = async (messages: Messages): Promise<IdentityWithMessages | undefined> => {
 	if (messages.length === 0) {
 		return undefined
 	}
+
 	const operations = await Promise.all(messages.map(async ({ raw }) => await parseRawOperation(raw)))
 	const createOperations = operations.filter(operation => isCreateOperation(operation))
 	const nameKey = createOperations.filter(({ id }) => isNameKey(id))[0]?.id as NameKey | undefined
 
-	if (nameKey === undefined) {	
+	if (nameKey === undefined) {
 		return undefined
 	}
 

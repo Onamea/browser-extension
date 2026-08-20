@@ -62,7 +62,7 @@ export const handleConfirmSign = (
   sendResponse: (response: unknown) => void
 ): false => {
   const pendingRequest = getActivePendingRequest()
-  if (pendingRequest === undefined || state?.data === undefined) {
+  if (pendingRequest === undefined || state?.container.data === undefined) {
     sendResponse({ error: "No pending request" })
     return false
   }
@@ -74,7 +74,7 @@ export const handleConfirmSign = (
     pendingRequest.sendResponse({ error: "Data is not a valid Operation", requestId })
     return false
   }
-  const keyPair = state.data.keyPair
+  const keyPair = state.container.data.keyPair
   signOperation(data, keyPair)
     .then(signedMessage => pendingRequest.sendResponse({ signedMessage, requestId }))
     .catch(error => pendingRequest.sendResponse({ error: String(error), requestId }))

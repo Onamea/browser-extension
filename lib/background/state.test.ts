@@ -5,19 +5,22 @@ describe("extensionReducer", () => {
   it("clears decoded container data without removing the active container state", () => {
     const populatedState = {
       ...initialState,
-      hasContainer: true,
-      isUnlocked: true,
-      accessKey: "access-key" as never,
-      raw: "some-raw-data",
-      data: { nameKey: "name-key" } as never
+      container: {
+        ...initialState.container,
+        hasContainer: true,
+        isUnlocked: true,
+        accessKey: "access-key" as never,
+        raw: "some-raw-data",
+        data: { nameKey: "name-key" } as never
+      }
     }
 
     const clearedState = extensionReducer(populatedState, { type: "CLEAR_SESSION_DATA" })
 
-    expect(clearedState.raw).toBe("")
-    expect(clearedState.data).toBeUndefined()
-    expect(clearedState.hasContainer).toBe(true)
-    expect(clearedState.isUnlocked).toBe(true)
-    expect(clearedState.accessKey).toBe("access-key")
+    expect(clearedState.container.raw).toBe("")
+    expect(clearedState.container.data).toBeUndefined()
+    expect(clearedState.container.hasContainer).toBe(true)
+    expect(clearedState.container.isUnlocked).toBe(true)
+    expect(clearedState.container.accessKey).toBe("access-key")
   })
 })

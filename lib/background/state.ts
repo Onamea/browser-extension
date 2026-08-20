@@ -1,29 +1,44 @@
+import type { IdentityWithMessages, Messages } from "@onamea/crdt"
 import { type ContainerData, decodeSessionData } from "../types/ContainerData.ts"
 import type { AccessKey } from "@/lib/container/main.ts"
 
 export type ExtensionState = {
   isInitialized: boolean
-  hasContainer: boolean
-  isUnlocked: boolean
-  accessKey: AccessKey | undefined
-  raw: string | undefined
-  data: ContainerData | undefined
+  container: {
+    hasContainer: boolean
+    isUnlocked: boolean
+    accessKey: AccessKey | undefined
+    raw: string | undefined
+    data: ContainerData | undefined
+  }
+  local: {
+    messages: Messages
+    identity: IdentityWithMessages | undefined
+  }
 }
 
 export type ExtensionAction =
+  | { type: "REPLACE_STATE", payload: ExtensionState }
   | { type: "SET_CONTAINER_STATUS", payload: boolean }
   | { type: "SET_ACCESS_KEY", payload: AccessKey }
   | { type: "SET_SESSION_DATA", payload: string }
+  | { type: "SET_LOCAL_STATE", payload: ExtensionState["local"] }
   | { type: "CLEAR_SESSION_DATA" }
   | { type: "SIGN_OUT" }
 
 export const initialState: ExtensionState = {
   isInitialized: false,
-  hasContainer: false,
-  isUnlocked: false,
-  accessKey: undefined,
-  data: undefined,
-  raw: undefined
+  container: {
+    hasContainer: false,
+    isUnlocked: false,
+    accessKey: undefined,
+    data: undefined,
+    raw: undefined
+  }, 
+  local: {
+    messages: [],
+    identity: undefined
+  }
 }
 
 export const extensionReducer = (
@@ -31,29 +46,41 @@ export const extensionReducer = (
   action: ExtensionAction
 ): ExtensionState => {
   switch (action.type) {
+    case "REPLACE_STATE": {
+      return action.payload
+    }
     case "SET_CONTAINER_STATUS": {
       return action.payload === false
         ? {
+            ...state,
             isInitialized: true,
-            hasContainer: false,
-            isUnlocked: false,
-            accessKey: undefined,
-            raw: undefined,
-            data: undefined
+            container: {
+              hasContainer: false,
+              isUnlocked: false,
+              accessKey: undefined,
+              raw: undefined,
+              data: undefined
+            }
           }
         : {
             ...state,
             isInitialized: true,
-            hasContainer: true
+            container: {
+              ...state.container,
+              hasContainer: true
+            }
           }
     }
     case "SET_ACCESS_KEY":
       return {
         ...state,
         isInitialized: true,
-        hasContainer: true,
-        accessKey: action.payload,
-        isUnlocked: true
+        container: {
+          ...state.container,
+          hasContainer: true,
+          accessKey: action.payload,
+          isUnlocked: true
+        }
       }
     case "SET_SESSION_DATA": {
       const raw = action.payload
@@ -61,31 +88,51 @@ export const extensionReducer = (
       return {
         ...state,
         isInitialized: true,
-        hasContainer: true,
-        raw,
-        data
+        container: {
+          ...state.container,
+          hasContainer: true,
+          raw,
+          data
+        }
+      }
+    }
+    case "SET_LOCAL_STATE": {
+      return {
+        ...state,
+        isInitialized: true,
+        local: action.payload
       }
     }
     case "CLEAR_SESSION_DATA":
       return {
         ...state,
         isInitialized: true,
-        hasContainer: true,
-        raw: "",
-        data: undefined
+        container: {
+          ...state.container,
+          hasContainer: true,
+          raw: "",
+          data: undefined
+        }
       }
     case "SIGN_OUT":
       return {
+        ...state,
         isInitialized: true,
-        hasContainer: true,
-        isUnlocked: false,
-        accessKey: undefined,
-        raw: undefined,
-        data: undefined
+        container: {
+          hasContainer: true,
+          isUnlocked: false,
+          accessKey: undefined,
+          raw: undefined,
+          data: undefined
+        }
       }
     default:
       return state
   }
+}
+
+export const replaceState = (dispatch: (action: ExtensionAction) => void, state: ExtensionState) => {
+  dispatch({ type: "REPLACE_STATE", payload: state })
 }
 
 export const setContainerStatus = (dispatch: (action: ExtensionAction) => void, containerExists: boolean) => {
@@ -98,6 +145,10 @@ export const setAccessKey = (dispatch: (action: ExtensionAction) => void, access
 
 export const setSessionData = (dispatch: (action: ExtensionAction) => void, raw: string) => {
   dispatch({ type: "SET_SESSION_DATA", payload: raw })
+}
+
+export const setLocalState = (dispatch: (action: ExtensionAction) => void, local: ExtensionState["local"]) => {
+  dispatch({ type: "SET_LOCAL_STATE", payload: local })
 }
 
 export const clearSessionData = (dispatch: (action: ExtensionAction) => void) => {

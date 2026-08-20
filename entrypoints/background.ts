@@ -1,5 +1,5 @@
 import { checkStorage } from "@/lib/container/main.ts"
-import { backgroundState, backgroundDispatch, setContainerStatus, setSessionData, setAccessKey, signOut } from "@/lib/background/state.ts"
+import { backgroundState, backgroundDispatch, setContainerStatus, setSessionData, setAccessKey, setLocalState, signOut } from "@/lib/background/state.ts"
 import { getPendingRequest, handleSign, handleConfirmSign, handleRejectSign } from "@/lib/background/signFlow.ts"
 import { shouldUseOffscreenMining, startMining } from "@/lib/background/mining.ts"
 import {
@@ -26,6 +26,7 @@ import {
   STATE_INIT,
   STATE_SIGNIN,
   STATE_SIGNOUT,
+  STATE_SYNC_LOCAL,
   STATE_UPDATED,
   STATE_WRITE_DATA,
   type StateMessage
@@ -33,7 +34,7 @@ import {
 import type { SenderScopePolicy } from "@/lib/messaging/senderPolicy.ts"
 import { isSenderAuthorized } from "@/lib/messaging/senderPolicy.ts"
 import { isRuntimeMessage } from "@/lib/messaging/runtimeMessage.ts"
-import { getIdentityFromMessages } from "@/lib/storage/identityMessagesStorage.ts"
+import { getLocalStateFromMessages } from "@/lib/storage/identityMessagesStorage.ts"
 
 type ChromeOffscreenApi = {
   runtime: {
@@ -69,6 +70,7 @@ const MESSAGE_SCOPE_POLICY: SenderScopePolicy = new Map([
   [STATE_CREATE_CONTAINER, "extension"],
   [STATE_SIGNIN, "extension"],
   [STATE_WRITE_DATA, "extension"],
+  [STATE_SYNC_LOCAL, "extension"],
   [STATE_SIGNOUT, "extension"],
   [MINING_START, "extension"],
   [MINING_ABORT, "extension"],
@@ -138,7 +140,7 @@ const withUnlockedSession = (execute: () => boolean): boolean => {
     return false
   }
 
-  if (backgroundState.isUnlocked === false) {
+  if (backgroundState.container.isUnlocked === false) {
     void openSignRequestUi()
     pendingUnlockedRequests.push({ run: execute })
     return true
@@ -148,7 +150,7 @@ const withUnlockedSession = (execute: () => boolean): boolean => {
 }
 
 const flushPendingUnlockedRequests = () => {
-  if (backgroundState.isUnlocked === false) {
+  if (backgroundState.container.isUnlocked === false) {
     return
   }
 
@@ -185,15 +187,18 @@ export default defineBackground(() => {
           return false
         }
 
-        checkStorage()
-          .then(exists => {
-            setContainerStatus(backgroundDispatch, exists)
-            sendResponse({ state: backgroundState })
-          })
-          .catch(() => {
-            setContainerStatus(backgroundDispatch, false)
-            sendResponse({ state: backgroundState })
-          })
+        void (async () => {
+          const exists = await checkStorage().catch(() => false)
+          setContainerStatus(backgroundDispatch, exists)
+
+          const localState = await getLocalStateFromMessages().catch(() => ({
+            messages: [],
+            identity: undefined
+          }))
+          setLocalState(backgroundDispatch, localState)
+
+          sendResponse({ state: backgroundState })
+        })()
         return true
       }
 
@@ -221,6 +226,13 @@ export default defineBackground(() => {
         setContainerStatus(backgroundDispatch, true)
         setSessionData(backgroundDispatch, message.raw)
         setAccessKey(backgroundDispatch, message.accessKey)
+        broadcastState()
+        sendResponse({ ok: true })
+        return false
+      }
+
+      case STATE_SYNC_LOCAL: {
+        setLocalState(backgroundDispatch, message.local)
         broadcastState()
         sendResponse({ ok: true })
         return false
@@ -355,36 +367,20 @@ export default defineBackground(() => {
           return false
         }
 
-        void (async () => {
-          try {
-            const identity = await getIdentityFromMessages()
-            if (identity !== undefined) {
-              sendResponse(identity)
-              return true
-            }
+        const identity = backgroundState.local.identity
+        if (identity !== undefined) {
+          sendResponse(identity)
+          return false
+        }
 
-            withUnlockedSession(() => {
-              if (backgroundState.data === undefined) {
-                sendResponse({ error: "Extension not initialized" })
-                return false
-              }
-
-              // TODO: Respond with identity. And make sure storage and container are in sync.
-              sendResponse({ nameKey: backgroundState.data.nameKey })
-              return false
-            })
-          } catch (error) {
-            sendResponse({ error: String(error) })
-          }
-        })()
-
-        return true
+        sendResponse({ error: "Identity not available" })
+        return false
       }
 
       case API_GET_PENDING_REQUEST: {
         const buildResponse = () => ({
           pendingRequest: getPendingRequest(),
-          data: backgroundState.data
+          data: backgroundState.container.data
         })
         sendResponse(buildResponse())
         return false

@@ -6,6 +6,7 @@ export const STATE_INIT = "STATE:INIT"
 export const STATE_CREATE_CONTAINER = "STATE:CREATE_CONTAINER"
 export const STATE_SIGNIN = "STATE:SIGNIN"
 export const STATE_WRITE_DATA = "STATE:WRITE_DATA"
+export const STATE_SYNC_LOCAL = "STATE:SYNC_LOCAL"
 export const STATE_SIGNOUT = "STATE:SIGNOUT"
 export const STATE_UPDATED = "STATE:UPDATED"
 
@@ -30,6 +31,11 @@ export type StateWriteDataMessage = {
   accessKey: AccessKey
 }
 
+export type StateSyncLocalMessage = {
+  type: typeof STATE_SYNC_LOCAL
+  local: ExtensionState["local"]
+}
+
 export type StateSignoutMessage = {
   type: typeof STATE_SIGNOUT
 }
@@ -48,6 +54,7 @@ export type StateMessage =
   | StateCreateContainerMessage
   | StateSigninMessage
   | StateWriteDataMessage
+  | StateSyncLocalMessage
   | StateSignoutMessage
   | StateUpdatedMessage
 

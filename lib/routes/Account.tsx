@@ -17,8 +17,8 @@ const Account = ({ state }: Props) => {
 
   return (
     <>
-      { state.data !== undefined && <h1>{ state.data.fingerprintedName }</h1> }
-      <ContainerDisplay state={ state } />
+      { state.container.data !== undefined && <h1>{ state.container.data.fingerprintedName }</h1> }
+      <ContainerDisplay container={ state.container } />
       <section><button type="button" onClick={ onClick }>Edit</button></section>
       <section><SignOutButton /></section>
     </>

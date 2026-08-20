@@ -1,10 +1,12 @@
 import type { AccessKey } from "@/lib/container/main.ts"
 import type { ExtensionState } from "@/lib/background/state.ts"
+import { getLocalStateFromMessages } from "@/lib/storage/identityMessagesStorage.ts"
 import {
   STATE_CREATE_CONTAINER,
   STATE_INIT,
   STATE_SIGNIN,
   STATE_SIGNOUT,
+  STATE_SYNC_LOCAL,
   STATE_WRITE_DATA,
   isStateInitializeResponse,
   isStateUpdatedMessage
@@ -38,6 +40,15 @@ export const signInState = async (raw: string, accessKey: AccessKey): Promise<vo
 
 export const writeStateData = async (raw: string, accessKey: AccessKey): Promise<void> => {
   await sendRuntimeMessage({ type: STATE_WRITE_DATA, raw, accessKey })
+}
+
+export const syncLocalState = async (local: ExtensionState["local"]): Promise<void> => {
+  await sendRuntimeMessage({ type: STATE_SYNC_LOCAL, local })
+}
+
+export const syncLocalStateFromStorage = async (): Promise<void> => {
+  const localState = await getLocalStateFromMessages()
+  await syncLocalState(localState)
 }
 
 export const signOutState = async (): Promise<void> => {

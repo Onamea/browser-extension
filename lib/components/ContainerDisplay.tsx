@@ -2,19 +2,20 @@ import type { ExtensionState } from "../background/state.ts"
 import ContainerDataDisplay from "./ContainerDataDisplay.tsx"
 
 type Props = {
-  state: ExtensionState
+  container: ExtensionState["container"]
 }
 
-const ContainerDisplay = ({ state }: Props) => {
+const ContainerDisplay = ({ container }: Props) => {
+  const { data, raw } = container
 
   return (
     <div>
-      { state.data !== undefined 
-        ? <ContainerDataDisplay data={ state.data } />
+      { data !== undefined 
+        ? <ContainerDataDisplay data={ data } />
         : <p>
-            { state.raw === undefined || state.raw === ""
+            { raw === undefined || raw === ""
               ? "You do not have an identity, yet. Please create or import one."
-              : `Container contains invalid data (${ state.raw })`
+              : `Container contains invalid data (${ raw })`
             }
           </p>
       }
