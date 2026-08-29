@@ -14,7 +14,6 @@ import {
 
 type UseCreateKeyPairMiningArgs = {
   writeData: (data: ContainerData) => Promise<boolean>
-  onSuccess: () => Promise<void>
 }
 
 type UseCreateKeyPairMiningResult = {
@@ -26,7 +25,7 @@ type UseCreateKeyPairMiningResult = {
   cancelMining: () => Promise<void>
 }
 
-const useCreateKeyPairMining = ({ writeData, onSuccess }: UseCreateKeyPairMiningArgs): UseCreateKeyPairMiningResult => {
+const useCreateKeyPairMining = ({ writeData }: UseCreateKeyPairMiningArgs): UseCreateKeyPairMiningResult => {
   const [nameToMine, setNameToMine] = useState<string>()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<string[]>([])
@@ -35,15 +34,10 @@ const useCreateKeyPairMining = ({ writeData, onSuccess }: UseCreateKeyPairMining
   const activeRequestIdRef = useRef<string | undefined>(undefined)
   const unsubscribeMiningRef = useRef<() => void>(() => {})
   const writeDataRef = useRef(writeData)
-  const onSuccessRef = useRef(onSuccess)
 
   useEffect(() => {
     writeDataRef.current = writeData
   }, [writeData])
-
-  useEffect(() => {
-    onSuccessRef.current = onSuccess
-  }, [onSuccess])
 
   const cancelMining = useCallback(async (): Promise<void> => {
     unsubscribeMiningRef.current()
@@ -88,7 +82,6 @@ const useCreateKeyPairMining = ({ writeData, onSuccess }: UseCreateKeyPairMining
         if (isSuccess === false) {
           throw new Error("WRITE_DATA failed")
         }
-        await onSuccessRef.current()
       } catch (error) {
         setErrors([String(error)])
       } finally {

@@ -12,11 +12,11 @@ const ContainerDataDisplay = ({ data }: Props) => {
 
   return (
     <div>
-      <p><strong>Name key:</strong> { nameKey }</p>
-      <p><strong>Fingerprinted name:</strong> { fingerprintedName }</p>
-      <p><strong>Crypto name:</strong> { cryptoName }</p>
-      <p><strong>Public key:</strong> { publicKeyDisplay }</p>
-      <p><strong>Private key:</strong> <SecretDisplay secret={ privateKeyDisplay } /></p>
+      <p><strong>NameKey:</strong> { nameKey }</p>
+      <p><strong>FingerprintedName:</strong> { fingerprintedName }</p>
+      <p><strong>CryptoName:</strong> { cryptoName }</p>
+      <p><strong>PublicKey:</strong> { publicKeyDisplay }</p>
+      <p><strong>PrivateKey:</strong> <SecretDisplay secret={ privateKeyDisplay } /></p>
       {
         mnemonicDisplay !== undefined
           ? <p><strong>Mnemonic:</strong> <SecretDisplay secret={ mnemonicDisplay } /></p>

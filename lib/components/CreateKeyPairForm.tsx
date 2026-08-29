@@ -1,6 +1,5 @@
 import type { FormEvent } from "react"
 import { useState } from "react"
-import { useNavigate } from "react-router-dom"
 import ErrorDisplay from "./ErrorDisplay.tsx"
 import MiningProgress from "./MiningProgress.tsx"
 import useExtensionState from "@/lib/hooks/useExtensionState.ts"
@@ -10,7 +9,6 @@ const CreateKeyPairForm = () => {
 
 	const [name, setName] = useState("")
 	const [shouldGenerateMnemonic, setShouldGenerateMnemonic] = useState(false)
-	const navigate = useNavigate()
 	const { writeData } = useExtensionState()
 	const {
 		isSubmitting,
@@ -19,10 +17,7 @@ const CreateKeyPairForm = () => {
 		nameToMine,
 		startMiningForNameInput
 	} = useCreateKeyPairMining({
-		writeData,
-		onSuccess: async () => {
-			await navigate("/account")
-		}
+		writeData
 	})
 
 	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {

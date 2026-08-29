@@ -85,7 +85,9 @@ export const getIdentityFromMessages = async (messages: Messages): Promise<Ident
 		return undefined
 	}
 
-	const identity = await buildIdentityFromOperations(operations, nameKey)
+	const identityOperations = operations.filter(({ id }) => id === nameKey)
+
+	const identity = await buildIdentityFromOperations(identityOperations, nameKey)
 	return {
 		...identity,
 		messages

@@ -1,7 +1,5 @@
-import type { FormEvent } from "react"
-import { useState } from "react"
-import type { Identifier } from "@onamea/crdt"
-import { identify, isIdentifier } from "@onamea/crdt"
+import { type FormEvent, useState } from "react"
+import { type Identifier, identify, isIdentifier } from "@onamea/crdt"
 import { 
   type MnemonicDisplayWithPassphrase, 
   type PrivateKeyDisplay, 

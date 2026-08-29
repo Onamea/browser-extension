@@ -1,9 +1,8 @@
-import { useNavigate } from "react-router-dom"
 import type { ExtensionState } from "../background/state.ts"
-import ContainerDisplay from "@/lib/components/ContainerDisplay.tsx"
-import AddKeyPairForm from "@/lib/components/AddKeyPairForm.tsx"
-import CreateKeyPairForm from "../components/CreateKeyPairForm.tsx"
-import ClearContainerButton from "../components/ClearContainerButton.tsx"
+import IdentityDisplay from "../components/IdentityDisplay.tsx"
+import IdentityOperationsDisplay from "../components/IdentityOperationsDisplay.tsx"
+import SetOperationForm from "../components/SetOperationForm.tsx"
+import useView from "../hooks/useView.tsx"
 
 type Props = {
   state: ExtensionState
@@ -11,19 +10,21 @@ type Props = {
 
 const AccountEdit = ({ state }: Props) => {
 
-  const navigate = useNavigate()
+  const { showAccount } = useView()
+  const identity = state.local.identity
 
-  const onClick = () => {
-    navigate("/account")
+  if (identity === undefined) {
+    return <p>You do not have an identity, yet.</p>
   }
 
   return (
     <div>
-      <ContainerDisplay container={ state.container } />
-      { state.container.data !== undefined && <section><ClearContainerButton /></section> }
-      { state.container.data !== undefined && <section><button type="button" onClick={ onClick }>Cancel</button></section> }
-      { state.container.data === undefined && <CreateKeyPairForm /> }
-      { state.container.data === undefined && <AddKeyPairForm /> }
+      <IdentityDisplay identity={ identity } />
+      <IdentityOperationsDisplay identity={ identity } />
+      <SetOperationForm state={ state } />
+      <menu>
+        <button type="button" onClick={ showAccount }>Cancel</button>
+      </menu>
     </div>
   )
 }

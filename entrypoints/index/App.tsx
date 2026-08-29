@@ -1,58 +1,61 @@
-import { useEffect } from "react"
-import { MemoryRouter, Route, Routes, useLocation, useNavigate } from "react-router-dom"
 import useExtensionState from "@/lib/hooks/useExtensionState.ts"
 import { ExtensionStateProvider } from "@/lib/hooks/ExtensionStateProvider.tsx"
+import useView, { ViewProvider } from "@/lib/hooks/useView.tsx"
 import SignIn from "@/lib/routes/SignIn.tsx"
 import CreateContainer from "@/lib/routes/CreateContainer.tsx"
+import Container from "@/lib/routes/Container.tsx"
 import Account from "@/lib/routes/Account.tsx"
 import AccountEdit from "@/lib/routes/AccountEdit.tsx"
+import AccountCreate from "@/lib/routes/AccountCreate.tsx"
 
 import "./App.css"
 
 const AppRoutes = () => {
   const { state } = useExtensionState()
-  const { isInitialized } = state
-  const { hasContainer, isUnlocked, data } = state.container
-  const navigate = useNavigate()
-  const location = useLocation()
+  const { view } = useView()
 
-  useEffect(() => {
-    if (isInitialized === false) return
-    if (hasContainer === false) {
-      navigate("/init")
-    } else if (isUnlocked === false) {
-      navigate("/signin")
-    } else {
-      if (location.pathname.startsWith("/account") === false) {
-        if (data === undefined) {
-          navigate("/account/edit")
-        } else {
-          navigate("/account")
-        }
-      }
-    }
-  }, [isInitialized, hasContainer, isUnlocked, navigate, location.pathname, data])
+  if (state.isInitialized === false) return null
 
-  // Wait for async container check before rendering routes
-  if (isInitialized === false) return null
+  if (state.container.hasContainer === false) {
+    return <CreateContainer />
+  }
+
+  if (state.container.isUnlocked === false) {
+    return <SignIn />
+  }
+
+  if (state.local.identity === undefined) {
+    return <AccountCreate />
+  }
+
+  switch (view) {
+    case "account":
+      return <Account state={ state } />
+    case "accountEdit":
+      return <AccountEdit state={ state } />
+    case "container":
+      return <Container state={ state } />
+  }
+}
+
+const AppContent = () => {
+  const { state } = useExtensionState()
+  const hasActiveIdentity = state.isInitialized &&
+    state.container.hasContainer &&
+    state.container.isUnlocked &&
+    state.local.identity !== undefined
 
   return (
-    <Routes>
-      <Route path="/" element={ null } />
-      <Route path="/signin" element={ <SignIn /> } />
-      <Route path="/init" element={ <CreateContainer /> } />
-      <Route path="/account" element={ isUnlocked ? <Account state={ state } identity={ state.local.identity } /> : null } />
-      <Route path="/account/edit" element={ isUnlocked ? <AccountEdit state={ state } /> : null } />
-    </Routes>
+    <ViewProvider key={ hasActiveIdentity ? "active-identity" : "no-active-identity" }>
+      <AppRoutes />
+    </ViewProvider>
   )
 }
 
 const App = () => {
   return (
     <ExtensionStateProvider>
-      <MemoryRouter initialEntries={ ["/"] }>
-        <AppRoutes />
-      </MemoryRouter>
+      <AppContent />
     </ExtensionStateProvider>
   )
 }

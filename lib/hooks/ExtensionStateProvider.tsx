@@ -1,5 +1,6 @@
-import { useEffect, useReducer, type ReactNode, createContext } from "react"
+import { type ReactNode, useEffect, useReducer, createContext } from "react"
 import type { ContainerData } from "@/lib/types/ContainerData.ts"
+import type { Operation } from "@onamea/crdt"
 import { encodeSessionData } from "@/lib/types/ContainerData.ts"
 import {
   extensionReducer,
@@ -14,6 +15,7 @@ import type { ExtensionState } from "../background/state.ts"
 import { create, deinitialize, initialize, set } from "@/lib/container/main.ts"
 import {
   createContainerState,
+  appendOperationState,
   initializeState,
   onStateUpdated,
   signInState,
@@ -30,6 +32,7 @@ export type ExtensionStateContextValue = {
   signIn: (password: string) => Promise<boolean>
   writeData: (data: ContainerData) => Promise<boolean>
   clearData: () => Promise<boolean>
+  appendOperation: (operation: Operation) => Promise<boolean>
   signOut: () => Promise<void>
 }
 
@@ -142,6 +145,10 @@ const useExtensionStateStore = () => {
     }
   }
 
+  const appendOperation = async (operation: Operation): Promise<boolean> => {
+    return await appendOperationState(operation)
+  }
+
   const signOut = async (): Promise<void> => {
     deinitialize()
     await signOutState()
@@ -154,6 +161,7 @@ const useExtensionStateStore = () => {
     signIn,
     writeData,
     clearData,
+    appendOperation,
     signOut
   }
 }

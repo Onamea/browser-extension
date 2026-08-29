@@ -1,5 +1,4 @@
-import type { FormEvent } from "react"
-import { useState } from "react"
+import { type FormEvent, useState } from "react"
 import ErrorDisplay from "./ErrorDisplay.tsx"
 import { isPassword } from "@/lib/container/main.ts"
 import useExtensionState from "@/lib/hooks/useExtensionState.ts"

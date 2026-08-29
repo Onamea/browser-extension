@@ -1,30 +1,30 @@
-import type { IdentityWithMessages } from "@onamea/crdt"
-import { useNavigate } from "react-router-dom"
 import IdentityDisplay from "../components/IdentityDisplay.tsx"
 import type { ExtensionState } from "../background/state.ts"
-import ContainerDisplay from "../components/ContainerDisplay.tsx"
 import SignOutButton from "../components/SignOutButton.tsx"
+import useView from "../hooks/useView.tsx"
 
 type Props = {
   state: ExtensionState
-  identity: IdentityWithMessages | undefined
 }
 
-const Account = ({ state, identity }: Props) => {
+const Account = ({ state }: Props) => {
 
-  const navigate = useNavigate()
+  const { showAccountEdit, showContainer } = useView()
+  const identity = state.local.identity
 
-  const onClick = () => {
-    navigate("/account/edit")
+  if (identity === undefined) {
+    return <p>You do not have an identity, yet.</p>
   }
 
   return (
     <>
-      { identity !== undefined && <h1>{ identity.fingerprintedName }</h1> }
-      <ContainerDisplay container={ state.container } />
-      <section><button type="button" onClick={ onClick }>Edit</button></section>
-      { identity !== undefined && <IdentityDisplay identity={ identity } /> }
-      <section><SignOutButton /></section>
+      <h1>{ identity.fingerprintedName }</h1>
+      <IdentityDisplay identity={ identity } />
+      <menu>
+        <button type="button" onClick={ showAccountEdit }>Edit</button>
+        <button type="button" onClick={ showContainer }>Container</button>
+        <SignOutButton />
+      </menu>
     </>
   )
 }
