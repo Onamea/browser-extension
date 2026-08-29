@@ -18,9 +18,9 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@onamea/crdt": "jsr:^0.3.9",
-    "@onamea/types": "jsr:^0.3.7",
-    "@onamea/workers": "jsr:^0.3.4",
+    "@onamea/crdt": "jsr:~0.5.0",
+    "@onamea/types": "jsr:0.5.3",
+    "@onamea/workers": "jsr:~0.5.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.2"

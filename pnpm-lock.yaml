@@ -9,14 +9,14 @@ importers:
   .:
     dependencies:
       '@onamea/crdt':
-        specifier: jsr:^0.3.9
-        version: '@jsr/onamea__crdt@0.3.9'
+        specifier: jsr:~0.5.0
+        version: '@jsr/onamea__crdt@0.5.0'
       '@onamea/types':
-        specifier: jsr:^0.3.7
-        version: '@jsr/onamea__types@0.3.7'
+        specifier: jsr:0.5.3
+        version: '@jsr/onamea__types@0.5.3'
       '@onamea/workers':
-        specifier: jsr:^0.3.4
-        version: '@jsr/onamea__workers@0.3.4'
+        specifier: jsr:~0.5.0
+        version: '@jsr/onamea__workers@0.5.0'
       react:
         specifier: ^19.2.8
         version: 19.2.8
@@ -364,23 +364,23 @@ packages:
   '@jsr/noble__ed25519@3.1.0':
     resolution: {integrity: sha512-/o/goYKeh0o5b7xWYN+HIaCIcYzQNO1WNkuv8wyHHRFObJwAAdIlTYFwipLbKWC4I7a2AK1xlta3BUHoQ7qpKw==, tarball: https://npm.jsr.io/~/11/@jsr/noble__ed25519/3.1.0.tgz}
 
-  '@jsr/noble__hashes@1.8.0':
-    resolution: {integrity: sha512-Q82YZQ/e1LLXXyrwt4X5nle+ys9B0zuZaG8NzHvhmtw0nX5V4KzYnlu3vP9sBCiAbZluB82X3k7Q8kjhI5eC2g==, tarball: https://npm.jsr.io/~/11/@jsr/noble__hashes/1.8.0.tgz}
-
   '@jsr/noble__hashes@2.2.0':
     resolution: {integrity: sha512-S49F+0IyCCQm29gkj30ABoqeyX7tDovIqQsCEsfPhokbZqVB80oAu1t7nSdVItJD5tQ/hvUsd/wm8UL9C4GsiA==, tarball: https://npm.jsr.io/~/11/@jsr/noble__hashes/2.2.0.tgz}
+
+  '@jsr/noble__hashes@2.3.0':
+    resolution: {integrity: sha512-DZRVZ6XgSTYVaD17t4SYqhVGnVklfD/ItfTeJYWA4m4aeUCE/w0K/MxSqUUhU0ygpr135xaUPI3/k35SWV7WQA==, tarball: https://npm.jsr.io/~/11/@jsr/noble__hashes/2.3.0.tgz}
 
   '@jsr/noble__secp256k1@3.1.0':
     resolution: {integrity: sha512-cW0KkKdMtCdLwn9V66bDThsDYG36H2zwjJDR2+RTXfNeQUT4AqKrFdJ5L8PfWkDd8jaqGpxewu4Pw4GPJ/pOnw==, tarball: https://npm.jsr.io/~/11/@jsr/noble__secp256k1/3.1.0.tgz}
 
-  '@jsr/onamea__crdt@0.3.9':
-    resolution: {integrity: sha512-oQdh/ZPuCAYH37ljYRXWm+3aL5sfb8kHkH+fqf2E3oHmUlvDqs/eXLLq+1dYq9cWuLW0gm2wVRLYHE2GGVdR8Q==, tarball: https://npm.jsr.io/~/11/@jsr/onamea__crdt/0.3.9.tgz}
+  '@jsr/onamea__crdt@0.5.0':
+    resolution: {integrity: sha512-c52YOXZZ0LnkXfbVJg/izE/2vt29nC83HDImxjAB1XPhQ2ujBDxAxmzt8Cii92OFM992jWRO2n4w7mgD9+t0lg==, tarball: https://npm.jsr.io/~/11/@jsr/onamea__crdt/0.5.0.tgz}
 
-  '@jsr/onamea__types@0.3.7':
-    resolution: {integrity: sha512-4zzd4U3S5Q0eA48Z1fyy7VFgVlX0cONyLB7FvZrMYkFsSg/g9HoNXiYKQfytD0/WIUeJrL54lTYUDhMmidDljg==, tarball: https://npm.jsr.io/~/11/@jsr/onamea__types/0.3.7.tgz}
+  '@jsr/onamea__types@0.5.3':
+    resolution: {integrity: sha512-KFn7L2GDjGcQXDP97QkMZozbA7NxyKOrc7ILMlaIY2CtmFJ6mdTv2q3l19hFOo1EbtjAHABJ7jAopquk8X/qGw==, tarball: https://npm.jsr.io/~/11/@jsr/onamea__types/0.5.3.tgz}
 
-  '@jsr/onamea__workers@0.3.4':
-    resolution: {integrity: sha512-9VBetSn1xVozRhH64gKzIWegZZE9+7FkjAar5KFuRdleYEA8fI4yFIVhhJ5A+xMifaRh+OwidVFBBIBnl9DZBA==, tarball: https://npm.jsr.io/~/11/@jsr/onamea__workers/0.3.4.tgz}
+  '@jsr/onamea__workers@0.5.0':
+    resolution: {integrity: sha512-Aehoxz33RRDnJva9BGkihcLos2wSFeks4GnWwsPcS8FQ1fz4pbeJdOstci1tScAbc0GjHU+reS885na1I1m4UA==, tarball: https://npm.jsr.io/~/11/@jsr/onamea__workers/0.5.0.tgz}
 
   '@jsr/scure__base@2.2.0':
     resolution: {integrity: sha512-vbtLeulZF8AIk2O6AybUsGZLhHHGDxmX4pZnsvzjz0e52KDT7je3X6svQRvJFr9DrxUzcSXVYtIBDnow/1JBRw==, tarball: https://npm.jsr.io/~/11/@jsr/scure__base/2.2.0.tgz}
@@ -1310,6 +1310,7 @@ packages:
   eslint@9.39.4:
     resolution: {integrity: sha512-XoMjdBOwe/esVgEvLmNsD3IRHkm7fbKIUGvrleloJXUZgDHig2IPWNniv+GwjyJXzuNqVjlr5+4yVUZjycJwfQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'
@@ -2739,28 +2740,28 @@ snapshots:
 
   '@jsr/noble__ed25519@3.1.0': {}
 
-  '@jsr/noble__hashes@1.8.0': {}
-
   '@jsr/noble__hashes@2.2.0': {}
+
+  '@jsr/noble__hashes@2.3.0': {}
 
   '@jsr/noble__secp256k1@3.1.0': {}
 
-  '@jsr/onamea__crdt@0.3.9':
+  '@jsr/onamea__crdt@0.5.0':
     dependencies:
       '@cfworker/json-schema': 4.1.1
-      '@jsr/onamea__types': 0.3.7
+      '@jsr/onamea__types': 0.5.3
 
-  '@jsr/onamea__types@0.3.7':
+  '@jsr/onamea__types@0.5.3':
     dependencies:
       '@jsr/noble__ed25519': 3.1.0
-      '@jsr/noble__hashes': 1.8.0
+      '@jsr/noble__hashes': 2.3.0
       '@jsr/noble__secp256k1': 3.1.0
       '@jsr/scure__bip32': 2.2.0
       '@jsr/scure__bip39': 2.2.0
 
-  '@jsr/onamea__workers@0.3.4':
+  '@jsr/onamea__workers@0.5.0':
     dependencies:
-      '@jsr/onamea__types': 0.3.7
+      '@jsr/onamea__types': 0.5.3
 
   '@jsr/scure__base@2.2.0': {}
 
