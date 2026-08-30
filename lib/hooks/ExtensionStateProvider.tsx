@@ -1,6 +1,7 @@
 import { type ReactNode, useEffect, useReducer, createContext } from "react"
-import type { ContainerData } from "@/lib/types/ContainerData.ts"
 import type { Message, Operation } from "@onamea/crdt"
+import { createCreateOperation, signOperation } from "@onamea/crdt"
+import type { ContainerData } from "@/lib/types/ContainerData.ts"
 import { encodeSessionData } from "@/lib/types/ContainerData.ts"
 import {
   extensionReducer,
@@ -24,8 +25,8 @@ import {
   syncLocalStateFromStorage,
   writeStateData
 } from "@/lib/messaging/client/stateClient.ts"
-import { clearMessages, writeMessage } from "../storage/identityMessagesStorage.ts"
-import { createCreateOperation, signOperation } from "@onamea/crdt"
+import { clearMessages, removeMessage, writeMessage } from "../storage/identityMessagesStorage.ts"
+import { isRootOperationMessage } from "../storage/isRootOperationMessage.ts"
 
 export type ExtensionStateContextValue = {
   state: ExtensionState
@@ -33,6 +34,7 @@ export type ExtensionStateContextValue = {
   signIn: (password: string) => Promise<boolean>
   writeData: (data: ContainerData) => Promise<boolean>
   clearData: () => Promise<boolean>
+  deleteMessage: (message: Message) => Promise<boolean>
   appendOperation: (operation: Operation) => Promise<boolean>
   appendMessage: (message: Message) => Promise<boolean>
   signOut: () => Promise<void>
@@ -147,6 +149,25 @@ const useExtensionStateStore = () => {
     }
   }
 
+  const deleteMessage = async (message: Message): Promise<boolean> => {
+    const identity = state.local.identity
+    if (identity === undefined) {
+      return false
+    }
+
+    try {
+      if (await isRootOperationMessage(identity.id, message)) {
+        return false
+      }
+
+      await removeMessage(message)
+      await syncLocalStateFromStorage()
+      return true
+    } catch (_error) {
+      return false
+    }
+  }
+
   const appendOperation = async (operation: Operation): Promise<boolean> => {
     return await appendOperationState(operation)
   }
@@ -167,6 +188,7 @@ const useExtensionStateStore = () => {
     signIn,
     writeData,
     clearData,
+    deleteMessage,
     appendOperation,
     appendMessage,
     signOut

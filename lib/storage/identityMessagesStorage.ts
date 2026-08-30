@@ -6,6 +6,7 @@ const STORAGE_KEY = "identityMessages.v0"
 
 type LocalStorage = {
 	get: (key: string) => Promise<Record<string, unknown>>
+	remove: (key: string) => Promise<void>
 	set: (items: Record<string, unknown>) => Promise<void>
 }
 
@@ -24,6 +25,10 @@ const getLocalStorage = (): LocalStorage => {
 
 const messagesIncludesMessage = (messages: Messages, message: Message): boolean => {
 	return messages.some(({ raw }) => raw === message.raw)
+}
+
+const filterMessage = (messages: Messages, message: Message): Messages => {
+	return messages.filter(({ signature }) => signature !== message.signature)
 }
 
 export const getMessages = async (): Promise<Messages> => {
@@ -54,10 +59,21 @@ export const writeMessage = async (message: Message): Promise<void> => {
 	}
 }
 
+export const removeMessage = async (message: Message): Promise<void> => {
+	const localStorage = getLocalStorage()
+	try {
+		const messages = await getMessages()
+		const filteredMessages = filterMessage(messages, message)
+		await localStorage.set({ [STORAGE_KEY]: filteredMessages })
+	} catch (_error) {
+		throw new Error("Failed to remove message from extension storage")
+	}
+}
+
 export const clearMessages = async (): Promise<void> => {
 	const localStorage = getLocalStorage()
 	try {
-		await localStorage.set({ [STORAGE_KEY]: [] })
+		await localStorage.remove(STORAGE_KEY)
 	} catch (_error) {
 		throw new Error("Failed to clear messages from extension storage")
 	}
