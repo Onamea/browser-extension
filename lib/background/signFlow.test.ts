@@ -20,7 +20,7 @@ describe("signFlow queueing", () => {
 
 		expect(handleConfirmSign({ container: { data: { keyPair: {} } } } as never, popupSendResponse)).toBe(false)
 
-		expect(popupSendResponse).toHaveBeenCalledWith({ ok: true })
+		expect(popupSendResponse).toHaveBeenCalledWith({ error: "Data is not a valid Operation" })
 		expect(firstSendResponse).toHaveBeenCalledWith({ error: "Data is not a valid Operation", requestId: "request-1" })
 		expect(getPendingRequest()?.requestId).toBe("request-2")
 	})

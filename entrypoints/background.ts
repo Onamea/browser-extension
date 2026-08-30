@@ -1,5 +1,6 @@
 import { checkStorage } from "@/lib/container/main.ts"
-import { isOperation, signOperation } from "@onamea/crdt"
+import { isOperation, isMessage, signOperation } from "@onamea/crdt"
+import type { Message as OnameaCRDTMessage } from "@onamea/crdt"
 import { backgroundState, backgroundDispatch, setContainerStatus, setSessionData, setAccessKey, setLocalState, signOut } from "@/lib/background/state.ts"
 import { getPendingRequest, handleSign, handleConfirmSign, handleRejectSign } from "@/lib/background/signFlow.ts"
 import { shouldUseOffscreenMining, startMining } from "@/lib/background/mining.ts"
@@ -25,6 +26,7 @@ import {
 import {
   STATE_CREATE_CONTAINER,
   STATE_APPEND_OPERATION,
+  STATE_APPEND_MESSAGE,
   STATE_INIT,
   STATE_SIGNIN,
   STATE_SIGNOUT,
@@ -75,6 +77,7 @@ const MESSAGE_SCOPE_POLICY: SenderScopePolicy = new Map([
   [STATE_SYNC_LOCAL, "extension"],
   [STATE_SIGNOUT, "extension"],
   [STATE_APPEND_OPERATION, "extension"],
+  [STATE_APPEND_MESSAGE, "extension"],
   [MINING_START, "extension"],
   [MINING_ABORT, "extension"],
   [MINING_PROGRESS, "extension"],
@@ -122,6 +125,13 @@ const ensureOffscreenMiningDocument = async () => {
 
 const broadcastState = () => {
   browser.runtime.sendMessage({ type: STATE_UPDATED, state: backgroundState })
+}
+
+const appendMessageAndBroadcast = async (message: OnameaCRDTMessage) => {
+  await writeMessage(message)
+  const localState = await getLocalStateFromMessages()
+  setLocalState(backgroundDispatch, localState)
+  broadcastState()
 }
 
 const stopActiveMining = () => {
@@ -250,8 +260,13 @@ export default defineBackground(() => {
 
       case STATE_APPEND_OPERATION: {
         const data = backgroundState.container.data
-        if (data === undefined || isOperation(message.operation) === false) {
-          sendResponse({ error: "Cannot append operation" })
+        if (data === undefined) {
+          sendResponse({ error: "No container data available" })
+          return false
+        }
+
+        if (isOperation(message.operation) === false) {
+          sendResponse({ error: "Invalid operation" })
           return false
         }
 
@@ -260,10 +275,24 @@ export default defineBackground(() => {
         void (async () => {
           try {
             const signedMessage = await signOperation(message.operation, keyPair, Date.now())
-            await writeMessage(signedMessage)
-            const localState = await getLocalStateFromMessages()
-            setLocalState(backgroundDispatch, localState)
-            broadcastState()
+            await appendMessageAndBroadcast(signedMessage)
+            sendResponse({ ok: true })
+          } catch (error) {
+            sendResponse({ error: String(error) })
+          }
+        })()
+        return true
+      }
+
+      case STATE_APPEND_MESSAGE: {
+        if (isMessage(message.message) === false) {
+          sendResponse({ error: "Invalid message" })
+          return false
+        }
+
+        void (async () => {
+          try {
+            await appendMessageAndBroadcast(message.message)
             sendResponse({ ok: true })
           } catch (error) {
             sendResponse({ error: String(error) })

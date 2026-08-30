@@ -33,6 +33,12 @@ export type ConfirmSignMessage = {
   type: typeof API_CONFIRM_SIGN
 }
 
+export type ConfirmSignResponse = {
+  ok?: boolean
+  error?: string
+  signedMessage?: unknown
+}
+
 export type RejectSignMessage = {
   type: typeof API_REJECT_SIGN
 }
@@ -47,6 +53,7 @@ export type ApiMessage =
 export type ApiResponseMap = {
   [API_IDENTIFY]: IdentifyResponse
   [API_SIGN]: SignResponse
+  [API_CONFIRM_SIGN]: ConfirmSignResponse
 }
 
 export type ApiResponse<TType extends keyof ApiResponseMap> = ApiResponseMap[TType]

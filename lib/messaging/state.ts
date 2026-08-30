@@ -1,6 +1,6 @@
 import type { ExtensionState } from "@/lib/background/state.ts"
 import type { AccessKey } from "@/lib/container/main.ts"
-import type { Operation } from "@onamea/crdt"
+import type { Message, Operation } from "@onamea/crdt"
 import isObject from "@/lib/utils/isObject.ts"
 
 export const STATE_INIT = "STATE:INIT"
@@ -10,6 +10,7 @@ export const STATE_WRITE_DATA = "STATE:WRITE_DATA"
 export const STATE_SYNC_LOCAL = "STATE:SYNC_LOCAL"
 export const STATE_SIGNOUT = "STATE:SIGNOUT"
 export const STATE_APPEND_OPERATION = "STATE:APPEND_OPERATION"
+export const STATE_APPEND_MESSAGE = "STATE:APPEND_MESSAGE"
 export const STATE_UPDATED = "STATE:UPDATED"
 
 export type StateInitMessage = {
@@ -47,6 +48,11 @@ export type StateAppendOperationMessage = {
   operation: Operation
 }
 
+export type StateAppendMessageMessage = {
+  type: typeof STATE_APPEND_MESSAGE
+  message: Message
+}
+
 export type StateUpdatedMessage = {
   type: typeof STATE_UPDATED
   state: ExtensionState
@@ -64,6 +70,7 @@ export type StateMessage =
   | StateSyncLocalMessage
   | StateSignoutMessage
   | StateAppendOperationMessage
+  | StateAppendMessageMessage
   | StateUpdatedMessage
 
 export const isStateUpdatedMessage = (message: unknown): message is StateUpdatedMessage => {

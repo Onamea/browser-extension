@@ -1,5 +1,8 @@
 import type { PendingRequest } from "@/lib/background/signFlow.ts"
+import type { Message } from "@onamea/crdt"
+import { isMessage } from "@onamea/crdt"
 import {
+  type ConfirmSignResponse,
   API_CONFIRM_SIGN,
   API_GET_PENDING_REQUEST,
   API_REJECT_SIGN
@@ -35,8 +38,13 @@ export const getPendingRequest = async (): Promise<PendingRequest | undefined> =
   return response.pendingRequest
 }
 
-export const confirmSignRequest = async (): Promise<void> => {
-  await sendRuntimeMessage({ type: API_CONFIRM_SIGN })
+export const confirmSignRequest = async (): Promise<Message | undefined> => {
+  const response = await sendRuntimeMessage<ConfirmSignResponse>({ type: API_CONFIRM_SIGN })
+  if (isMessage(response.signedMessage) === false) {
+    return undefined
+  }
+
+  return response.signedMessage
 }
 
 export const rejectSignRequest = async (): Promise<void> => {

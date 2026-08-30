@@ -2,12 +2,14 @@ import type { PendingRequest } from "../background/signFlow.ts"
 import usePendingRequest from "@/lib/hooks/usePendingRequest.ts"
 import { confirmSignRequest, rejectSignRequest } from "@/lib/messaging/client/apiClient.ts"
 import SignConfirmationForm from "../components/SignConfirmationForm.tsx"
+import useExtensionState from "../hooks/useExtensionState.ts"
 
 type Props = {
   pendingRequest: PendingRequest
 }
 
 const SignConfirmation = ({ pendingRequest }: Props) => {
+  const { appendMessage } = useExtensionState()
   const { clearPendingRequest, refreshPendingRequest } = usePendingRequest()
 
   const closeIfNoPendingRequests = async () => {
@@ -18,8 +20,15 @@ const SignConfirmation = ({ pendingRequest }: Props) => {
     }
   }
 
-  const handleConfirm = async () => {
-    await confirmSignRequest()
+  const handleConfirm = async (shouldSaveLocally: boolean) => {
+    const signedMessage = await confirmSignRequest()
+    if (shouldSaveLocally) {
+      if (signedMessage === undefined) {
+        console.error("No signed message returned to save locally")
+      } else {
+        await appendMessage(signedMessage)
+      }
+    }
     await closeIfNoPendingRequests()
   }
 

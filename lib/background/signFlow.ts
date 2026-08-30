@@ -60,7 +60,7 @@ export const handleSign = (
 export const handleConfirmSign = (
   state: ExtensionState | undefined,
   sendResponse: (response: unknown) => void
-): false => {
+): boolean => {
   const pendingRequest = getActivePendingRequest()
   if (pendingRequest === undefined || state?.container.data === undefined) {
     sendResponse({ error: "No pending request" })
@@ -69,16 +69,22 @@ export const handleConfirmSign = (
 
   const { data, requestId } = pendingRequest
   dequeuePendingRequest()
-  sendResponse({ ok: true })
   if (isOperation(data) === false) {
+    sendResponse({ error: "Data is not a valid Operation" })
     pendingRequest.sendResponse({ error: "Data is not a valid Operation", requestId })
     return false
   }
   const keyPair = state.container.data.keyPair
-  signOperation(data, keyPair)
-    .then(signedMessage => pendingRequest.sendResponse({ signedMessage, requestId }))
-    .catch(error => pendingRequest.sendResponse({ error: String(error), requestId }))
-  return false
+  signOperation(data, keyPair, Date.now())
+    .then(signedMessage => {
+      sendResponse({ ok: true, signedMessage })
+      pendingRequest.sendResponse({ signedMessage, requestId })
+    })
+    .catch(error => {
+      sendResponse({ error: String(error) })
+      pendingRequest.sendResponse({ error: String(error), requestId })
+    })
+  return true
 }
 
 export const handleRejectSign = (sendResponse: (response: unknown) => void): false => {
