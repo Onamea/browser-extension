@@ -29,7 +29,9 @@ const SetOperationForm = ({ state }: Props) => {
     }
     const setOperation = await createSetOperation(state.local.identity.id, previousHash, value)
     const isSuccess = await appendOperation(setOperation)
-    if (isSuccess === false) {
+    if (isSuccess) {
+      setValue("")
+    } else {
       console.error("Failed to append operation")
     }
   }
