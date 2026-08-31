@@ -6,7 +6,7 @@ const AccountCreate = () => {
 
   return (
     <div>
-      <CreateKeyPairForm />
+      <CreateKeyPairForm allowForMnemonic />
       <AddKeyPairForm />
       <menu>
         <SignOutButton />

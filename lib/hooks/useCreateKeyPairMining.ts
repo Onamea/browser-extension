@@ -1,53 +1,49 @@
 import { useCallback, useEffect, useRef, useState } from "react"
-import type { FingerprintDisplay, Name } from "@onamea/types"
-import { isName, isNameOrFingerprintedName, parseFingerprintedName } from "@onamea/types"
-import { buildContainerDataFromMiningResult, type ContainerData } from "@/lib/types/ContainerData.ts"
+import type { FingerprintDisplay, Name, NameOrFingerprintedName } from "@onamea/types"
+import { isName, parseFingerprintedName } from "@onamea/types"
+import type { UnparsedMiningResult } from "@/lib/types/MiningResult.ts"
 import {
+  type MiningMessageListener,
   abortMining,
   isMiningError,
   isMiningProgress,
   isMiningResult,
-  type MiningMessageListener,
   onMiningMessage,
   startMining
 } from "@/lib/messaging/client/miningClient.ts"
-
-type UseCreateKeyPairMiningArgs = {
-  writeData: (data: ContainerData) => Promise<boolean>
-}
 
 type UseCreateKeyPairMiningResult = {
   isSubmitting: boolean
   errors: string[]
   progress: { totalAttempts: number } | undefined
   nameToMine: string | undefined
-  startMiningForNameInput: (nameInput: string, shouldGenerateMnemonic?: boolean) => Promise<void>
+  miningResult: UnparsedMiningResult | undefined
+  startMiningForName: (name: NameOrFingerprintedName, shouldGenerateMnemonic?: boolean) => Promise<void>
   cancelMining: () => Promise<void>
 }
 
-const useCreateKeyPairMining = ({ writeData }: UseCreateKeyPairMiningArgs): UseCreateKeyPairMiningResult => {
+const useCreateKeyPairMining = (): UseCreateKeyPairMiningResult => {
   const [nameToMine, setNameToMine] = useState<string>()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<string[]>([])
   const [progress, setProgress] = useState<{ totalAttempts: number }>()
+  const [miningResult, setMiningResult] = useState<UnparsedMiningResult>()
 
   const activeRequestIdRef = useRef<string | undefined>(undefined)
   const unsubscribeMiningRef = useRef<() => void>(() => {})
-  const writeDataRef = useRef(writeData)
 
-  useEffect(() => {
-    writeDataRef.current = writeData
-  }, [writeData])
-
-  const cancelMining = useCallback(async (): Promise<void> => {
+  const cleanupMining = (): void => {
+    activeRequestIdRef.current = undefined
     unsubscribeMiningRef.current()
     unsubscribeMiningRef.current = () => {}
+  }
 
+  const cancelMining = useCallback(async (): Promise<void> => {
     if (activeRequestIdRef.current !== undefined) {
       await abortMining(activeRequestIdRef.current)
     }
 
-    activeRequestIdRef.current = undefined
+    cleanupMining()
   }, [])
 
   const handleMiningMessage: MiningMessageListener = miningMessage => {
@@ -62,9 +58,7 @@ const useCreateKeyPairMining = ({ writeData }: UseCreateKeyPairMiningArgs): UseC
     }
 
     if (isMiningError(miningMessage)) {
-      activeRequestIdRef.current = undefined
-      unsubscribeMiningRef.current()
-      unsubscribeMiningRef.current = () => {}
+      cleanupMining()
       setErrors([miningMessage.error])
       setProgress(undefined)
       setIsSubmitting(false)
@@ -75,49 +69,32 @@ const useCreateKeyPairMining = ({ writeData }: UseCreateKeyPairMiningArgs): UseC
       return
     }
 
-    void (async () => {
+    void (() => {
       try {
-        const data = await buildContainerDataFromMiningResult(miningMessage.result)
-        const isSuccess = await writeDataRef.current(data)
-        if (isSuccess === false) {
-          throw new Error("WRITE_DATA failed")
-        }
+        const result = miningMessage.result as UnparsedMiningResult
+        setMiningResult(result)
       } catch (error) {
         setErrors([String(error)])
       } finally {
-        activeRequestIdRef.current = undefined
-        unsubscribeMiningRef.current()
-        unsubscribeMiningRef.current = () => {}
+        cleanupMining()
         setProgress(undefined)
         setIsSubmitting(false)
       }
     })()
   }
 
-  const startMiningForNameInput = async (nameInput: string, shouldGenerateMnemonic = false): Promise<void> => {
+  const startMiningForName = async (name: NameOrFingerprintedName, shouldGenerateMnemonic?: boolean): Promise<void> => {
     setIsSubmitting(true)
 
-    // TODO: Move both these validations to component
-    if (nameInput.trim() === "") {
-      setErrors(["Name cannot be empty"])
-      setIsSubmitting(false)
-      return
-    }
-
-    if (isNameOrFingerprintedName(nameInput) === false) {
-      setErrors(["Invalid name"])
-      setIsSubmitting(false)
-      return
-    }
-
     setErrors([])
+    setMiningResult(undefined)
 
     let targetName: Name
     let fingerprintDisplay: FingerprintDisplay | undefined = undefined
-    if (isName(nameInput)) {
-      targetName = nameInput
+    if (isName(name)) {
+      targetName = name
     } else {
-      [targetName, fingerprintDisplay] = parseFingerprintedName(nameInput)
+      [targetName, fingerprintDisplay] = parseFingerprintedName(name)
     }
     setNameToMine(targetName)
 
@@ -128,9 +105,7 @@ const useCreateKeyPairMining = ({ writeData }: UseCreateKeyPairMiningArgs): UseC
       activeRequestIdRef.current = requestId
       unsubscribeMiningRef.current = onMiningMessage(requestId, handleMiningMessage)
     } catch (error) {
-      activeRequestIdRef.current = undefined
-      unsubscribeMiningRef.current()
-      unsubscribeMiningRef.current = () => {}
+      cleanupMining()
       setIsSubmitting(false)
       setErrors([String(error)])
     }
@@ -147,7 +122,8 @@ const useCreateKeyPairMining = ({ writeData }: UseCreateKeyPairMiningArgs): UseC
     errors,
     progress,
     nameToMine,
-    startMiningForNameInput,
+    miningResult,
+    startMiningForName,
     cancelMining
   }
 }
