@@ -3,6 +3,7 @@ import IdentityDisplay from "../components/IdentityDisplay.tsx"
 import IdentityOperationsDisplay from "../components/IdentityOperationsDisplay.tsx"
 import SetOperationForm from "../components/SetOperationForm.tsx"
 import CreateKeyPairForm from "../components/CreateKeyPairForm.tsx"
+import TombstoneButton from "../components/TombstoneButton.tsx"
 import useView from "../hooks/useView.tsx"
 
 type Props = {
@@ -22,6 +23,7 @@ const AccountEdit = ({ state }: Props) => {
     <div>
       <IdentityDisplay identity={ identity } />
       <IdentityOperationsDisplay identity={ identity } />
+      <TombstoneButton identity={ identity } />
       <SetOperationForm state={ state } />
       <CreateKeyPairForm forSubKey />
       <menu>
