@@ -116,13 +116,6 @@ const useExtensionStateStore = () => {
       setAccessKeyToDispatch(dispatch, accessKey)
       setSessionDataToDispatch(dispatch, raw)
 
-      // extension storage
-      const { nameKey, keyPair } = data
-      const createOperation = await createCreateOperation(nameKey)
-      const message = await signOperation(createOperation, keyPair, Date.now())
-      await writeMessage(message)
-      await syncLocalStateFromStorage()
-
       return true
     } catch (_error) {
       return false
@@ -169,11 +162,19 @@ const useExtensionStateStore = () => {
   }
 
   const appendOperation = async (operation: Operation): Promise<boolean> => {
-    return await appendOperationState(operation)
+    const result = await appendOperationState(operation)
+    if (result) {
+      await syncLocalStateFromStorage()
+    }
+    return result
   }
 
   const appendMessage = async (message: Message): Promise<boolean> => {
-    return await appendMessageState(message)
+    const result = await appendMessageState(message)
+    if (result) {
+      await syncLocalStateFromStorage()
+    }
+    return result
   }
 
   const signOut = async (): Promise<void> => {

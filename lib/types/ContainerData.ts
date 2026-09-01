@@ -1,12 +1,36 @@
-import type { NameKey, FingerprintedName, KeyPairDisplay, KeyPairAsJSON } from "@onamea/types"
-import { isFingerprintedName, isKeyPairDisplay, isNameKey, nameKeyToFingerprintedName, parseKeyPairAsJSON } from "@onamea/types"
+import type { NameKey, KeyPairDisplay, KeyPairAsJSON } from "@onamea/types"
+import { isKeyPairDisplay, isNameKey, parseKeyPairAsJSON } from "@onamea/types"
 import { parseMiningResult } from "@/lib/types/MiningResult.ts"
 import isObject from "../utils/isObject.ts"
 
-export type ContainerData = {
+type Entry = {
   nameKey: NameKey
-  fingerprintedName: FingerprintedName
   keyPair: KeyPairDisplay
+}
+
+export type ContainerData = {
+	identity: Entry
+	subKeys: Entry[]
+}
+
+const parseEntry = (value: unknown): Entry => {
+	if (isObject(value) === false) throw new Error("Value does not contain a valid JSON object")
+	const { nameKey, keyPair: keyPairAsJSON } = value
+	if (isNameKey(nameKey) === false) throw new Error("Value does not contain a valid nameKey")
+	const keyPair = parseKeyPairAsJSON(keyPairAsJSON as KeyPairAsJSON)
+	if (isKeyPairDisplay(keyPair) === false) throw new Error("Value does not contain a valid keyPair")
+	return { nameKey, keyPair }
+}
+
+const parseContainerData = (value: unknown): ContainerData => {
+	if (isObject(value) === false) throw new Error("Value does not contain a valid JSON object")
+	const { identity, subKeys } = value
+	if (isObject(identity) === false) throw new Error("Value does not contain a valid identity object")
+	if (Array.isArray(subKeys) === false) throw new Error("Value does not contain a valid subKeys array")
+	return {
+		identity: parseEntry(identity),
+		subKeys: subKeys.map(parseEntry)
+	}
 }
 
 export const encodeSessionData = (data: ContainerData): string => {
@@ -17,40 +41,29 @@ export const decodeSessionData = (data: string): ContainerData | undefined => {
 	try {
 		if (data.length === 0) return undefined
 		const json: unknown = JSON.parse(data)
-		if (isObject(json) === false) throw new Error("Data does not contain a valid JSON object")
-		const { nameKey, fingerprintedName, keyPair: _keyPair } = json
-		const keyPair = parseKeyPairAsJSON(_keyPair as KeyPairAsJSON)
-		if (isNameKey(nameKey) === false) throw new Error("Data does not contain a valid nameKey")
-		if (isFingerprintedName(fingerprintedName) === false) throw new Error("Data does not contain a valid fingerprintedName")
-		if (isKeyPairDisplay(keyPair) === false) throw new Error("Data does not contain a valid keyPair")
-		return { nameKey, fingerprintedName, keyPair }
+		return parseContainerData(json)
 	} catch (error) {
 		console.error("Failed to decode Data:", error)
 		return undefined
 	}
 }
 
-export const buildContainerDataFromMiningResult = async (result: unknown): Promise<ContainerData> => {
-	const {
-		nameKey,
-		cryptoName,
-		publicKey,
-		publicKeyDisplay,
-		privateKey,
-		privateKeyDisplay,
-		mnemonicDisplay
-	} = parseMiningResult(result)
+const buildEntryFromMiningResult = (result: unknown): Entry => {
+	const { nameKey, ...keyPair } = parseMiningResult(result)
+	return { nameKey, keyPair }
+}
 
+export const buildContainerDataIdentityFromMiningResult = (result: unknown): ContainerData => {
 	return {
-		nameKey,
-		fingerprintedName: await nameKeyToFingerprintedName(nameKey),
-		keyPair: {
-			cryptoName,
-			publicKey,
-			publicKeyDisplay,
-			privateKey,
-			privateKeyDisplay,
-			mnemonicDisplay
-		}
+		identity: buildEntryFromMiningResult(result),
+		subKeys: []
+	}
+}
+
+export const buildContainerDataSubKeyFromMiningResult = (containerData: ContainerData, result: unknown): ContainerData => {
+	const subKeyEntry = buildEntryFromMiningResult(result)
+	return {
+		identity: containerData.identity,
+		subKeys: [...containerData.subKeys, subKeyEntry]
 	}
 }
