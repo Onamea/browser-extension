@@ -1,6 +1,5 @@
-import type { CryptoName, MnemonicDisplay, NameKey, PrivateKey, PrivateKeyDisplay, PublicKey, PublicKeyDisplay } from "@onamea/types"
-import { isCryptoName, isMnemonicDisplay, isNameKey, isPrivateKey, isPrivateKeyDisplay, isPublicKey, isPublicKeyDisplay } from "@onamea/types"
-import { parseUint8ArrayObject } from "@onamea/crdt"
+import type { NameKey, KeyPairDisplay, KeyPairAsJSON } from "@onamea/types"
+import { isCryptoName, isMnemonicDisplay, isNameKey, isPrivateKey, isPrivateKeyDisplay, isPublicKey, isPublicKeyDisplay, parseKeyPairAsJSON } from "@onamea/types"
 import isObject from "../utils/isObject.ts"
 
 type Uint8ArrayObject = Record<string, number>
@@ -13,20 +12,11 @@ const isUint8ArrayObject = (value: unknown): value is Uint8ArrayObject => {
 	return Object.entries(candidate).every(([k, v]) => typeof k === "string" && typeof v === "number")
 }
 
-export type MiningResult = {
+export type MiningResult = KeyPairDisplay & {
 	nameKey: NameKey
-	cryptoName: CryptoName
-	publicKey: PublicKey
-	publicKeyDisplay: PublicKeyDisplay
-	privateKey: PrivateKey
-	privateKeyDisplay: PrivateKeyDisplay
-	mnemonicDisplay?: MnemonicDisplay 
 }
 
-export type UnparsedMiningResult = MiningResult & {
-	publicKey: Uint8ArrayObject
-	privateKey: Uint8ArrayObject
-}
+export type UnparsedMiningResult = MiningResult & KeyPairAsJSON
 
 export const parseMiningResult = (result: unknown): MiningResult => {
 	if (isUnparsedMiningResult(result) === false) {
@@ -35,8 +25,7 @@ export const parseMiningResult = (result: unknown): MiningResult => {
 
 	return {
 		...result,
-		publicKey: parseUint8ArrayObject(result.publicKey),
-		privateKey: parseUint8ArrayObject(result.privateKey),
+		...parseKeyPairAsJSON(result)
 	}
 }
 
