@@ -1,12 +1,11 @@
 import type { FormEvent } from "react"
-import { useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 import { isNameOrFingerprintedName } from "@onamea/types"
 import ErrorDisplay from "./ErrorDisplay.tsx"
 import MiningProgress from "./MiningProgress.tsx"
-import useExtensionState from "@/lib/hooks/useExtensionState.ts"
 import useCreateKeyPairMining from "@/lib/hooks/useCreateKeyPairMining.ts"
-import { buildContainerDataFromMiningResult } from "@/lib/types/ContainerData.ts"
-import { createGrantOperation, getRootOperation, isSubKeyDomain } from "@onamea/crdt"
+import useHandleMiningResult from "@/lib/hooks/useHandleMiningResult.ts"
+import { isSubKeyDomain } from "@onamea/crdt"
 
 type Props = {
 	forSubKey?: boolean
@@ -18,7 +17,6 @@ const CreateKeyPairForm = ({ forSubKey = false, allowForMnemonic = false }: Prop
 	const [name, setName] = useState("")
 	const [shouldGenerateMnemonic, setShouldGenerateMnemonic] = useState(false)
 	const [subKeyDomain, setSubKeyDomain] = useState("")
-	const { state, writeData, appendOperation } = useExtensionState()
 	const {
 		isSubmitting,
 		errors: miningErrors,
@@ -27,69 +25,38 @@ const CreateKeyPairForm = ({ forSubKey = false, allowForMnemonic = false }: Prop
 		miningResult,
 		startMiningForName,
 	} = useCreateKeyPairMining()
-	const [errors, setErrors] = useState<string[]>([])
-	const allErrors = [...errors, ...miningErrors]
-
+	const [formErrors, setFormErrors] = useState<string[]>([])
 	const resetValues = useCallback(() => {
 		setName("")
 		setShouldGenerateMnemonic(false)
 		setSubKeyDomain("")
 	}, [])
-
-	useEffect(() => {
-
-		if (miningResult === undefined) {
-			return
-		}
-
-		setErrors([])
-
-		void (async () => {
-			try {
-				if (forSubKey === true) {
-					if (state.local.identity === undefined) {
-						throw new Error("No Identity in state")
-					}
-					const id = state.local.identity.id
-					const rootOperation = getRootOperation(id, state.local.identity.operations ?? [])
-					if (rootOperation === undefined) {
-						throw new Error("No root operation found for identity")
-					}
-					const grantOperation = await createGrantOperation(id, rootOperation?.hash, miningResult.nameKey, subKeyDomain !== "" ? subKeyDomain : undefined)
-					await appendOperation(grantOperation)
-
-				} else {
-					const data = await buildContainerDataFromMiningResult(miningResult)
-					const isSuccess = await writeData(data)
-					if (isSuccess === false) {
-						throw new Error("Failed to write data")
-					}
-				}
-				resetValues()
-			} catch (error) {
-				setErrors([String(error)])
-			}
-		})()
-	}, [miningResult, forSubKey, writeData, appendOperation, resetValues])
+	const { errors: miningResultErrors } = useHandleMiningResult({
+		miningResult,
+		forSubKey,
+		subKeyDomain,
+		resetValues
+	})
+	const allErrors = [...formErrors, ...miningErrors, ...miningResultErrors]
 
 	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault()
 
-		setErrors([])
+		setFormErrors([])
 
     if (name.trim() === "") {
-      setErrors(["Name cannot be empty"])
+      setFormErrors(["Name cannot be empty"])
       return
     }
 
     if (isNameOrFingerprintedName(name) === false) {
-      setErrors(["Invalid name"])
+      setFormErrors(["Invalid name"])
       return
     }
 
 		if (subKeyDomain !== "") {
 			if (isSubKeyDomain(subKeyDomain) === false) {
-				setErrors(["Invalid subkey domain"])
+				setFormErrors(["Invalid subkey domain"])
 				return
 			}
 		}
