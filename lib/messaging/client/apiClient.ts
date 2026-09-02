@@ -1,4 +1,4 @@
-import type { PendingRequest } from "@/lib/background/signFlow.ts"
+import type { PendingRequest, SignRequestResult } from "@/lib/background/signFlow.ts"
 import type { Message } from "@onamea/crdt"
 import { isMessage } from "@onamea/crdt"
 import {
@@ -11,9 +11,9 @@ import { sendRuntimeMessage } from "@/lib/messaging/client/runtime.ts"
 import { isString } from "@/lib/utils/isString.ts"
 import isObject from "@/lib/utils/isObject.ts"
 
-type GetPendingRequestResponse = {
+export type GetPendingRequestResponse = {
   pendingRequest?: PendingRequest
-  data?: unknown
+  signRequestResults: SignRequestResult[]
 }
 
 const isPendingRequest = (value: unknown): value is PendingRequest => {
@@ -29,19 +29,22 @@ const isPendingRequest = (value: unknown): value is PendingRequest => {
   return isString(candidate.origin)
 }
 
-export const getPendingRequest = async (): Promise<PendingRequest | undefined> => {
+export const getPendingRequest = async (): Promise<GetPendingRequestResponse> => {
   const response = await sendRuntimeMessage<GetPendingRequestResponse>({ type: API_GET_PENDING_REQUEST })
-  if (isPendingRequest(response?.pendingRequest) === false) {
-    return undefined
+  return {
+    pendingRequest: isPendingRequest(response?.pendingRequest) ? response.pendingRequest : undefined,
+    signRequestResults: response?.signRequestResults ?? []
   }
-
-  return response.pendingRequest
 }
 
-export const confirmSignRequest = async (): Promise<Message | undefined> => {
+export const confirmSignRequest = async (): Promise<Message> => {
   const response = await sendRuntimeMessage<ConfirmSignResponse>({ type: API_CONFIRM_SIGN })
+  if (response.error !== undefined) {
+    throw new Error(response.error)
+  }
+
   if (isMessage(response.signedMessage) === false) {
-    return undefined
+    throw new Error("No signed message returned")
   }
 
   return response.signedMessage

@@ -2,7 +2,7 @@ import { checkStorage } from "@/lib/container/main.ts"
 import { isMessage } from "@onamea/crdt"
 import type { Message as OnameaCRDTMessage } from "@onamea/crdt"
 import { backgroundState, backgroundDispatch, setContainerStatus, setSessionData, setAccessKey, setLocalState, signOut } from "@/lib/background/state.ts"
-import { MAX_PENDING_SIGN_REQUESTS, getPendingRequest, handleSign, handleConfirmSign, handleRejectSign } from "@/lib/background/signFlow.ts"
+import { MAX_PENDING_SIGN_REQUESTS, getPendingRequest, getSignRequestResults, handleSign, handleConfirmSign, handleRejectSign } from "@/lib/background/signFlow.ts"
 import { shouldUseOffscreenMining, startMining } from "@/lib/background/mining.ts"
 import {
   API_CONFIRM_SIGN,
@@ -60,6 +60,7 @@ let activeMiningRequestId: string | undefined
 
 type PendingUnlockedRequest = {
   run: () => boolean
+  reject: (error: string) => void
 }
 
 const pendingUnlockedRequests: PendingUnlockedRequest[] = []
@@ -142,23 +143,33 @@ const openSignRequestUi = async () => {
   await browser.action.openPopup()
 }
 
-const withUnlockedSession = (execute: () => boolean, reject: () => void): boolean => {
+const skipSignRequestUi = async () => {}
+
+const rejectPendingUnlockedRequests = () => {
+  const requests = pendingUnlockedRequests.splice(0)
+  requests.forEach(request => request.reject("Unable to open sign confirmation"))
+}
+
+const withUnlockedSession = (execute: (openPopup: () => Promise<void>) => boolean, reject: (error: string) => void): boolean => {
   if (backgroundState.isInitialized === false) {
     return false
   }
 
   if (backgroundState.container.isUnlocked === false) {
     if (pendingUnlockedRequests.length >= MAX_PENDING_SIGN_REQUESTS) {
-      reject()
+      reject("Too many pending sign requests")
       return false
     }
 
-    void openSignRequestUi()
-    pendingUnlockedRequests.push({ run: execute })
+    const wasEmpty = pendingUnlockedRequests.length === 0
+    pendingUnlockedRequests.push({ run: () => execute(skipSignRequestUi), reject })
+    if (wasEmpty) {
+      void openSignRequestUi().catch(rejectPendingUnlockedRequests)
+    }
     return true
   }
 
-  return execute()
+  return execute(openSignRequestUi)
 }
 
 const flushPendingUnlockedRequests = () => {
@@ -315,69 +326,64 @@ export default defineBackground(() => {
           return true
         }
 
-        void (() => {
-          void (() => {
-            try {
-              stopActiveMining()
-              activeMiningRequestId = message.requestId
-              const { abort } = startMining(
-              {
-                name: message.name,
-                fingerprintDisplay: message.fingerprintDisplay,
-                shouldGenerateMnemonic: message.shouldGenerateMnemonic
-              },
-              {
-                onProgress: totalAttempts => {
-                  if (activeMiningRequestId !== message.requestId) {
-                    return
-                  }
-
-                  void browser.runtime.sendMessage({
-                    type: MINING_PROGRESS,
-                    requestId: message.requestId,
-                    totalAttempts
-                  })
-                },
-                onResult: result => {
-                  if (activeMiningRequestId !== message.requestId) {
-                    return
-                  }
-
-                  void browser.runtime.sendMessage({
-                    type: MINING_RESULT,
-                    requestId: message.requestId,
-                    result
-                  })
-                },
-                onError: error => {
-                  if (activeMiningRequestId !== message.requestId) {
-                    return
-                  }
-
-                  void browser.runtime.sendMessage({
-                    type: MINING_ERROR,
-                    requestId: message.requestId,
-                    error
-                  })
-                },
-                onComplete: () => {
-                  if (activeMiningRequestId !== message.requestId) {
-                    return
-                  }
-
-                  activeMiningAbort = undefined
-                  activeMiningRequestId = undefined
+        try {
+          stopActiveMining()
+          activeMiningRequestId = message.requestId
+          const { abort } = startMining(
+            {
+              name: message.name,
+              fingerprintDisplay: message.fingerprintDisplay,
+              shouldGenerateMnemonic: message.shouldGenerateMnemonic
+            },
+            {
+              onProgress: totalAttempts => {
+                if (activeMiningRequestId !== message.requestId) {
+                  return
                 }
-              }
-            )
 
-              activeMiningAbort = abort
-              sendResponse({ ok: true })
-            } catch (error) {
-              sendResponse({ error: String(error) })
+                void browser.runtime.sendMessage({
+                  type: MINING_PROGRESS,
+                  requestId: message.requestId,
+                  totalAttempts
+                })
+              },
+              onResult: result => {
+                if (activeMiningRequestId !== message.requestId) {
+                  return
+                }
+
+                void browser.runtime.sendMessage({
+                  type: MINING_RESULT,
+                  requestId: message.requestId,
+                  result
+                })
+              },
+              onError: error => {
+                if (activeMiningRequestId !== message.requestId) {
+                  return
+                }
+
+                void browser.runtime.sendMessage({
+                  type: MINING_ERROR,
+                  requestId: message.requestId,
+                  error
+                })
+              },
+              onComplete: () => {
+                if (activeMiningRequestId !== message.requestId) {
+                  return
+                }
+
+                activeMiningAbort = undefined
+                activeMiningRequestId = undefined
+              }
             }
-          })()
-        })()
+          )
+          activeMiningAbort = abort
+          sendResponse({ ok: true })
+        } catch (error) {
+          sendResponse({ error: String(error) })
+        }
         return true
       }
 
@@ -410,7 +416,7 @@ export default defineBackground(() => {
       case API_GET_PENDING_REQUEST: {
         const buildResponse = () => ({
           pendingRequest: getPendingRequest(),
-          data: backgroundState.container.data
+          signRequestResults: getSignRequestResults()
         })
         sendResponse(buildResponse())
         return false
@@ -421,13 +427,12 @@ export default defineBackground(() => {
           sendResponse({ error: "Extension not initialized" })
           return false
         }
-
-        return withUnlockedSession(() => {
+        return withUnlockedSession(openPopup => {
           const { data, requestId } = message
           const origin = sender.url ?? ""
-          return handleSign(data, requestId, origin, sendResponse, openSignRequestUi)
-        }, () => {
-          sendResponse({ error: "Too many pending sign requests", requestId: message.requestId })
+          return handleSign(data, requestId, origin, sendResponse, openPopup)
+        }, error => {
+          sendResponse({ error, requestId: message.requestId })
         })
       }
 

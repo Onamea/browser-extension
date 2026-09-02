@@ -1,7 +1,8 @@
 import { ExtensionStateProvider } from "@/lib/hooks/ExtensionStateProvider.tsx"
 import PassphraseEntryForm from "@/lib/components/PassphraseEntryForm.tsx"
 import ContainerDisplay from "@/lib/components/ContainerDisplay.tsx"
-import SignConfirmation from "@/lib/components/SignConfirmation.tsx"
+import SignConfirmationDisplay from "@/lib/components/SignConfirmationDisplay.tsx"
+import SignRequestResultsDisplay from "@/lib/components/SignRequestResultsDisplay.tsx"
 import useExtensionState from "@/lib/hooks/useExtensionState.ts"
 import usePendingRequest from "@/lib/hooks/usePendingRequest.ts"
 
@@ -20,7 +21,7 @@ const AppContent = () => {
   const { state } = useExtensionState()
   const { isInitialized } = state
   const { hasContainer, isUnlocked } = state.container
-  const { pendingRequest, clearPendingRequest, refreshPendingRequest } = usePendingRequest()
+  const { pendingRequest, signRequestResults, clearPendingRequest, clearSignRequestResults, refreshPendingRequest } = usePendingRequest(isUnlocked)
 
   const handleOpenIndex = () => {
     browser.tabs.create({ url: browser.runtime.getURL("/index.html") })
@@ -29,7 +30,9 @@ const AppContent = () => {
   if (isInitialized === false) {
     return null
   } else if (isUnlocked && pendingRequest !== undefined) {
-    return <SignConfirmation pendingRequest={ pendingRequest } clearPendingRequest={ clearPendingRequest } refreshPendingRequest={ refreshPendingRequest } />
+    return <SignConfirmationDisplay pendingRequest={ pendingRequest } clearPendingRequest={ clearPendingRequest } refreshPendingRequest={ refreshPendingRequest } />
+  } else if (isUnlocked && signRequestResults.length > 0) {
+    return <SignRequestResultsDisplay results={ signRequestResults } onDismiss={ clearSignRequestResults } />
   } else if (hasContainer === false) {
     return (
       <>

@@ -11,6 +11,16 @@ type Props = {
 
 const SignConfirmation = ({ pendingRequest, clearPendingRequest, refreshPendingRequest }: Props) => {
 
+  const refreshPendingRequestSafely = async () => {
+    try {
+      await refreshPendingRequest()
+    } catch (error) {
+      console.error("Failed to refresh pending sign request:", error)
+      clearPendingRequest()
+      globalThis.close()
+    }
+  }
+
   const closeIfNoPendingRequests = async () => {
     const nextPendingRequest = await refreshPendingRequest()
     if (nextPendingRequest === undefined) {
@@ -20,23 +30,29 @@ const SignConfirmation = ({ pendingRequest, clearPendingRequest, refreshPendingR
   }
 
   const handleConfirm = async (shouldSaveLocally: boolean) => {
-    const signedMessage = await confirmSignRequest()
-    if (shouldSaveLocally) {
-      if (signedMessage === undefined) {
-        console.error("No signed message returned to save locally")
-      } else {
+    try {
+      const signedMessage = await confirmSignRequest()
+      if (shouldSaveLocally) {
         const isAppended = await appendMessageState(signedMessage)
         if (isAppended === false) {
           console.error("Failed to append signed message to state")
         }
       }
+      await closeIfNoPendingRequests()
+    } catch (error) {
+      console.error("Failed to confirm sign request:", error)
+      await refreshPendingRequestSafely()
     }
-    await closeIfNoPendingRequests()
   }
 
   const handleReject = async () => {
-    await rejectSignRequest()
-    await closeIfNoPendingRequests()
+    try {
+      await rejectSignRequest()
+      await closeIfNoPendingRequests()
+    } catch (error) {
+      console.error("Failed to reject sign request:", error)
+      await refreshPendingRequestSafely()
+    }
   }
 
   return (

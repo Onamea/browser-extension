@@ -1,4 +1,5 @@
 import type { IdentityWithMessages } from "@onamea/crdt"
+import type { PendingRequest, SignRequestResult } from "@/lib/background/signFlow.ts"
 
 export const API_IDENTIFY = "API:IDENTIFY"
 export const API_SIGN = "API:SIGN"
@@ -27,6 +28,11 @@ export type SignResponse = {
 
 export type GetPendingRequestMessage = {
   type: typeof API_GET_PENDING_REQUEST
+}
+
+export type GetPendingRequestResponse = {
+  pendingRequest?: PendingRequest
+  signRequestResults: SignRequestResult[]
 }
 
 export type ConfirmSignMessage = {

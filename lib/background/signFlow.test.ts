@@ -7,7 +7,7 @@ const loadSignFlow = async () => {
 
 describe("signFlow queueing", () => {
   it("queues concurrent sign requests and promotes the next request after confirm", async () => {
-    const { getPendingRequest, handleConfirmSign, handleSign } = await loadSignFlow()
+    const { getPendingRequest, getSignRequestResults, handleConfirmSign, handleSign } = await loadSignFlow()
     const openPopup = vi.fn().mockResolvedValue(undefined)
     const firstSendResponse = vi.fn()
     const secondSendResponse = vi.fn()
@@ -23,6 +23,12 @@ describe("signFlow queueing", () => {
     expect(popupSendResponse).toHaveBeenCalledWith({ error: "Data is not a valid Operation" })
     expect(firstSendResponse).toHaveBeenCalledWith({ error: "Data is not a valid Operation", requestId: "request-1" })
     expect(getPendingRequest()?.requestId).toBe("request-2")
+    expect(getSignRequestResults()).toMatchObject([{
+      requestId: "request-1",
+      origin: "https://example.com",
+      status: "failed",
+      error: "Data is not a valid Operation"
+    }])
   })
 
   it("rejects requests when the pending queue reaches its maximum length", async () => {
@@ -47,8 +53,27 @@ describe("signFlow queueing", () => {
     expect(openPopup).toHaveBeenCalledTimes(1)
   })
 
+  it("records rejected requests in sign result history", async () => {
+    const { getPendingRequest, getSignRequestResults, handleRejectSign, handleSign } = await loadSignFlow()
+    const openPopup = vi.fn().mockResolvedValue(undefined)
+    const requestSendResponse = vi.fn()
+    const popupSendResponse = vi.fn()
+
+    expect(handleSign("request", "request-1", "https://example.com", requestSendResponse, openPopup)).toBe(true)
+    expect(handleRejectSign(popupSendResponse)).toBe(false)
+
+    expect(requestSendResponse).toHaveBeenCalledWith({ error: "rejected", requestId: "request-1" })
+    expect(popupSendResponse).toHaveBeenCalledWith({ ok: true })
+    expect(getPendingRequest()).toBeUndefined()
+    expect(getSignRequestResults()).toMatchObject([{
+      requestId: "request-1",
+      origin: "https://example.com",
+      status: "rejected"
+    }])
+  })
+
   it("rejects pending requests when the sign confirmation popup cannot be opened", async () => {
-    const { getPendingRequest, handleSign } = await loadSignFlow()
+    const { getPendingRequest, getSignRequestResults, handleSign } = await loadSignFlow()
     const openPopup = vi.fn().mockRejectedValue(new Error("Popup blocked"))
     const firstSendResponse = vi.fn()
     const secondSendResponse = vi.fn()
@@ -61,5 +86,9 @@ describe("signFlow queueing", () => {
       expect(secondSendResponse).toHaveBeenCalledWith({ error: "Unable to open sign confirmation", requestId: "request-2" })
     })
     expect(getPendingRequest()).toBeUndefined()
+    expect(getSignRequestResults()).toMatchObject([
+      { requestId: "request-2", status: "failed", error: "Unable to open sign confirmation" },
+      { requestId: "request-1", status: "failed", error: "Unable to open sign confirmation" }
+    ])
   })
 })
