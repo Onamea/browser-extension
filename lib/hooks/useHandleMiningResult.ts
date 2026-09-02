@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { createCreateOperation, createGrantOperation, getRootOperation } from "@onamea/crdt"
 import type { MiningResult } from "@/lib/types/MiningResult.ts"
-import { buildContainerDataIdentityFromMiningResult, buildContainerDataSubKeyFromMiningResult } from "@/lib/types/ContainerData.ts"
+import { buildContainerDataEntryFromMiningResult } from "@/lib/types/ContainerData.ts"
 import useExtensionState from "./useExtensionState.ts"
 
 type UseHandleMiningResultParams = {
@@ -17,7 +17,7 @@ const useHandleMiningResult = ({
   subKeyDomain,
   resetValues,
 }: UseHandleMiningResultParams) => {
-  const { state, writeData, signAndAppendOperation } = useExtensionState()
+  const { state, writeIdentity, writeSubKey, signAndAppendOperation } = useExtensionState()
   const [errors, setErrors] = useState<string[]>([])
 
   useEffect(() => {
@@ -37,8 +37,8 @@ const useHandleMiningResult = ({
             throw new Error("No Container Data in state")
           }
 
-          const data = buildContainerDataSubKeyFromMiningResult(state.container.data, miningResult)
-          const isSuccess = await writeData(data)
+          const subKey = buildContainerDataEntryFromMiningResult(miningResult)
+          const isSuccess = await writeSubKey(subKey)
           if (isSuccess === false) {
             throw new Error("Failed to write SubKey to container")
           }
@@ -57,13 +57,13 @@ const useHandleMiningResult = ({
           await signAndAppendOperation(grantOperation, state.container.data.identity.keyPair)
 
         } else {
-          const data = buildContainerDataIdentityFromMiningResult(miningResult)
-          const isSuccess = await writeData(data)
+          const identity = buildContainerDataEntryFromMiningResult(miningResult)
+          const isSuccess = await writeIdentity(identity)
           if (isSuccess === false) {
             throw new Error("Failed to write Identity to container")
           }
 
-          const { identity: { nameKey, keyPair } } = data
+          const { nameKey, keyPair } = identity
           const createOperation = await createCreateOperation(nameKey)
           await signAndAppendOperation(createOperation, keyPair)
         }
@@ -72,7 +72,7 @@ const useHandleMiningResult = ({
         setErrors([String(error)])
       }
     })()
-  }, [miningResult, forSubKey, subKeyDomain, writeData, signAndAppendOperation, resetValues, state.local.identity, state.container.data])
+  }, [miningResult, forSubKey, subKeyDomain, writeIdentity, writeSubKey, signAndAppendOperation, resetValues, state.local.identity, state.container.data])
 
   return { errors }
 }

@@ -7,7 +7,7 @@ type Entry = {
   nameKey: NameKey
   keyPair: KeyPairDisplay
 }
-
+export type ContainerDataEntry = Entry
 export type ContainerData = {
   identity: Entry
   subKeys: Entry[]
@@ -53,17 +53,6 @@ const buildEntryFromMiningResult = (result: unknown): Entry => {
   return { nameKey, keyPair }
 }
 
-export const buildContainerDataIdentityFromMiningResult = (result: unknown): ContainerData => {
-  return {
-    identity: buildEntryFromMiningResult(result),
-    subKeys: []
-  }
-}
-
-export const buildContainerDataSubKeyFromMiningResult = (containerData: ContainerData, result: unknown): ContainerData => {
-  const subKeyEntry = buildEntryFromMiningResult(result)
-  return {
-    identity: containerData.identity,
-    subKeys: [...containerData.subKeys, subKeyEntry]
-  }
+export const buildContainerDataEntryFromMiningResult = (result: unknown): ContainerDataEntry => {
+  return buildEntryFromMiningResult(result)
 }

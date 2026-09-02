@@ -2,7 +2,7 @@ import { type ReactNode, useEffect, useReducer, createContext } from "react"
 import type { KeyPair } from "@onamea/types"
 import type { Message, Operation } from "@onamea/crdt"
 import { signOperation } from "@onamea/crdt"
-import type { ContainerData } from "@/lib/types/ContainerData.ts"
+import type { ContainerData, ContainerDataEntry } from "@/lib/types/ContainerData.ts"
 import { encodeSessionData } from "@/lib/types/ContainerData.ts"
 import {
   extensionReducer,
@@ -32,7 +32,8 @@ export type ExtensionStateContextValue = {
   state: ExtensionState
   createContainer: (password: string) => Promise<boolean>
   signIn: (password: string) => Promise<boolean>
-  writeData: (data: ContainerData) => Promise<boolean>
+  writeIdentity: (identity: ContainerDataEntry) => Promise<boolean>
+  writeSubKey: (subKey: ContainerDataEntry) => Promise<boolean>
   clearData: () => Promise<boolean>
   deleteMessage: (message: Message) => Promise<boolean>
   signAndAppendOperation: (operation: Operation, keyPair: KeyPair, shouldAppend?: boolean) => Promise<Message>
@@ -101,7 +102,7 @@ const useExtensionStateStore = () => {
     }
   }
 
-  const writeData = async (data: ContainerData): Promise<boolean> => {
+  const writeContainerData = async (data: ContainerData): Promise<boolean> => {
     const accessKey = state.container.accessKey
     if (accessKey === undefined) {
       return false
@@ -119,6 +120,27 @@ const useExtensionStateStore = () => {
     } catch (_error) {
       return false
     }
+  }
+
+  const writeIdentity = async (identity: ContainerDataEntry): Promise<boolean> => {
+    const isSuccess = await writeContainerData({
+      identity,
+      subKeys: state.container.data?.subKeys ?? []
+    })
+    return isSuccess
+  }
+
+  const writeSubKey = async (subKey: ContainerDataEntry): Promise<boolean> => {
+    const data = state.container.data
+    if (data === undefined) {
+      return false
+    }
+
+    const isSuccess = await writeContainerData({
+      identity: data.identity,
+      subKeys: [...data.subKeys, subKey]
+    })
+    return isSuccess
   }
 
   const clearData = async (): Promise<boolean> => {
@@ -186,7 +208,8 @@ const useExtensionStateStore = () => {
     state,
     createContainer,
     signIn,
-    writeData,
+    writeIdentity,
+    writeSubKey,
     clearData,
     deleteMessage,
     signAndAppendOperation,

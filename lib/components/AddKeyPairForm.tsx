@@ -15,7 +15,7 @@ const AddKeyPairForm = () => {
   const [privateKeyOrMnemonic, setPrivateKeyOrMnemonic] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState<string[]>([])
-  const { writeData } = useExtensionState()
+  const { writeIdentity } = useExtensionState()
 
   const addKeyPair = async (identifier: Identifier, privateKeyOrMnemonic: PrivateKeyDisplay | MnemonicDisplayWithPassphrase) => {
     try {
@@ -23,8 +23,7 @@ const AddKeyPairForm = () => {
       if (isNameKey(nameKey) === false) {
         throw new Error("Identifier is not a NameKey")
       }
-      const data = { identity: { nameKey, keyPair }, subKeys: [] }
-      const isSuccess = await writeData(data)
+      const isSuccess = await writeIdentity({ nameKey, keyPair })
       if (isSuccess === false) {
         throw new Error("WRITE_DATA failed")
       }
