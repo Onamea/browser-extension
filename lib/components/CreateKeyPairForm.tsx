@@ -8,41 +8,41 @@ import useHandleMiningResult from "@/lib/hooks/useHandleMiningResult.ts"
 import { isSubKeyDomain } from "@onamea/crdt"
 
 type Props = {
-	forSubKey?: boolean
-	allowForMnemonic?: boolean
+  forSubKey?: boolean
+  allowForMnemonic?: boolean
 }
 
 const CreateKeyPairForm = ({ forSubKey = false, allowForMnemonic = false }: Props) => {
 
-	const [name, setName] = useState("")
-	const [shouldGenerateMnemonic, setShouldGenerateMnemonic] = useState(false)
-	const [subKeyDomain, setSubKeyDomain] = useState("")
-	const {
-		isSubmitting,
-		errors: miningErrors,
-		progress,
-		nameToMine,
-		miningResult,
-		startMiningForName,
-	} = useCreateKeyPairMining()
-	const [formErrors, setFormErrors] = useState<string[]>([])
-	const resetValues = useCallback(() => {
-		setName("")
-		setShouldGenerateMnemonic(false)
-		setSubKeyDomain("")
-	}, [])
-	const { errors: miningResultErrors } = useHandleMiningResult({
-		miningResult,
-		forSubKey,
-		subKeyDomain,
-		resetValues
-	})
-	const allErrors = [...formErrors, ...miningErrors, ...miningResultErrors]
+  const [name, setName] = useState("")
+  const [shouldGenerateMnemonic, setShouldGenerateMnemonic] = useState(false)
+  const [subKeyDomain, setSubKeyDomain] = useState("")
+  const {
+    isSubmitting,
+    errors: miningErrors,
+    progress,
+    nameToMine,
+    miningResult,
+    startMiningForName,
+  } = useCreateKeyPairMining()
+  const [formErrors, setFormErrors] = useState<string[]>([])
+  const resetValues = useCallback(() => {
+    setName("")
+    setShouldGenerateMnemonic(false)
+    setSubKeyDomain("")
+  }, [])
+  const { errors: miningResultErrors } = useHandleMiningResult({
+    miningResult,
+    forSubKey,
+    subKeyDomain,
+    resetValues
+  })
+  const allErrors = [...formErrors, ...miningErrors, ...miningResultErrors]
 
-	const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-		event.preventDefault()
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
 
-		setFormErrors([])
+    setFormErrors([])
 
     if (name.trim() === "") {
       setFormErrors(["Name cannot be empty"])
@@ -54,59 +54,59 @@ const CreateKeyPairForm = ({ forSubKey = false, allowForMnemonic = false }: Prop
       return
     }
 
-		if (subKeyDomain !== "") {
-			if (isSubKeyDomain(subKeyDomain) === false) {
-				setFormErrors(["Invalid subkey domain"])
-				return
-			}
-		}
+    if (subKeyDomain !== "") {
+      if (isSubKeyDomain(subKeyDomain) === false) {
+        setFormErrors(["Invalid subkey domain"])
+        return
+      }
+    }
 
-		await startMiningForName(name, shouldGenerateMnemonic)
-	}
+    await startMiningForName(name, shouldGenerateMnemonic)
+  }
 
-	return (
-		<section>
-			<form onSubmit={ handleSubmit }>
-				<div>
-					<label htmlFor="name">Choose a name:</label>
-					<input
-						id="name"
-						type="text"
-						value={ name }
-						onChange={ event => setName(event.target.value) }
-						disabled={ isSubmitting }
-					/>
-				</div>
-				{ allowForMnemonic &&
-					<div>
-						<label htmlFor="shouldGenerateMnemonic">Generate mnemonic:</label>
-						<input
-							id="shouldGenerateMnemonic"
-							type="checkbox"
-							checked={ shouldGenerateMnemonic }
-							onChange={ event => setShouldGenerateMnemonic(event.target.checked) }
-							disabled={ isSubmitting }
-						/>
-					</div>
-				}
-				{ forSubKey && 
-					<div>
-						<label htmlFor="subKeyDomain">Subkey domain:</label>
-						<input
-							id="subKeyDomain"
-							type="text"
-							value={ subKeyDomain }
-							onChange={ event => setSubKeyDomain(event.target.value) }
-							disabled={ isSubmitting }
-						/>
-					</div>
-				}
-				{ progress !== undefined && nameToMine !== undefined && <MiningProgress nameLength={ nameToMine.length } totalAttempts={ progress.totalAttempts } /> }
-				<button type="submit" disabled={ isSubmitting }>Generate</button>
-				<ErrorDisplay errors={ allErrors } />
-			</form>
-		</section>
-	)
+  return (
+    <section>
+      <form onSubmit={ handleSubmit }>
+        <div>
+          <label htmlFor="name">Choose a name:</label>
+          <input
+            id="name"
+            type="text"
+            value={ name }
+            onChange={ event => setName(event.target.value) }
+            disabled={ isSubmitting }
+          />
+        </div>
+        { allowForMnemonic &&
+          <div>
+            <label htmlFor="shouldGenerateMnemonic">Generate mnemonic:</label>
+            <input
+              id="shouldGenerateMnemonic"
+              type="checkbox"
+              checked={ shouldGenerateMnemonic }
+              onChange={ event => setShouldGenerateMnemonic(event.target.checked) }
+              disabled={ isSubmitting }
+            />
+          </div>
+        }
+        { forSubKey &&
+          <div>
+            <label htmlFor="subKeyDomain">Subkey domain:</label>
+            <input
+              id="subKeyDomain"
+              type="text"
+              value={ subKeyDomain }
+              onChange={ event => setSubKeyDomain(event.target.value) }
+              disabled={ isSubmitting }
+            />
+          </div>
+        }
+        { progress !== undefined && nameToMine !== undefined && <MiningProgress nameLength={ nameToMine.length } totalAttempts={ progress.totalAttempts } /> }
+        <button type="submit" disabled={ isSubmitting }>Generate</button>
+        <ErrorDisplay errors={ allErrors } />
+      </form>
+    </section>
+  )
 }
 
 export default CreateKeyPairForm
