@@ -25,7 +25,10 @@ const SignConfirmation = ({ pendingRequest }: Props) => {
       if (signedMessage === undefined) {
         console.error("No signed message returned to save locally")
       } else {
-        await appendMessageState(signedMessage)
+        const isAppended = await appendMessageState(signedMessage)
+        if (isAppended === false) {
+          console.error("Failed to append signed message to state")
+        }
       }
     }
     await closeIfNoPendingRequests()
