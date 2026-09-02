@@ -11,7 +11,7 @@ type PendingSignRequest = PendingRequest & {
   sendResponse: (response: unknown) => void
 }
 
-const MAX_PENDING_SIGN_REQUESTS = 8
+export const MAX_PENDING_SIGN_REQUESTS = 8
 
 let pendingRequests: PendingSignRequest[] = []
 
@@ -35,12 +35,20 @@ const enqueuePendingRequest = (request: PendingSignRequest) => {
   pendingRequests = [...pendingRequests, request]
 }
 
+const rejectPendingRequests = (error: string) => {
+  const requests = pendingRequests
+  pendingRequests = []
+  requests.forEach(request => {
+    request.sendResponse({ error, requestId: request.requestId })
+  })
+}
+
 export const handleSign = (
   data: unknown,
   requestId: string,
   origin: string,
   sendResponse: (response: unknown) => void,
-  openPopup: () => void
+  openPopup: () => Promise<void>
 ): boolean => {
   if (pendingRequests.length >= MAX_PENDING_SIGN_REQUESTS) {
     sendResponse({ error: "Too many pending sign requests", requestId })
@@ -51,7 +59,9 @@ export const handleSign = (
   enqueuePendingRequest({ data, requestId, origin, sendResponse })
 
   if (wasEmpty) {
-    openPopup()
+    void openPopup().catch(() => {
+      rejectPendingRequests("Unable to open sign confirmation")
+    })
   }
 
   return true

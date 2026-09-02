@@ -2,7 +2,7 @@ import { checkStorage } from "@/lib/container/main.ts"
 import { isMessage } from "@onamea/crdt"
 import type { Message as OnameaCRDTMessage } from "@onamea/crdt"
 import { backgroundState, backgroundDispatch, setContainerStatus, setSessionData, setAccessKey, setLocalState, signOut } from "@/lib/background/state.ts"
-import { getPendingRequest, handleSign, handleConfirmSign, handleRejectSign } from "@/lib/background/signFlow.ts"
+import { MAX_PENDING_SIGN_REQUESTS, getPendingRequest, handleSign, handleConfirmSign, handleRejectSign } from "@/lib/background/signFlow.ts"
 import { shouldUseOffscreenMining, startMining } from "@/lib/background/mining.ts"
 import {
   API_CONFIRM_SIGN,
@@ -139,19 +139,20 @@ const stopActiveMining = () => {
 }
 
 const openSignRequestUi = async () => {
-  try {
-    await browser.action.openPopup()
-  } catch {
-    // Firefox can reject programmatic popup opening when there is no direct user gesture.
-  }
+  await browser.action.openPopup()
 }
 
-const withUnlockedSession = (execute: () => boolean): boolean => {
+const withUnlockedSession = (execute: () => boolean, reject: () => void): boolean => {
   if (backgroundState.isInitialized === false) {
     return false
   }
 
   if (backgroundState.container.isUnlocked === false) {
+    if (pendingUnlockedRequests.length >= MAX_PENDING_SIGN_REQUESTS) {
+      reject()
+      return false
+    }
+
     void openSignRequestUi()
     pendingUnlockedRequests.push({ run: execute })
     return true
@@ -424,7 +425,9 @@ export default defineBackground(() => {
         return withUnlockedSession(() => {
           const { data, requestId } = message
           const origin = sender.url ?? ""
-          return handleSign(data, requestId, origin, sendResponse, () => void openSignRequestUi())
+          return handleSign(data, requestId, origin, sendResponse, openSignRequestUi)
+        }, () => {
+          sendResponse({ error: "Too many pending sign requests", requestId: message.requestId })
         })
       }
 

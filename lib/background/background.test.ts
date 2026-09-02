@@ -179,3 +179,33 @@ describe("background API_IDENTIFY", () => {
     expect(sendResponse).toHaveBeenCalledWith({ error: "Identity not available" })
   })
 })
+
+  describe("background API_SIGN", () => {
+    beforeEach(() => {
+      vi.clearAllMocks()
+      mockCheckStorage.mockReset()
+      mockGetLocalStateFromMessages.mockReset()
+    })
+
+    it("rejects sign requests above the pending locked-session limit", async () => {
+      mockCheckStorage.mockResolvedValue(true)
+      mockGetLocalStateFromMessages.mockResolvedValue({
+        messages: [],
+        identity: undefined
+      })
+
+      await loadBackground()
+      await sendStateInit()
+      const sendResponses = Array.from({ length: 9 }, () => vi.fn())
+
+      for (let index = 0; index < 8; index++) {
+        expect(registeredListener?.({ type: "API:SIGN", data: {}, requestId: `request-${ index }` }, { url: "https://example.com" }, sendResponses[index]!)).toBe(true)
+      }
+
+      expect(registeredListener?.({ type: "API:SIGN", data: {}, requestId: "request-8" }, { url: "https://example.com" }, sendResponses[8]!)).toBe(false)
+      expect(sendResponses[8]).toHaveBeenCalledWith({ error: "Too many pending sign requests", requestId: "request-8" })
+      for (const sendResponse of sendResponses.slice(0, 8)) {
+        expect(sendResponse).not.toHaveBeenCalled()
+      }
+    })
+  })
