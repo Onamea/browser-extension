@@ -238,6 +238,7 @@ export default defineBackground(() => {
         setSessionData(backgroundDispatch, message.raw)
         setAccessKey(backgroundDispatch, message.accessKey)
         broadcastState()
+        flushPendingUnlockedRequests()
         sendResponse({ ok: true })
         return false
       }
