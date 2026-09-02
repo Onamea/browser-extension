@@ -1,15 +1,15 @@
 import type { PendingRequest } from "../background/signFlow.ts"
-import usePendingRequest from "@/lib/hooks/usePendingRequest.ts"
 import { confirmSignRequest, rejectSignRequest } from "@/lib/messaging/client/apiClient.ts"
 import SignConfirmationForm from "../components/SignConfirmationForm.tsx"
 import { appendMessageState } from "@/lib/messaging/client/stateClient.ts"
 
 type Props = {
   pendingRequest: PendingRequest
+  clearPendingRequest: () => void
+  refreshPendingRequest: () => Promise<PendingRequest | undefined>
 }
 
-const SignConfirmation = ({ pendingRequest }: Props) => {
-  const { clearPendingRequest, refreshPendingRequest } = usePendingRequest()
+const SignConfirmation = ({ pendingRequest, clearPendingRequest, refreshPendingRequest }: Props) => {
 
   const closeIfNoPendingRequests = async () => {
     const nextPendingRequest = await refreshPendingRequest()

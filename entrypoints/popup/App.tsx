@@ -20,7 +20,7 @@ const AppContent = () => {
   const { state } = useExtensionState()
   const { isInitialized } = state
   const { hasContainer, isUnlocked } = state.container
-  const { pendingRequest } = usePendingRequest()
+  const { pendingRequest, clearPendingRequest, refreshPendingRequest } = usePendingRequest()
 
   const handleOpenIndex = () => {
     browser.tabs.create({ url: browser.runtime.getURL("/index.html") })
@@ -29,7 +29,7 @@ const AppContent = () => {
   if (isInitialized === false) {
     return null
   } else if (isUnlocked && pendingRequest !== undefined) {
-    return <SignConfirmation pendingRequest={ pendingRequest } />
+    return <SignConfirmation pendingRequest={ pendingRequest } clearPendingRequest={ clearPendingRequest } refreshPendingRequest={ refreshPendingRequest } />
   } else if (hasContainer === false) {
     return (
       <>
