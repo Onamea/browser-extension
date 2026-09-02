@@ -1,5 +1,5 @@
 import { checkStorage } from "@/lib/container/main.ts"
-import { isOperation, isMessage, signOperation } from "@onamea/crdt"
+import { isMessage } from "@onamea/crdt"
 import type { Message as OnameaCRDTMessage } from "@onamea/crdt"
 import { backgroundState, backgroundDispatch, setContainerStatus, setSessionData, setAccessKey, setLocalState, signOut } from "@/lib/background/state.ts"
 import { getPendingRequest, handleSign, handleConfirmSign, handleRejectSign } from "@/lib/background/signFlow.ts"
@@ -25,7 +25,6 @@ import {
 } from "@/lib/messaging/mining.ts"
 import {
   STATE_CREATE_CONTAINER,
-  STATE_APPEND_OPERATION,
   STATE_APPEND_MESSAGE,
   STATE_INIT,
   STATE_SIGNIN,
@@ -76,7 +75,6 @@ const MESSAGE_SCOPE_POLICY: SenderScopePolicy = new Map([
   [STATE_WRITE_DATA, "extension"],
   [STATE_SYNC_LOCAL, "extension"],
   [STATE_SIGNOUT, "extension"],
-  [STATE_APPEND_OPERATION, "extension"],
   [STATE_APPEND_MESSAGE, "extension"],
   [MINING_START, "extension"],
   [MINING_ABORT, "extension"],
@@ -256,32 +254,6 @@ export default defineBackground(() => {
         broadcastState()
         sendResponse({ ok: true })
         return false
-      }
-
-      case STATE_APPEND_OPERATION: {
-        const data = backgroundState.container.data
-        if (data === undefined) {
-          sendResponse({ error: "No container data available" })
-          return false
-        }
-
-        if (isOperation(message.operation) === false) {
-          sendResponse({ error: "Invalid operation" })
-          return false
-        }
-
-        const { keyPair } = data
-
-        void (async () => {
-          try {
-            const signedMessage = await signOperation(message.operation, keyPair, Date.now())
-            await appendMessageAndBroadcast(signedMessage)
-            sendResponse({ ok: true })
-          } catch (error) {
-            sendResponse({ error: String(error) })
-          }
-        })()
-        return true
       }
 
       case STATE_APPEND_MESSAGE: {

@@ -1,6 +1,7 @@
 import { type ReactNode, useEffect, useReducer, createContext } from "react"
+import type { KeyPair } from "@onamea/types"
 import type { Message, Operation } from "@onamea/crdt"
-import { createCreateOperation, signOperation } from "@onamea/crdt"
+import { signOperation } from "@onamea/crdt"
 import type { ContainerData } from "@/lib/types/ContainerData.ts"
 import { encodeSessionData } from "@/lib/types/ContainerData.ts"
 import {
@@ -16,7 +17,6 @@ import type { ExtensionState } from "../background/state.ts"
 import { create, deinitialize, initialize, set } from "@/lib/container/main.ts"
 import {
   createContainerState,
-  appendOperationState,
   appendMessageState,
   initializeState,
   onStateUpdated,
@@ -25,7 +25,7 @@ import {
   syncLocalStateFromStorage,
   writeStateData
 } from "@/lib/messaging/client/stateClient.ts"
-import { clearMessages, removeMessage, writeMessage } from "../storage/identityMessagesStorage.ts"
+import { clearMessages, removeMessage } from "../storage/identityMessagesStorage.ts"
 import { isRootOperationMessage } from "../storage/isRootOperationMessage.ts"
 
 export type ExtensionStateContextValue = {
@@ -35,8 +35,7 @@ export type ExtensionStateContextValue = {
   writeData: (data: ContainerData) => Promise<boolean>
   clearData: () => Promise<boolean>
   deleteMessage: (message: Message) => Promise<boolean>
-  appendOperation: (operation: Operation) => Promise<boolean>
-  appendMessage: (message: Message) => Promise<boolean>
+  signAndAppendOperation: (operation: Operation, keyPair: KeyPair, shouldAppend?: boolean) => Promise<Message>
   signOut: () => Promise<void>
 }
 
@@ -161,20 +160,20 @@ const useExtensionStateStore = () => {
     }
   }
 
-  const appendOperation = async (operation: Operation): Promise<boolean> => {
-    const result = await appendOperationState(operation)
-    if (result) {
-      await syncLocalStateFromStorage()
+  const signAndAppendOperation = async (operation: Operation, keyPair: KeyPair, shouldAppend = true): Promise<Message> => {
+    try {
+      const message = await signOperation(operation, keyPair, Date.now())
+      if (shouldAppend) {
+        const isSuccess = await appendMessageState(message)
+        if (isSuccess === false) {
+          throw new Error("Failed to append message to state")
+        }
+        await syncLocalStateFromStorage()
+      }
+      return message
+    } catch (error) {
+      throw error
     }
-    return result
-  }
-
-  const appendMessage = async (message: Message): Promise<boolean> => {
-    const result = await appendMessageState(message)
-    if (result) {
-      await syncLocalStateFromStorage()
-    }
-    return result
   }
 
   const signOut = async (): Promise<void> => {
@@ -190,8 +189,7 @@ const useExtensionStateStore = () => {
     writeData,
     clearData,
     deleteMessage,
-    appendOperation,
-    appendMessage,
+    signAndAppendOperation,
     signOut
   }
 }

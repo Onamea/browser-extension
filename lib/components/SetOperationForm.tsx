@@ -1,15 +1,10 @@
 import { type ChangeEvent, type FormEvent, useState } from "react"
 import { createSetOperation, getLatestHashFromOperations } from "@onamea/crdt"
-import type { ExtensionState } from "../background/state.ts"
 import useExtensionState from "../hooks/useExtensionState.ts"
 
-type Props = {
-  state: ExtensionState
-}
+const SetOperationForm = () => {
 
-const SetOperationForm = ({ state }: Props) => {
-
-  const { appendOperation } = useExtensionState()
+  const { state, signAndAppendOperation } = useExtensionState()
   const [value, setValue] = useState("")
 
   const onChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
@@ -22,17 +17,21 @@ const SetOperationForm = ({ state }: Props) => {
       console.error("No identity found")
       return
     }
+    if (state.container.data === undefined) {
+      console.error("No container data found")
+      return
+    }
     const previousHash = getLatestHashFromOperations(state.local.identity.operations)
     if (previousHash === undefined) {
       console.error("No previous hash found for identity")
       return
     }
-    const setOperation = await createSetOperation(state.local.identity.id, previousHash, value)
-    const isSuccess = await appendOperation(setOperation)
-    if (isSuccess) {
+    try {
+      const setOperation = await createSetOperation(state.local.identity.id, previousHash, value)
+      await signAndAppendOperation(setOperation, state.container.data.identity.keyPair)
       setValue("")
-    } else {
-      console.error("Failed to append operation")
+    } catch (error) {
+      console.error("Failed to append operation:", error)
     }
   }
 

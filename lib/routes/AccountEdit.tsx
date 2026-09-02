@@ -23,8 +23,8 @@ const AccountEdit = ({ state }: Props) => {
     <div>
       <IdentityDisplay identity={ identity } />
       <IdentityOperationsDisplay identity={ identity } />
-      <TombstoneButton identity={ identity } />
-      <SetOperationForm state={ state } />
+      <TombstoneButton />
+      <SetOperationForm />
       <CreateKeyPairForm forSubKey />
       <menu>
         <button type="button" onClick={ showAccount }>Cancel</button>

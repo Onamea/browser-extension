@@ -5,8 +5,7 @@ import {
   type PrivateKeyDisplay, 
   isMnemonicDisplayWithPassphrase, 
   isPrivateKeyDisplay,
-  isNameKey,
-  nameKeyToFingerprintedName
+  isNameKey
 } from "@onamea/types"
 import ErrorDisplay from "./ErrorDisplay.tsx"
 import useExtensionState from "@/lib/hooks/useExtensionState.ts"
@@ -24,12 +23,7 @@ const AddKeyPairForm = () => {
       if (isNameKey(nameKey) === false) {
         throw new Error("Identifier is not a NameKey")
       }
-      const fingerprintedName = await nameKeyToFingerprintedName(nameKey)
-      const data = {
-        nameKey,
-        fingerprintedName,
-        keyPair
-      }
+      const data = { identity: { nameKey, keyPair }, subKeys: [] }
       const isSuccess = await writeData(data)
       if (isSuccess === false) {
         throw new Error("WRITE_DATA failed")

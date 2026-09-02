@@ -74,7 +74,7 @@ export const handleConfirmSign = (
     pendingRequest.sendResponse({ error: "Data is not a valid Operation", requestId })
     return false
   }
-  const keyPair = state.container.data.keyPair
+  const keyPair = state.container.data.identity.keyPair
   signOperation(data, keyPair, Date.now())
     .then(signedMessage => {
       sendResponse({ ok: true, signedMessage })

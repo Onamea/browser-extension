@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { createCreateOperation, createGrantOperation, getRootOperation, signOperation } from "@onamea/crdt"
+import { createCreateOperation, createGrantOperation, getRootOperation } from "@onamea/crdt"
 import type { MiningResult } from "@/lib/types/MiningResult.ts"
 import { buildContainerDataIdentityFromMiningResult, buildContainerDataSubKeyFromMiningResult } from "@/lib/types/ContainerData.ts"
 import useExtensionState from "./useExtensionState.ts"
@@ -17,7 +17,7 @@ const useHandleMiningResult = ({
   subKeyDomain,
   resetValues,
 }: UseHandleMiningResultParams) => {
-  const { state, writeData, appendOperation, appendMessage } = useExtensionState()
+  const { state, writeData, signAndAppendOperation } = useExtensionState()
   const [errors, setErrors] = useState<string[]>([])
 
   useEffect(() => {
@@ -54,8 +54,8 @@ const useHandleMiningResult = ({
             miningResult.nameKey,
             subKeyDomain !== "" ? subKeyDomain : undefined
           )
-          await appendOperation(grantOperation)
-          
+          await signAndAppendOperation(grantOperation, state.container.data.identity.keyPair)
+
         } else {
           const data = buildContainerDataIdentityFromMiningResult(miningResult)
           const isSuccess = await writeData(data)
@@ -65,15 +65,14 @@ const useHandleMiningResult = ({
 
           const { identity: { nameKey, keyPair } } = data
           const createOperation = await createCreateOperation(nameKey)
-          const message = await signOperation(createOperation, keyPair, Date.now())
-          await appendMessage(message)
+          await signAndAppendOperation(createOperation, keyPair)
         }
         resetValues()
       } catch (error) {
         setErrors([String(error)])
       }
     })()
-  }, [miningResult, forSubKey, subKeyDomain, writeData, appendOperation, resetValues, state.local.identity])
+  }, [miningResult, forSubKey, subKeyDomain, writeData, signAndAppendOperation, resetValues, state.local.identity, state.container.data])
 
   return { errors }
 }

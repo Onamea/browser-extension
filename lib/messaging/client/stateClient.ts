@@ -1,10 +1,9 @@
 import type { AccessKey } from "@/lib/container/main.ts"
 import type { ExtensionState } from "@/lib/background/state.ts"
-import type { Message, Operation } from "@onamea/crdt"
+import type { Message } from "@onamea/crdt"
 import { getLocalStateFromMessages } from "@/lib/storage/identityMessagesStorage.ts"
 import {
   STATE_APPEND_MESSAGE,
-  STATE_APPEND_OPERATION,
   STATE_CREATE_CONTAINER,
   STATE_INIT,
   STATE_SIGNIN,
@@ -56,11 +55,6 @@ export const syncLocalStateFromStorage = async (): Promise<void> => {
 
 export const signOutState = async (): Promise<void> => {
   await sendRuntimeMessage({ type: STATE_SIGNOUT })
-}
-
-export const appendOperationState = async (operation: Operation): Promise<boolean> => {
-  const response = await sendRuntimeMessage<{ ok?: boolean }>({ type: STATE_APPEND_OPERATION, operation })
-  return response.ok === true
 }
 
 export const appendMessageState = async (message: Message): Promise<boolean> => {
