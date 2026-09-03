@@ -4,6 +4,7 @@ import type { AccessKey } from "@/lib/container/main.ts"
 
 export type ExtensionState = {
   isInitialized: boolean
+  isInSync: boolean
   container: {
     hasContainer: boolean
     isUnlocked: boolean
@@ -24,10 +25,12 @@ export type ExtensionAction =
   | { type: "SET_SESSION_DATA", payload: string }
   | { type: "CLEAR_SESSION_DATA" }
   | { type: "SET_LOCAL_STATE", payload: ExtensionState["local"] }
+  | { type: "SET_SYNC_STATUS", payload: boolean }
   | { type: "SIGN_OUT" }
 
 export const initialState: ExtensionState = {
   isInitialized: false,
+  isInSync: true,
   container: {
     hasContainer: false,
     isUnlocked: false,
@@ -111,10 +114,16 @@ export const extensionReducer = (
         isInitialized: true,
         local: action.payload
       }
+    case "SET_SYNC_STATUS":
+      return {
+        ...state,
+        isInSync: action.payload
+      }
     case "SIGN_OUT":
       return {
         ...state,
         isInitialized: true,
+        isInSync: true,
         container: {
           hasContainer: true,
           isUnlocked: false,
@@ -150,6 +159,10 @@ export const clearSessionData = (dispatch: (action: ExtensionAction) => void) =>
 
 export const setLocalState = (dispatch: (action: ExtensionAction) => void, local: ExtensionState["local"]) => {
   dispatch({ type: "SET_LOCAL_STATE", payload: local })
+}
+
+export const setSyncStatus = (dispatch: (action: ExtensionAction) => void, isInSync: boolean) => {
+  dispatch({ type: "SET_SYNC_STATUS", payload: isInSync })
 }
 
 export const signOut = (dispatch: (action: ExtensionAction) => void) => {

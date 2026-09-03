@@ -5,6 +5,7 @@ import SignConfirmationDisplay from "@/lib/components/SignConfirmationDisplay.ts
 import SignRequestResultsDisplay from "@/lib/components/SignRequestResultsDisplay.tsx"
 import useExtensionState from "@/lib/hooks/useExtensionState.ts"
 import usePendingRequest from "@/lib/hooks/usePendingRequest.ts"
+import OutOfSyncErrorDisplay from "@/lib/components/OutOfSyncErrorDisplay.tsx"
 
 import "./App.css"
 
@@ -45,6 +46,7 @@ const AppContent = () => {
   } else if (isUnlocked) {
     return (
       <>
+        { state.isInSync === false && <OutOfSyncErrorDisplay /> }
         <ContainerDisplay container={ state.container } />
         <AppButton onClick={ handleOpenIndex }>Open App</AppButton>
       </>

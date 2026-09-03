@@ -1,7 +1,7 @@
 import { checkStorage } from "@/lib/container/main.ts"
 import { isMessage } from "@onamea/crdt"
 import type { Message as OnameaCRDTMessage } from "@onamea/crdt"
-import { backgroundState, backgroundDispatch, setContainerStatus, setSessionData, setAccessKey, setLocalState, signOut } from "@/lib/background/state.ts"
+import { backgroundState, backgroundDispatch, setContainerStatus, setSessionData, setAccessKey, setLocalState, setSyncStatus, signOut } from "@/lib/background/state.ts"
 import { MAX_PENDING_SIGN_REQUESTS, getPendingRequest, getSignRequestResults, handleSign, handleConfirmSign, handleRejectSign } from "@/lib/background/signFlow.ts"
 import { shouldUseOffscreenMining, startMining } from "@/lib/background/mining.ts"
 import {
@@ -38,6 +38,7 @@ import type { SenderScopePolicy } from "@/lib/messaging/senderPolicy.ts"
 import { isSenderAuthorized } from "@/lib/messaging/senderPolicy.ts"
 import { isRuntimeMessage } from "@/lib/messaging/runtimeMessage.ts"
 import { getLocalStateFromMessages, writeMessage } from "@/lib/storage/identityMessagesStorage.ts"
+import { stateIsInSync } from "@/lib/background/stateIsInSync.ts"
 
 type ChromeOffscreenApi = {
   runtime: {
@@ -126,10 +127,17 @@ const broadcastState = () => {
   browser.runtime.sendMessage({ type: STATE_UPDATED, state: backgroundState })
 }
 
+// preconditions unmet (locked, no data, ...) mean the check does not apply, so treat it as in sync
+const checkSyncStatus = async () => {
+  const isInSync = await stateIsInSync(backgroundState).catch(() => true)
+  setSyncStatus(backgroundDispatch, isInSync)
+}
+
 const appendMessageAndBroadcast = async (message: OnameaCRDTMessage) => {
   await writeMessage(message)
   const localState = await getLocalStateFromMessages()
   setLocalState(backgroundDispatch, localState)
+  await checkSyncStatus()
   broadcastState()
 }
 
@@ -219,6 +227,7 @@ export default defineBackground(() => {
             identity: undefined
           }))
           setLocalState(backgroundDispatch, localState)
+          await checkSyncStatus()
 
           sendResponse({ state: backgroundState })
         })()
@@ -239,27 +248,36 @@ export default defineBackground(() => {
         setContainerStatus(backgroundDispatch, true)
         setSessionData(backgroundDispatch, message.raw)
         setAccessKey(backgroundDispatch, message.accessKey)
-        broadcastState()
-        flushPendingUnlockedRequests()
-        sendResponse({ ok: true })
-        return false
+        void (async () => {
+          await checkSyncStatus()
+          broadcastState()
+          flushPendingUnlockedRequests()
+          sendResponse({ ok: true })
+        })()
+        return true
       }
 
       case STATE_WRITE_DATA: {
         setContainerStatus(backgroundDispatch, true)
         setSessionData(backgroundDispatch, message.raw)
         setAccessKey(backgroundDispatch, message.accessKey)
-        broadcastState()
-        flushPendingUnlockedRequests()
-        sendResponse({ ok: true })
-        return false
+        void (async () => {
+          await checkSyncStatus()
+          broadcastState()
+          flushPendingUnlockedRequests()
+          sendResponse({ ok: true })
+        })()
+        return true
       }
 
       case STATE_SYNC_LOCAL: {
         setLocalState(backgroundDispatch, message.local)
-        broadcastState()
-        sendResponse({ ok: true })
-        return false
+        void (async () => {
+          await checkSyncStatus()
+          broadcastState()
+          sendResponse({ ok: true })
+        })()
+        return true
       }
 
       case STATE_SIGNOUT: {
