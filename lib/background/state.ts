@@ -22,8 +22,8 @@ export type ExtensionAction =
   | { type: "SET_CONTAINER_STATUS", payload: boolean }
   | { type: "SET_ACCESS_KEY", payload: AccessKey }
   | { type: "SET_SESSION_DATA", payload: string }
-  | { type: "SET_LOCAL_STATE", payload: ExtensionState["local"] }
   | { type: "CLEAR_SESSION_DATA" }
+  | { type: "SET_LOCAL_STATE", payload: ExtensionState["local"] }
   | { type: "SIGN_OUT" }
 
 export const initialState: ExtensionState = {
@@ -46,10 +46,9 @@ export const extensionReducer = (
   action: ExtensionAction
 ): ExtensionState => {
   switch (action.type) {
-    case "REPLACE_STATE": {
+    case "REPLACE_STATE":
       return action.payload
-    }
-    case "SET_CONTAINER_STATUS": {
+    case "SET_CONTAINER_STATUS":
       return action.payload === false
         ? {
             ...state,
@@ -70,7 +69,6 @@ export const extensionReducer = (
               hasContainer: true
             }
           }
-    }
     case "SET_ACCESS_KEY":
       return {
         ...state,
@@ -96,13 +94,6 @@ export const extensionReducer = (
         }
       }
     }
-    case "SET_LOCAL_STATE": {
-      return {
-        ...state,
-        isInitialized: true,
-        local: action.payload
-      }
-    }
     case "CLEAR_SESSION_DATA":
       return {
         ...state,
@@ -113,6 +104,12 @@ export const extensionReducer = (
           raw: "",
           data: undefined
         }
+      }
+    case "SET_LOCAL_STATE":
+      return {
+        ...state,
+        isInitialized: true,
+        local: action.payload
       }
     case "SIGN_OUT":
       return {
@@ -147,12 +144,12 @@ export const setSessionData = (dispatch: (action: ExtensionAction) => void, raw:
   dispatch({ type: "SET_SESSION_DATA", payload: raw })
 }
 
-export const setLocalState = (dispatch: (action: ExtensionAction) => void, local: ExtensionState["local"]) => {
-  dispatch({ type: "SET_LOCAL_STATE", payload: local })
-}
-
 export const clearSessionData = (dispatch: (action: ExtensionAction) => void) => {
   dispatch({ type: "CLEAR_SESSION_DATA" })
+}
+
+export const setLocalState = (dispatch: (action: ExtensionAction) => void, local: ExtensionState["local"]) => {
+  dispatch({ type: "SET_LOCAL_STATE", payload: local })
 }
 
 export const signOut = (dispatch: (action: ExtensionAction) => void) => {
