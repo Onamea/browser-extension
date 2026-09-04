@@ -23,8 +23,8 @@ const AddKeyPairForm = () => {
       if (isNameKey(nameKey) === false) {
         throw new Error("Identifier is not a NameKey")
       }
-      const isSuccess = await writeIdentity({ nameKey, keyPair })
-      if (isSuccess === false) {
+      const data = await writeIdentity({ nameKey, keyPair })
+      if (data === undefined) {
         throw new Error("WRITE_DATA failed")
       }
     } catch (error) {

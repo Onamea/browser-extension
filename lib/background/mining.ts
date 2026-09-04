@@ -47,7 +47,10 @@ export const startMining = (options: StartMiningOptions, callbacks: MiningCallba
 
       callbacks.onResult?.(result)
     })
-    .catch(error => callbacks.onError?.(String(error)))
+    .catch(error => {
+      console.error("Mining error:", error)
+      callbacks.onError?.(String(error))
+    })
     .finally(() => callbacks.onComplete?.())
 
   return { abort }

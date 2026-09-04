@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { createCreateOperation, createGrantOperation, getRootOperation } from "@onamea/crdt"
 import type { MiningResult } from "@/lib/types/MiningResult.ts"
 import { buildContainerDataEntryFromMiningResult } from "@/lib/types/ContainerData.ts"
@@ -19,11 +19,19 @@ const useHandleMiningResult = ({
 }: UseHandleMiningResultParams) => {
   const { state, writeIdentity, writeSubKey, signAndAppendOperation } = useExtensionState()
   const [errors, setErrors] = useState<string[]>([])
+  const processedMiningResultRef = useRef<MiningResult>(undefined)
 
   useEffect(() => {
     if (miningResult === undefined) {
       return
     }
+
+    // writing to the container updates state.container.data / state.local.identity,
+    // which would otherwise re-trigger this effect for the same miningResult
+    if (processedMiningResultRef.current === miningResult) {
+      return
+    }
+    processedMiningResultRef.current = miningResult
 
     setErrors([])
 
@@ -38,8 +46,8 @@ const useHandleMiningResult = ({
           }
 
           const subKey = buildContainerDataEntryFromMiningResult(miningResult)
-          const isSuccess = await writeSubKey(subKey)
-          if (isSuccess === false) {
+          const data = await writeSubKey(subKey)
+          if (data === undefined) {
             throw new Error("Failed to write SubKey to container")
           }
 
@@ -54,12 +62,12 @@ const useHandleMiningResult = ({
             miningResult.nameKey,
             subKeyDomain !== "" ? subKeyDomain : undefined
           )
-          await signAndAppendOperation(grantOperation, state.container.data.identity.keyPair)
+          await signAndAppendOperation(grantOperation, data.identity.keyPair)
 
         } else {
           const identity = buildContainerDataEntryFromMiningResult(miningResult)
-          const isSuccess = await writeIdentity(identity)
-          if (isSuccess === false) {
+          const data = await writeIdentity(identity)
+          if (data === undefined) {
             throw new Error("Failed to write Identity to container")
           }
 

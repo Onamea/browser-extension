@@ -32,8 +32,8 @@ export type ExtensionStateContextValue = {
   state: ExtensionState
   createContainer: (password: string) => Promise<boolean>
   signIn: (password: string) => Promise<boolean>
-  writeIdentity: (identity: ContainerDataEntry) => Promise<boolean>
-  writeSubKey: (subKey: ContainerDataEntry) => Promise<boolean>
+  writeIdentity: (identity: ContainerDataEntry) => Promise<ContainerData | undefined>
+  writeSubKey: (subKey: ContainerDataEntry) => Promise<ContainerData | undefined>
   clearData: () => Promise<boolean>
   deleteMessage: (message: Message) => Promise<boolean>
   signAndAppendOperation: (operation: Operation, keyPair: KeyPair, shouldAppend?: boolean) => Promise<Message>
@@ -102,45 +102,50 @@ const useExtensionStateStore = () => {
     }
   }
 
-  const writeContainerData = async (data: ContainerData): Promise<boolean> => {
+  // dispatch is async, so callers should use the returned data instead of state.container.data
+  const writeContainerData = async (data: ContainerData): Promise<ContainerData | undefined> => {
     const accessKey = state.container.accessKey
     if (accessKey === undefined) {
-      return false
+      return undefined
     }
 
+    let raw: string
     try {
-      const raw = encodeSessionData(data)
+      raw = encodeSessionData(data)
       await set(accessKey, raw)
-      await writeStateData(raw, accessKey)
-      setContainerStatusToDispatch(dispatch, true)
-      setAccessKeyToDispatch(dispatch, accessKey)
-      setSessionDataToDispatch(dispatch, raw)
-
-      return true
     } catch (_error) {
-      return false
+      return undefined
     }
+
+    setContainerStatusToDispatch(dispatch, true)
+    setAccessKeyToDispatch(dispatch, accessKey)
+    setSessionDataToDispatch(dispatch, raw)
+
+    // best-effort broadcast; storage write above already succeeded
+    await writeStateData(raw, accessKey).catch(error => {
+      console.error("Failed to notify background of container data update:", error)
+    })
+
+    return data
   }
 
-  const writeIdentity = async (identity: ContainerDataEntry): Promise<boolean> => {
-    const isSuccess = await writeContainerData({
+  const writeIdentity = async (identity: ContainerDataEntry): Promise<ContainerData | undefined> => {
+    return await writeContainerData({
       identity,
       subKeys: state.container.data?.subKeys ?? []
     })
-    return isSuccess
   }
 
-  const writeSubKey = async (subKey: ContainerDataEntry): Promise<boolean> => {
+  const writeSubKey = async (subKey: ContainerDataEntry): Promise<ContainerData | undefined> => {
     const data = state.container.data
     if (data === undefined) {
-      return false
+      return undefined
     }
 
-    const isSuccess = await writeContainerData({
+    return await writeContainerData({
       identity: data.identity,
       subKeys: [...data.subKeys, subKey]
     })
-    return isSuccess
   }
 
   const clearData = async (): Promise<boolean> => {

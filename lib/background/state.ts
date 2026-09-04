@@ -49,8 +49,18 @@ export const extensionReducer = (
   action: ExtensionAction
 ): ExtensionState => {
   switch (action.type) {
-    case "REPLACE_STATE":
-      return action.payload
+    case "REPLACE_STATE": {
+      // container.data crosses the extension messaging boundary as plain objects
+      // (Uint8Array fields lose their prototype), so rebuild it from the raw string instead
+      const { raw } = action.payload.container
+      return {
+        ...action.payload,
+        container: {
+          ...action.payload.container,
+          data: raw === undefined ? undefined : decodeSessionData(raw)
+        }
+      }
+    }
     case "SET_CONTAINER_STATUS":
       return action.payload === false
         ? {
