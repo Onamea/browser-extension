@@ -41,6 +41,10 @@ h1 {
   line-height: 1.1;
 }
 
+h3 {
+  text-decoration: underline;
+}
+
 ul {
   padding-inline-start: 20px;
 }
