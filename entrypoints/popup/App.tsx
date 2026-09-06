@@ -1,7 +1,7 @@
 import { ExtensionStateProvider } from "@/lib/hooks/ExtensionStateProvider.tsx"
 import PassphraseEntryForm from "@/lib/components/PassphraseEntryForm.tsx"
 import ContainerDisplay from "@/lib/components/ContainerDisplay.tsx"
-import SignConfirmationDisplay from "@/lib/components/SignConfirmationDisplay.tsx"
+import SignConfirmation from "@/lib/components/SignConfirmation.tsx"
 import SignRequestResultsDisplay from "@/lib/components/SignRequestResultsDisplay.tsx"
 import useExtensionState from "@/lib/hooks/useExtensionState.ts"
 import usePendingRequest from "@/lib/hooks/usePendingRequest.ts"
@@ -31,7 +31,7 @@ const AppContent = () => {
   if (isInitialized === false) {
     return null
   } else if (isUnlocked && pendingRequest !== undefined) {
-    return <SignConfirmationDisplay pendingRequest={ pendingRequest } clearPendingRequest={ clearPendingRequest } refreshPendingRequest={ refreshPendingRequest } />
+    return <SignConfirmation pendingRequest={ pendingRequest } clearPendingRequest={ clearPendingRequest } refreshPendingRequest={ refreshPendingRequest } />
   } else if (isUnlocked && signRequestResults.length > 0) {
     return <SignRequestResultsDisplay results={ signRequestResults } onDismiss={ clearSignRequestResults } />
   } else if (hasContainer === false) {

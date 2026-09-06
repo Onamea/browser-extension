@@ -10,6 +10,7 @@ import {
 import { sendRuntimeMessage } from "@/lib/messaging/client/runtime.ts"
 import { isString } from "@/lib/utils/isString.ts"
 import isObject from "@/lib/utils/isObject.ts"
+import type { NameKey } from "@onamea/types"
 
 export type GetPendingRequestResponse = {
   pendingRequest?: PendingRequest
@@ -37,8 +38,8 @@ export const getPendingRequest = async (): Promise<GetPendingRequestResponse> =>
   }
 }
 
-export const confirmSignRequest = async (): Promise<Message> => {
-  const response = await sendRuntimeMessage<ConfirmSignResponse>({ type: API_CONFIRM_SIGN })
+export const confirmSignRequest = async (key: NameKey): Promise<Message> => {
+  const response = await sendRuntimeMessage<ConfirmSignResponse>({ type: API_CONFIRM_SIGN, key })
   if (response.error !== undefined) {
     throw new Error(response.error)
   }

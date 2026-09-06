@@ -1,21 +1,26 @@
 import { useState } from "react"
+import type { NameKey } from "@onamea/types"
+import type { ExtendedIdentityWithMessages } from "../background/state.ts"
+import SignerSelect from "./SignerSelect.tsx"
+import { useSigners } from "../hooks/useSigners.ts"
 
 type Props = {
-  origin: string
-  message: unknown
-  onConfirm: (shouldSaveLocally: boolean) => Promise<void>
+  identity: ExtendedIdentityWithMessages
+  pageOrigin: string
+  onConfirm: (key: NameKey, shouldSaveLocally: boolean) => Promise<void>
   onReject: () => Promise<void>
 }
 
-const SignConfirmationForm = ({ origin, message, onConfirm, onReject }: Props) => {
+const SignConfirmationForm = ({ identity, pageOrigin, onConfirm, onReject }: Props) => {
 
   const [checked, setChecked] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { signers, selectedSigner, setSelectedSigner } = useSigners(identity, pageOrigin)
 
   const handleConfirm = async () => {
     setIsSubmitting(true)
     try {
-      await onConfirm(checked)
+      await onConfirm(selectedSigner, checked)
     } finally {
       setIsSubmitting(false)
     }
@@ -31,17 +36,20 @@ const SignConfirmationForm = ({ origin, message, onConfirm, onReject }: Props) =
   }
 
   return (
-    <div>
-      <p>Sign request from <strong>{ origin }</strong></p>
-      <pre>{ JSON.stringify(message, null, 2) }</pre>
+    <form>
       <label>
-        <input type="checkbox" checked={ checked } onChange={ e => setChecked(e.target.checked) } />Save Message locally
+        Signer:
+        <SignerSelect signers={ signers } selectedSigner={ selectedSigner } onChange={ setSelectedSigner } />
+      </label>
+      <label>
+        <input type="checkbox" checked={ checked } onChange={ e => setChecked(e.target.checked) } />
+        Save Message locally
       </label>
       <menu>
         <button type="button" disabled={ isSubmitting } onClick={ handleConfirm }>Confirm</button>
         <button type="button" disabled={ isSubmitting } onClick={ handleReject }>Reject</button>
       </menu>
-    </div>
+    </form>
   )
 }
 

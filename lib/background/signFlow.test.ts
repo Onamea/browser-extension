@@ -18,7 +18,8 @@ describe("signFlow queueing", () => {
     expect(openPopup).toHaveBeenCalledTimes(1)
     expect(getPendingRequest()?.requestId).toBe("request-1")
 
-    expect(handleConfirmSign({ container: { data: { keyPair: {} } } } as never, popupSendResponse)).toBe(false)
+    const nameKey = "Aa@9MG9ABRF4XGFJ25PWUAFKS449A0S9NQRKAPB9EVK3GD6B7PG6G0"
+    expect(handleConfirmSign({ container: { data: { keyPair: {} } } } as never, nameKey, popupSendResponse)).toBe(false)
 
     expect(popupSendResponse).toHaveBeenCalledWith({ error: "Data is not a valid Operation" })
     expect(firstSendResponse).toHaveBeenCalledWith({ error: "Data is not a valid Operation", requestId: "request-1" })

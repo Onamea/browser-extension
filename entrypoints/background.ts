@@ -455,7 +455,7 @@ export default defineBackground(() => {
       }
 
       case API_CONFIRM_SIGN: {
-        return handleConfirmSign(backgroundState, sendResponse)
+        return handleConfirmSign(backgroundState, message.key, sendResponse)
       }
 
       case API_REJECT_SIGN: {

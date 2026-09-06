@@ -1,5 +1,7 @@
 import { isOperation, signOperation } from "@onamea/crdt"
 import type { ExtensionState } from "./state.ts"
+import type { NameKey } from "@onamea/types"
+import { findEntryInContainerData } from "../types/ContainerData.ts"
 
 export type PendingRequest = {
   data: unknown
@@ -92,6 +94,7 @@ export const handleSign = (
 
 export const handleConfirmSign = (
   state: ExtensionState | undefined,
+  key: NameKey,
   sendResponse: (response: unknown) => void
 ): boolean => {
   const pendingRequest = getActivePendingRequest()
@@ -103,13 +106,21 @@ export const handleConfirmSign = (
   const { data, requestId } = pendingRequest
   dequeuePendingRequest()
   if (isOperation(data) === false) {
-    addSignRequestResult(pendingRequest, "failed", "Data is not a valid Operation")
-    sendResponse({ error: "Data is not a valid Operation" })
-    pendingRequest.sendResponse({ error: "Data is not a valid Operation", requestId })
+    const error = "Data is not a valid Operation"
+    addSignRequestResult(pendingRequest, "failed", error)
+    sendResponse({ error })
+    pendingRequest.sendResponse({ error, requestId })
     return false
   }
-  const keyPair = state.container.data.identity.keyPair
-  signOperation(data, keyPair, Date.now())
+  const entry = findEntryInContainerData(state.container.data, key)
+  if (entry === undefined) {
+    const error = `Entry for (${ key }) not found in ContainerData`
+    addSignRequestResult(pendingRequest, "failed", error)
+    sendResponse({ error })
+    pendingRequest.sendResponse({ error, requestId })
+    return false
+  }
+  signOperation(data, entry.keyPair, Date.now())
     .then(signedMessage => {
       addSignRequestResult(pendingRequest, "signed")
       sendResponse({ ok: true, signedMessage })

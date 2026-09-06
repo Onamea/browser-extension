@@ -1,6 +1,10 @@
+import type { FingerprintedName } from "@onamea/types"
 import type { IdentityWithMessages, Messages } from "@onamea/crdt"
 import { type ContainerData, decodeSessionData } from "../types/ContainerData.ts"
 import type { AccessKey } from "@/lib/container/main.ts"
+
+type ExtendedSubKey = IdentityWithMessages["subKeys"][number] & { fingerprintedName: FingerprintedName }
+export type ExtendedIdentityWithMessages = Omit<IdentityWithMessages, "subKeys"> & { subKeys: ExtendedSubKey[] }
 
 export type ExtensionState = {
   isInitialized: boolean
@@ -14,7 +18,7 @@ export type ExtensionState = {
   }
   local: {
     messages: Messages
-    identity: IdentityWithMessages | undefined
+    identity: ExtendedIdentityWithMessages | undefined
   }
 }
 

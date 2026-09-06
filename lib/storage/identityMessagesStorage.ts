@@ -1,6 +1,7 @@
-import type { IdentityWithMessages, Message, Messages } from "@onamea/crdt"
+import type { Message, Messages } from "@onamea/crdt"
 import { buildIdentityFromOperations, isCreateOperation, parseRawOperation } from "@onamea/crdt"
-import { isNameKey, type NameKey } from "@onamea/types"
+import { isNameKey, nameKeyToFingerprintedName, type NameKey } from "@onamea/types"
+import type { ExtendedIdentityWithMessages } from "../background/state.ts"
 
 const STORAGE_KEY = "identityMessages.v0"
 
@@ -79,16 +80,7 @@ export const clearMessages = async (): Promise<void> => {
   }
 }
 
-export const getLocalStateFromMessages = async (): Promise<{ messages: Messages, identity: IdentityWithMessages | undefined }> => {
-  const messages = await getMessages()
-  const identity = await getIdentityFromMessages(messages)
-  return {
-    messages,
-    identity
-  }
-}
-
-export const getIdentityFromMessages = async (messages: Messages): Promise<IdentityWithMessages | undefined> => {
+export const getIdentityFromMessages = async (messages: Messages): Promise<ExtendedIdentityWithMessages | undefined> => {
   if (messages.length === 0) {
     return undefined
   }
@@ -104,8 +96,23 @@ export const getIdentityFromMessages = async (messages: Messages): Promise<Ident
   const identityOperations = operations.filter(({ id }) => id === nameKey)
 
   const identity = await buildIdentityFromOperations(identityOperations, nameKey)
+  const subKeys = await Promise.all(identity.subKeys.map(async subKey => {
+    const fingerprintedName = await nameKeyToFingerprintedName(subKey.subKey)
+    return { ...subKey, fingerprintedName }
+  }))
+
   return {
     ...identity,
+    subKeys,
     messages
+  }
+}
+
+export const getLocalStateFromMessages = async (): Promise<{ messages: Messages, identity: ExtendedIdentityWithMessages | undefined }> => {
+  const messages = await getMessages()
+  const identity = await getIdentityFromMessages(messages)
+  return {
+    messages,
+    identity
   }
 }

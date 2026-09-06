@@ -1,15 +1,19 @@
 type Props = {
-  errors: string[]
+  errors: string |string[]
 }
 
-// TODO: Filter unique or append index to duplicate error messages
+const ErrorDisplay = ({ errors }: Props) => {
 
-const ErrorDisplay = ({ errors }: Props) => (
-  <>
-    { errors.map(error => (
-      <p className="error" key={ error }>{ error }</p>
-    )) }
-  </>
-)
+  const uniqueErrors = (Array.isArray(errors) ? errors : [errors])
+    .filter((error, index, self) => self.indexOf(error) === index)
+
+  return (
+    <>
+      { uniqueErrors.map((error, index) => (
+        <p className="error" key={ index }>{ error }</p>
+      )) }
+    </>
+  )
+}
 
 export default ErrorDisplay

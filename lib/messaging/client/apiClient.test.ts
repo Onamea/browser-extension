@@ -12,6 +12,7 @@ describe("confirmSignRequest", () => {
       runtime: { sendMessage }
     })
 
-    await expect(confirmSignRequest()).rejects.toThrow("Signing failed")
+    const nameKey = "Aa@9MG9ABRF4XGFJ25PWUAFKS449A0S9NQRKAPB9EVK3GD6B7PG6G0"
+    await expect(confirmSignRequest(nameKey)).rejects.toThrow("Signing failed")
   })
 })

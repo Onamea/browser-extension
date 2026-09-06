@@ -56,3 +56,10 @@ const buildEntryFromMiningResult = (result: unknown): Entry => {
 export const buildContainerDataEntryFromMiningResult = (result: unknown): ContainerDataEntry => {
   return buildEntryFromMiningResult(result)
 }
+
+export const findEntryInContainerData = (data: ContainerData, nameKey: NameKey): ContainerDataEntry | undefined => {
+  if (data.identity.nameKey === nameKey) {
+    return data.identity
+  }
+  return data.subKeys.find(entry => entry.nameKey === nameKey)
+}
