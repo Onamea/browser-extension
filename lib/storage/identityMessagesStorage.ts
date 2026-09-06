@@ -100,10 +100,15 @@ export const getIdentityFromMessages = async (messages: Messages): Promise<Exten
     const fingerprintedName = await nameKeyToFingerprintedName(subKey.subKey)
     return { ...subKey, fingerprintedName }
   }))
+  const referents = identity.referents ? await Promise.all(identity.referents?.map(async id => {
+    const fingerprintedName = await nameKeyToFingerprintedName(id)
+    return { id, fingerprintedName }
+  })) : []
 
   return {
     ...identity,
     subKeys,
+    referents,
     messages
   }
 }

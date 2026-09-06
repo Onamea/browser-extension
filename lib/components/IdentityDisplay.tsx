@@ -1,7 +1,9 @@
-import type { IdentityWithMessages } from "@onamea/crdt"
+import type { ExtendedIdentityWithMessages } from "../background/state.ts"
+import SubKeysDisplay from "./SubKeysDisplay.tsx"
+import ReferentsDisplay from "./ReferentsDisplay.tsx"
 
 type Props = {
-  identity: IdentityWithMessages
+  identity: ExtendedIdentityWithMessages
 }
 
 const IdentityDisplay = ({ identity }: Props) => {
@@ -10,8 +12,10 @@ const IdentityDisplay = ({ identity }: Props) => {
       <p><strong>NameKey:</strong> { identity.id }</p>
       <p><strong>tombstone:</strong> { identity.tombstone ? "true" : "false" }</p>
       <p><strong>body:</strong> { identity.body }</p>
-      <p><strong>SubKeys:</strong> { JSON.stringify(identity.subKeys, null, 2) }</p>
-      <p><strong>Referents:</strong> { JSON.stringify(identity.referents, null, 2) }</p>
+      <p><strong>SubKeys:</strong></p> 
+      <SubKeysDisplay subKeys={ identity.subKeys } />
+      <p><strong>Referents:</strong></p>
+      <ReferentsDisplay referents={ identity.referents } />
     </div>
   )
 }

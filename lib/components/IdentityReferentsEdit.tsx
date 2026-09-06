@@ -29,10 +29,10 @@ const IdentityReferentsEdit = ({ identity, keyPair }: Props) => {
 
   return (
     <ul>
-      { identity.referents?.map(referent => (
-        <li key={ referent }>
-          { referent }
-          <button type="button" onClick={ () => handleClick(referent) }>Denounce</button>
+      { identity.referents.map(({ id, fingerprintedName }) => (
+        <li key={ id }>
+          { fingerprintedName }
+          <button type="button" onClick={ () => handleClick(id) }>Denounce</button>
         </li>
       )) }
     </ul>

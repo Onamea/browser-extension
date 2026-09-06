@@ -38,7 +38,7 @@ const AppContent = () => {
     return (
       <>
         <p>Extension not set up, yet</p>
-        <AppButton onClick={ handleOpenIndex }>Open App to set up</AppButton>
+        <AppButton onClick={ handleOpenIndex }>Open App to Set Up</AppButton>
       </>
     )
   } else if (hasContainer && isUnlocked === false) {

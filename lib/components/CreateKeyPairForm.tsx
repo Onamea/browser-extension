@@ -78,14 +78,16 @@ const CreateKeyPairForm = ({ forSubKey = false, allowForMnemonic = false }: Prop
         </div>
         { allowForMnemonic &&
           <div>
-            <label htmlFor="shouldGenerateMnemonic">Generate mnemonic:</label>
-            <input
-              id="shouldGenerateMnemonic"
-              type="checkbox"
-              checked={ shouldGenerateMnemonic }
-              onChange={ event => setShouldGenerateMnemonic(event.target.checked) }
-              disabled={ isSubmitting }
-            />
+            <label>
+              <input
+                id="shouldGenerateMnemonic"
+                type="checkbox"
+                checked={ shouldGenerateMnemonic }
+                onChange={ event => setShouldGenerateMnemonic(event.target.checked) }
+                disabled={ isSubmitting }
+              />
+              Create Mnemonic
+            </label>
           </div>
         }
         { forSubKey &&
@@ -101,7 +103,9 @@ const CreateKeyPairForm = ({ forSubKey = false, allowForMnemonic = false }: Prop
           </div>
         }
         { progress !== undefined && nameToMine !== undefined && <MiningProgress nameLength={ nameToMine.length } totalAttempts={ progress.totalAttempts } /> }
-        <button type="submit" disabled={ isSubmitting }>Generate</button>
+        <div style={{ marginTop: "8px" }}>
+          <button type="submit" disabled={ isSubmitting }>Generate</button>
+        </div>
         <ErrorDisplay errors={ allErrors } />
       </form>
     </section>
