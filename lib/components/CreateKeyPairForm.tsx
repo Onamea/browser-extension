@@ -1,5 +1,4 @@
-import type { FormEvent } from "react"
-import { useCallback, useState } from "react"
+import { type SubmitEvent, useCallback, useState } from "react"
 import { isNameOrFingerprintedName } from "@onamea/types"
 import ErrorDisplay from "./ErrorDisplay.tsx"
 import MiningProgress from "./MiningProgress.tsx"
@@ -39,7 +38,7 @@ const CreateKeyPairForm = ({ forSubKey = false, allowForMnemonic = false }: Prop
   })
   const allErrors = [...formErrors, ...miningErrors, ...miningResultErrors]
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: SubmitEvent) => {
     event.preventDefault()
 
     setFormErrors([])

@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from "react"
+import { type SubmitEvent, useState } from "react"
 import ErrorDisplay from "./ErrorDisplay.tsx"
 import { isPassword } from "@/lib/container/main.ts"
 import useExtensionState from "@/lib/hooks/useExtensionState.ts"
@@ -9,7 +9,7 @@ const PassphraseEntryForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { signIn } = useExtensionState()
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: SubmitEvent) => {
     event.preventDefault()
     const errors = []
     if (passphrase.length === 0) {

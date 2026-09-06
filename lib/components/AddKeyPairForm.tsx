@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from "react"
+import { type SubmitEvent, useState } from "react"
 import { type Identifier, identify, isIdentifier } from "@onamea/crdt"
 import { 
   type MnemonicDisplayWithPassphrase, 
@@ -32,7 +32,7 @@ const AddKeyPairForm = () => {
     }
   }
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: SubmitEvent) => {
     event.preventDefault()
     setIsSubmitting(true)
     if (!isIdentifier(identifier)) {

@@ -1,4 +1,4 @@
-import { type ChangeEvent, type FormEvent, useState } from "react"
+import { type ChangeEvent, type SubmitEvent, useState } from "react"
 import { createSetOperation, getLatestHashFromOperations } from "@onamea/crdt"
 import useExtensionState from "../hooks/useExtensionState.ts"
 
@@ -11,7 +11,7 @@ const SetOperationForm = () => {
     setValue(event.target.value)
   }
 
-  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (event: SubmitEvent) => {
     event.preventDefault()
     if (state.local.identity === undefined) {
       console.error("No identity found")

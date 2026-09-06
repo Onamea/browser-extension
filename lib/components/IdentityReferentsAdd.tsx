@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from "react"
+import { type SubmitEvent, useState } from "react"
 import { isNameKey, type KeyPairDisplay } from "@onamea/types"
 import { createVouchOperation, getRootOperation } from "@onamea/crdt"
 import type { ExtendedIdentityWithMessages } from "../background/state.ts"
@@ -16,7 +16,7 @@ const IdentityReferentsAdd = ({ identity, keyPair }: Props) => {
   const [referent, setReferent] = useState("")
   const [error, setError] = useState<string>()
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: SubmitEvent) => {
     event.preventDefault()
     setError(undefined)
 
