@@ -40,12 +40,16 @@ const IdentityReferentsAdd = ({ identity, keyPair }: Props) => {
 
   return (
     <form onSubmit={ handleSubmit }>
-      <label>
-        Referent:
+      <div>
+        <label>Referent:</label>
         <input type="text" value={ referent } onChange={ e => setReferent(e.target.value) } />
-      </label>
-      { error !== undefined && <ErrorDisplay errors={ error } /> }
-      <button type="submit">Vouch</button>
+      </div>
+      <div>
+        { error !== undefined && <ErrorDisplay errors={ error } /> }
+      </div>
+      <div>
+        <button type="submit">Vouch</button>
+      </div>
     </form>
   )
 }
