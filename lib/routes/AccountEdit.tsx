@@ -5,6 +5,8 @@ import SetOperationForm from "../components/SetOperationForm.tsx"
 import TombstoneButton from "../components/TombstoneButton.tsx"
 import IdentitySubKeysEdit from "../components/IdentitySubKeysEdit.tsx"
 import CreateKeyPairForm from "../components/CreateKeyPairForm.tsx"
+import IdentityReferentsEdit from "../components/IdentityReferentsEdit.tsx"
+import IdentityReferentsAdd from "../components/IdentityReferentsAdd.tsx"
 import useView from "../hooks/useView.tsx"
 
 type Props = {
@@ -31,8 +33,10 @@ const AccountEdit = ({ state }: Props) => {
       <IdentityOperationsDisplay identity={ identity } />
       <TombstoneButton />
       <SetOperationForm />
-      <IdentitySubKeysEdit identity={ identity } keyPair={ keyPair }/>
+      <IdentitySubKeysEdit identity={ identity } keyPair={ keyPair } />
       <CreateKeyPairForm forSubKey />
+      <IdentityReferentsEdit identity={ identity } keyPair={ keyPair } />
+      <IdentityReferentsAdd identity={ identity } keyPair={ keyPair } />
       <menu>
         <button type="button" onClick={ showAccount }>Cancel</button>
       </menu>
