@@ -1,11 +1,18 @@
 import { type ChangeEvent, type SubmitEvent, useState } from "react"
+import type { KeyPairDisplay } from "@onamea/types"
 import { createSetOperation, getLatestHashFromOperations } from "@onamea/crdt"
+import type { ExtendedIdentityWithMessages } from "../background/state.ts"
 import useExtensionState from "../hooks/useExtensionState.ts"
 
-const SetOperationForm = () => {
+type Props = {
+  identity: ExtendedIdentityWithMessages
+  keyPair: KeyPairDisplay
+}
 
-  const { state, signAndAppendOperation } = useExtensionState()
-  const [value, setValue] = useState("")
+const SetOperationForm = ({ identity, keyPair }: Props) => {
+
+  const { signAndAppendOperation } = useExtensionState()
+  const [value, setValue] = useState(identity.body ?? "")
 
   const onChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setValue(event.target.value)
@@ -13,22 +20,14 @@ const SetOperationForm = () => {
 
   const onSubmit = async (event: SubmitEvent) => {
     event.preventDefault()
-    if (state.local.identity === undefined) {
-      console.error("No identity found")
-      return
-    }
-    if (state.container.data === undefined) {
-      console.error("No container data found")
-      return
-    }
-    const previousHash = getLatestHashFromOperations(state.local.identity.operations)
+    const previousHash = getLatestHashFromOperations(identity.operations)
     if (previousHash === undefined) {
       console.error("No previous hash found for identity")
       return
     }
     try {
-      const setOperation = await createSetOperation(state.local.identity.id, previousHash, value)
-      await signAndAppendOperation(setOperation, state.container.data.identity.keyPair)
+      const setOperation = await createSetOperation(identity.id, previousHash, value)
+      await signAndAppendOperation(setOperation, keyPair)
       setValue("")
     } catch (error) {
       console.error("Failed to append operation:", error)
@@ -37,7 +36,7 @@ const SetOperationForm = () => {
 
   return (
     <form onSubmit={ onSubmit }>
-      <label htmlFor="value">Update body:</label>
+      <label htmlFor="value">{ identity.body ? "Update body" : "Set body" }:</label>
       <textarea value={ value } onChange={ onChange } />
       <button type="submit">Submit</button>
     </form>

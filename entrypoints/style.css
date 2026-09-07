@@ -45,6 +45,18 @@ h3 {
   text-decoration: underline;
 }
 
+h3 button {
+  appearance: none;
+  background: none;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  margin: 0;
+  padding: 0;
+  text-decoration: inherit;
+}
+
 ul {
   padding-inline-start: 20px;
 }
@@ -95,7 +107,6 @@ p.error {
   color: #ff4d6d;
   font-weight: 500;
 }
-
 
 @media (prefers-color-scheme: light) {
   :root {

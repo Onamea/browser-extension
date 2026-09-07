@@ -1,15 +1,16 @@
+import type { KeyPairDisplay } from "@onamea/types"
 import { createDeleteOperation, getRootOperation } from "@onamea/crdt"
+import type { ExtendedIdentityWithMessages } from "../background/state.ts"
 import useExtensionState from "../hooks/useExtensionState.ts"
 
-const TombstoneButton = () => {
+type Props = {
+  identity: ExtendedIdentityWithMessages
+  keyPair: KeyPairDisplay
+}
 
-  const { state, signAndAppendOperation } = useExtensionState()
-  const keyPair = state.container.data?.identity.keyPair
-  const identity = state.local.identity
+const TombstoneButton = ({ identity, keyPair }: Props) => {
 
-  if (keyPair === undefined || identity === undefined) {
-    return null
-  }
+  const { signAndAppendOperation } = useExtensionState()
 
   const onClick = () => {
 

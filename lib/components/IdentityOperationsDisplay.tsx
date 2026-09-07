@@ -38,7 +38,9 @@ const IdentityOperationsDisplay = ({ identity }: Props) => {
 
   return (
     <div>
+      <p><strong>Operations:</strong></p>
       <pre>{ JSON.stringify(identity.operations, null, 2) }</pre>
+      <p><strong>Messages:</strong></p>
       { identity.messages.map(message => 
         <IdentityMessageDisplay
           key={ message.signature }
