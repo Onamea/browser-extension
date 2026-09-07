@@ -1,4 +1,5 @@
 import type { ExtendedSubKey } from "../background/state.ts"
+import SubKeyDisplay from "./SubKeyDisplay.tsx"
 
 type Props = {
   subKeys: ExtendedSubKey[]
@@ -7,8 +8,8 @@ type Props = {
 const SubKeysDisplay = ({ subKeys }: Props) => {
   return (
     <ul>
-    { subKeys.map((subKey) => (
-      <li key={ subKey.subKey }>{ subKey.fingerprintedName } ({ subKey.domain ?? "-" })</li>
+    { subKeys.map(subKey => (
+      <li key={ subKey.subKey }><SubKeyDisplay subKey={ subKey } /></li>
     )) }
     </ul>
   )

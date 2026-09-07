@@ -2,6 +2,7 @@ import type { KeyPairDisplay, NameKey } from "@onamea/types"
 import { createRevokeOperation } from "@onamea/crdt"
 import type { ExtendedIdentityWithMessages } from "../background/state.ts"
 import useExtensionState from "../hooks/useExtensionState.ts"
+import SubKeyDisplay from "./SubKeyDisplay.tsx"
 
 type Props = {
   identity: ExtendedIdentityWithMessages
@@ -29,10 +30,10 @@ const IdentitySubKeysEdit = ({ identity, keyPair }: Props) => {
 
   return (
     <ul>
-      { identity.subKeys.map(({ subKey, fingerprintedName, domain }) => (
-        <li key={ subKey }>
-          { fingerprintedName } ({ domain ?? "-" })
-          <button type="button" onClick={ () => handleClick(subKey) }>Revoke</button>
+      { identity.subKeys.map(subKey => (
+        <li key={ subKey.subKey }>
+          <SubKeyDisplay subKey={ subKey } />
+          <button type="button" onClick={ () => handleClick(subKey.subKey) }>Revoke</button>
         </li>
       )) }
     </ul>
