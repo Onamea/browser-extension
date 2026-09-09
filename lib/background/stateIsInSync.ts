@@ -18,9 +18,11 @@ export const stateIsInSync = async (state: ExtensionState): Promise<boolean> => 
   const buildIdentity = await getIdentityFromMessages(state.local.messages)
   if (buildIdentity === undefined) return false
   if (buildIdentity.id !== identity.nameKey) return false
-  for (const subKey of buildIdentity.subKeys) {
-    const found = state.container.data?.subKeys.find(({ nameKey }) => nameKey === subKey.subKey)
-    if (found === undefined) return false
+  if (buildIdentity.subKeys !== undefined) {
+    for (const subKey of buildIdentity.subKeys) {
+      const found = state.container.data?.subKeys.find(({ nameKey }) => nameKey === subKey.id)
+      if (found === undefined) return false
+    }
   }
 
   return true

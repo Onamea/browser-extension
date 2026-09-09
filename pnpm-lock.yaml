@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@onamea/crdt':
-        specifier: jsr:0.5.1
-        version: '@jsr/onamea__crdt@0.5.1'
+        specifier: jsr:0.6.2
+        version: '@jsr/onamea__crdt@0.6.2'
       '@onamea/types':
         specifier: jsr:0.5.3
         version: '@jsr/onamea__types@0.5.3'
@@ -373,8 +373,8 @@ packages:
   '@jsr/noble__secp256k1@3.1.0':
     resolution: {integrity: sha512-cW0KkKdMtCdLwn9V66bDThsDYG36H2zwjJDR2+RTXfNeQUT4AqKrFdJ5L8PfWkDd8jaqGpxewu4Pw4GPJ/pOnw==, tarball: https://npm.jsr.io/~/11/@jsr/noble__secp256k1/3.1.0.tgz}
 
-  '@jsr/onamea__crdt@0.5.1':
-    resolution: {integrity: sha512-7dsigJ5I6JyvDVgvVl79UHe2hAdDq6RZmcmMmr7hB/e431KMPlwTEiJxpPLviyjgTNFhTP7d15gW9joFJp8GNw==, tarball: https://npm.jsr.io/~/11/@jsr/onamea__crdt/0.5.1.tgz}
+  '@jsr/onamea__crdt@0.6.2':
+    resolution: {integrity: sha512-6v54v7d24hXVy7wtIM/3+aLALmuftEdKqViS9Qv718c1uZKPF8pfMyf2ZRCB1JMCC/4xO+RYcsWDBfwAUpQAZg==, tarball: https://npm.jsr.io/~/11/@jsr/onamea__crdt/0.6.2.tgz}
 
   '@jsr/onamea__types@0.5.3':
     resolution: {integrity: sha512-KFn7L2GDjGcQXDP97QkMZozbA7NxyKOrc7ILMlaIY2CtmFJ6mdTv2q3l19hFOo1EbtjAHABJ7jAopquk8X/qGw==, tarball: https://npm.jsr.io/~/11/@jsr/onamea__types/0.5.3.tgz}
@@ -2746,7 +2746,7 @@ snapshots:
 
   '@jsr/noble__secp256k1@3.1.0': {}
 
-  '@jsr/onamea__crdt@0.5.1':
+  '@jsr/onamea__crdt@0.6.2':
     dependencies:
       '@cfworker/json-schema': 4.1.1
       '@jsr/onamea__types': 0.5.3

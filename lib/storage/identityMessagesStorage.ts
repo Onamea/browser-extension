@@ -1,7 +1,6 @@
-import type { Message, Messages } from "@onamea/crdt"
+import { type NameKey, isNameKey } from "@onamea/types"
+import type { Message, Messages, IdentityWithMessages } from "@onamea/crdt"
 import { buildIdentityFromOperations, isCreateOperation, parseRawOperation } from "@onamea/crdt"
-import { isNameKey, nameKeyToFingerprintedName, type NameKey } from "@onamea/types"
-import type { ExtendedIdentityWithMessages } from "../background/state.ts"
 
 const STORAGE_KEY = "identityMessages.v0"
 
@@ -80,7 +79,7 @@ export const clearMessages = async (): Promise<void> => {
   }
 }
 
-export const getIdentityFromMessages = async (messages: Messages): Promise<ExtendedIdentityWithMessages | undefined> => {
+export const getIdentityFromMessages = async (messages: Messages): Promise<IdentityWithMessages | undefined> => {
   if (messages.length === 0) {
     return undefined
   }
@@ -96,24 +95,14 @@ export const getIdentityFromMessages = async (messages: Messages): Promise<Exten
   const identityOperations = operations.filter(({ id }) => id === nameKey)
 
   const identity = await buildIdentityFromOperations(identityOperations, nameKey)
-  const subKeys = await Promise.all(identity.subKeys.map(async subKey => {
-    const fingerprintedName = await nameKeyToFingerprintedName(subKey.subKey)
-    return { ...subKey, fingerprintedName }
-  }))
-  const referents = identity.referents ? await Promise.all(identity.referents?.map(async id => {
-    const fingerprintedName = await nameKeyToFingerprintedName(id)
-    return { id, fingerprintedName }
-  })) : []
 
   return {
     ...identity,
-    subKeys,
-    referents,
     messages
   }
 }
 
-export const getLocalStateFromMessages = async (): Promise<{ messages: Messages, identity: ExtendedIdentityWithMessages | undefined }> => {
+export const getLocalStateFromMessages = async (): Promise<{ messages: Messages, identity: IdentityWithMessages | undefined }> => {
   const messages = await getMessages()
   const identity = await getIdentityFromMessages(messages)
   return {

@@ -18,7 +18,7 @@ const Account = ({ state }: Props) => {
 
   return (
     <>
-      <h1>{ identity.fingerprintedName }</h1>
+      <h1>{ identity.displayName ?? identity.id }</h1>
       <IdentityDisplay identity={ identity } />
       <menu>
         <button type="button" onClick={ showAccountEdit }>Edit</button>

@@ -1,11 +1,11 @@
 import { useState } from "react"
 import type { NameKey } from "@onamea/types"
-import type { ExtendedIdentityWithMessages } from "../background/state.ts"
+import type { IdentityWithMessages } from "@onamea/crdt"
 import SignerSelect from "./SignerSelect.tsx"
 import { useSigners } from "../hooks/useSigners.ts"
 
 type Props = {
-  identity: ExtendedIdentityWithMessages
+  identity: IdentityWithMessages
   pageOrigin: string
   onConfirm: (key: NameKey, shouldSaveLocally: boolean) => Promise<void>
   onReject: () => Promise<void>

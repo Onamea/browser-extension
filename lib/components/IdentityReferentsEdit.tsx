@@ -1,10 +1,9 @@
 import type { KeyPairDisplay, NameKey } from "@onamea/types"
-import { createDenounceOperation } from "@onamea/crdt"
-import type { ExtendedIdentityWithMessages } from "../background/state.ts"
+import { type IdentityWithMessages, createDenounceOperation } from "@onamea/crdt"
 import useExtensionState from "../hooks/useExtensionState.ts"
 
 type Props = {
-  identity: ExtendedIdentityWithMessages
+  identity: IdentityWithMessages
   keyPair: KeyPairDisplay
 }
 
@@ -29,9 +28,9 @@ const IdentityReferentsEdit = ({ identity, keyPair }: Props) => {
 
   return (
     <ul>
-      { identity.referents.map(({ id, fingerprintedName }) => (
+      { identity.referents?.map(({ id, displayName }) => (
         <li key={ id }>
-          { fingerprintedName }
+          { displayName ?? id }
           <button type="button" onClick={ () => handleClick(id) }>Denounce</button>
         </li>
       )) }

@@ -1,12 +1,11 @@
 import { type SubmitEvent, useState } from "react"
 import { isNameKey, type KeyPairDisplay } from "@onamea/types"
-import { createVouchOperation, getRootOperation } from "@onamea/crdt"
-import type { ExtendedIdentityWithMessages } from "../background/state.ts"
+import { type IdentityWithMessages, createVouchOperation, getRootOperation } from "@onamea/crdt"
 import useExtensionState from "../hooks/useExtensionState.ts"
 import ErrorDisplay from "./ErrorDisplay.tsx"
 
 type Props = {
-  identity: ExtendedIdentityWithMessages
+  identity: IdentityWithMessages
   keyPair: KeyPairDisplay
 }
 

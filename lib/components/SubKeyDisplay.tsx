@@ -1,12 +1,12 @@
-import type { ExtendedSubKey } from "../background/state.ts"
+import type { SubKey } from "@onamea/crdt"
 
 type Props = {
-  subKey: ExtendedSubKey
+  subKey: SubKey
 }
 
 const SubKeyDisplay = ({ subKey }: Props) => {
-  const { fingerprintedName, domain } = subKey
-  return <>{ fingerprintedName } ({ domain ?? "-" })</>
+  const { id, displayName, domain } = subKey
+  return <>{ displayName ?? id } ({ domain ?? "-" })</>
 }
 
 export default SubKeyDisplay

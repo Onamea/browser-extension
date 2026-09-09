@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react"
-import type { Message } from "@onamea/crdt"
+import type { Message, IdentityWithMessages } from "@onamea/crdt"
 import useExtensionState from "@/lib/hooks/useExtensionState.ts"
 import { isRootOperationMessage } from "@/lib/storage/isRootOperationMessage.ts"
-import type { ExtendedIdentityWithMessages } from "../background/state.ts"
 
 type Props = {
-  identity: ExtendedIdentityWithMessages
+  identity: IdentityWithMessages
 }
 
 type MessageProps = {
-  id: ExtendedIdentityWithMessages["id"]
+  id: IdentityWithMessages["id"]
   message: Message
   onDelete: (message: Message) => Promise<void>
 }

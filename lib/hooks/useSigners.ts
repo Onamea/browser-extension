@@ -1,22 +1,29 @@
-import type { NameKey } from "@onamea/types"
+import type { FingerprintedName, NameKey } from "@onamea/types"
+import type { IdentityWithMessages, SubKeyDomain } from "@onamea/crdt"
 import { useEffect, useState } from "react"
-import type { ExtendedIdentityWithMessages } from "../background/state.ts"
 
-const buildSigners = (identity: ExtendedIdentityWithMessages) => [
+export type Signer = {
+  id: NameKey
+  isSubKey: boolean
+  displayName: FingerprintedName | string
+  subKeyDomain?: SubKeyDomain
+}
+
+const buildSigners = (identity: IdentityWithMessages): Signer[] => [
   {
-    nameKey: identity.id,
-    fingerprintedName: identity.fingerprintedName,
+    id: identity.id,
+    displayName: identity.displayName ?? identity.id,
     isSubKey: false
   },
-  ...identity.subKeys.map(({ subKey, fingerprintedName, domain }) => ({
-    isSubKey: true,
-    nameKey: subKey,
-    fingerprintedName: fingerprintedName,
-    subKeyDomain: domain
-  }))
+  ...identity.subKeys?.map(({ id, displayName, domain }) => ({
+    id,
+    displayName: displayName ?? id,
+    subKeyDomain: domain,
+    isSubKey: true
+  })) ?? []
 ]
 
-const domainMatchesOrigin = (domain: string | undefined, pageOrigin: string) => {
+const domainMatchesOrigin = (domain: string | undefined, pageOrigin: string): boolean => {
   if (domain === undefined || domain === "" || pageOrigin === "") {
     return false
   }
@@ -30,18 +37,18 @@ const domainMatchesOrigin = (domain: string | undefined, pageOrigin: string) => 
   }
 }
 
-const getDefaultSigner = (identity: ExtendedIdentityWithMessages, pageOrigin: string) => {
-  const subKeysWithDomain = identity.subKeys.filter(subKey => 
+const getDefaultSigner = (identity: IdentityWithMessages, pageOrigin: string): NameKey => {
+  const subKeysWithDomain = identity.subKeys?.filter(subKey => 
     subKey.domain !== undefined && subKey.domain !== "" && subKey.domain !== "*"
-  )
+  ) ?? []
 
-  return subKeysWithDomain.find(({ domain }) => domainMatchesOrigin(domain, pageOrigin))?.subKey ?? 
-    identity.subKeys.find(({ domain }) => domain === "*")?.subKey ?? 
-    identity.subKeys.find(({ domain }) => domain === "" || domain === undefined)?.subKey ??
+  return subKeysWithDomain.find(({ domain }) => domainMatchesOrigin(domain, pageOrigin))?.id ?? 
+    identity.subKeys?.find(({ domain }) => domain === "*")?.id ?? 
+    identity.subKeys?.find(({ domain }) => domain === "" || domain === undefined)?.id ??
     identity.id
 }
 
-export const useSigners = (identity: ExtendedIdentityWithMessages, pageOrigin: string) => {
+export const useSigners = (identity: IdentityWithMessages, pageOrigin: string) => {
 
   const signers = buildSigners(identity)
   const initialSigner = getDefaultSigner(identity, pageOrigin)

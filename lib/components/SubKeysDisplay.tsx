@@ -1,15 +1,15 @@
-import type { ExtendedSubKey } from "../background/state.ts"
+import type { SubKeys } from "@onamea/crdt"
 import SubKeyDisplay from "./SubKeyDisplay.tsx"
 
 type Props = {
-  subKeys: ExtendedSubKey[]
+  subKeys: SubKeys
 }
 
 const SubKeysDisplay = ({ subKeys }: Props) => {
   return (
     <ul>
     { subKeys.map(subKey => (
-      <li key={ subKey.subKey }><SubKeyDisplay subKey={ subKey } /></li>
+      <li key={ subKey.id }><SubKeyDisplay subKey={ subKey } /></li>
     )) }
     </ul>
   )

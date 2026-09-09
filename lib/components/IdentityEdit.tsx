@@ -1,11 +1,11 @@
 import type { KeyPairDisplay } from "@onamea/types"
-import type { ExtendedIdentityWithMessages } from "../background/state.ts"
+import type { IdentityWithMessages } from "@onamea/crdt"
 import TombstoneButton from "./TombstoneButton.tsx"
 import SetOperationForm from "./SetOperationForm.tsx"
 import BodyDisplay from "./BodyDisplay.tsx"
 
 type Props = {
-  identity: ExtendedIdentityWithMessages
+  identity: IdentityWithMessages
   keyPair: KeyPairDisplay
 }
 

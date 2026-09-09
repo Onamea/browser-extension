@@ -1,11 +1,10 @@
 import { type ChangeEvent, type SubmitEvent, useState } from "react"
 import type { KeyPairDisplay } from "@onamea/types"
-import { createSetOperation, getLatestHashFromOperations } from "@onamea/crdt"
-import type { ExtendedIdentityWithMessages } from "../background/state.ts"
+import { type IdentityWithMessages, createSetOperation, getLatestHashFromOperations } from "@onamea/crdt"
 import useExtensionState from "../hooks/useExtensionState.ts"
 
 type Props = {
-  identity: ExtendedIdentityWithMessages
+  identity: IdentityWithMessages
   keyPair: KeyPairDisplay
 }
 

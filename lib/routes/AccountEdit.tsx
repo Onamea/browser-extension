@@ -35,7 +35,7 @@ const AccountEdit = ({ state }: Props) => {
 
   return (
     <div>
-      <h2>{ identity.fingerprintedName }</h2>
+      <h2>{ identity.displayName ?? identity.id }</h2>
       <p><strong>NameKey: </strong>{ identity.id }</p>
       <section>
         <h3>

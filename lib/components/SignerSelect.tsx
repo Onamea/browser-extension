@@ -1,12 +1,6 @@
-import type { FingerprintedName, NameKey } from "@onamea/types"
+import type { NameKey } from "@onamea/types"
 import type { SubKeyDomain } from "@onamea/crdt"
-
-export type Signer = {
-  nameKey: NameKey
-  fingerprintedName: FingerprintedName
-  isSubKey: boolean
-  subKeyDomain?: SubKeyDomain
-}
+import type { Signer } from "../hooks/useSigners.ts"
 
 type Props = {
   signers: Signer[]
@@ -25,8 +19,8 @@ const SignerSelect = ({ signers, selectedSigner, onChange }: Props) => {
       onChange={ event => onChange(event.target.value as NameKey) }
       >
       { signers.map(signer => (
-        <option key={ signer.nameKey } value={ signer.nameKey }>
-          { signer.fingerprintedName }
+        <option key={ signer.id } value={ signer.id }>
+          { signer.displayName }
           { signer.isSubKey ? ` (${ displaySubKeyDomain(signer.subKeyDomain) })` : "" }
         </option>
       )) }
