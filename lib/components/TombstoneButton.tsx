@@ -1,13 +1,11 @@
-import type { KeyPairDisplay } from "@onamea/types"
 import { type IdentityWithMessages, createDeleteOperation, getRootOperation } from "@onamea/crdt"
 import useExtensionState from "../hooks/useExtensionState.ts"
 
 type Props = {
   identity: IdentityWithMessages
-  keyPair: KeyPairDisplay
 }
 
-const TombstoneButton = ({ identity, keyPair }: Props) => {
+const TombstoneButton = ({ identity }: Props) => {
 
   const { signAndAppendOperation } = useExtensionState()
 
@@ -23,7 +21,7 @@ const TombstoneButton = ({ identity, keyPair }: Props) => {
           throw new Error("No root operation found for identity")
         }
         const tombstoneOperation = await createDeleteOperation(identity.id, rootOperation.hash)
-        await signAndAppendOperation(tombstoneOperation, keyPair)
+        await signAndAppendOperation(tombstoneOperation, identity.id)
       } catch (error) {
         console.error("Failed to tombstone identity:", error)
       }

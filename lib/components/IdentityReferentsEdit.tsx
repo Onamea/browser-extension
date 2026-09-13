@@ -1,13 +1,12 @@
-import type { KeyPairDisplay, NameKey } from "@onamea/types"
+import type { NameKey } from "@onamea/types"
 import { type IdentityWithMessages, createDenounceOperation } from "@onamea/crdt"
 import useExtensionState from "../hooks/useExtensionState.ts"
 
 type Props = {
   identity: IdentityWithMessages
-  keyPair: KeyPairDisplay
 }
 
-const IdentityReferentsEdit = ({ identity, keyPair }: Props) => {
+const IdentityReferentsEdit = ({ identity }: Props) => {
 
   const { signAndAppendOperation } = useExtensionState()
 
@@ -20,7 +19,7 @@ const IdentityReferentsEdit = ({ identity, keyPair }: Props) => {
         throw new Error("No VOUCH Operation found")
       }
       const denounceOperation = await createDenounceOperation(identity.id, vouchOperation.hash)
-      await signAndAppendOperation(denounceOperation, keyPair)
+      await signAndAppendOperation(denounceOperation, identity.id)
     } catch (error) {
       console.error("Failed to denounce referent:", error)
     }

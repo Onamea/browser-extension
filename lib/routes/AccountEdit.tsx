@@ -19,14 +19,9 @@ const AccountEdit = ({ state }: Props) => {
   const { showAccount } = useView()
   const [openSection, setOpenSection] = useState<Section | undefined>(undefined)
   const identity = state.local.identity
-  const keyPair = state.container.data?.identity.keyPair
 
   if (identity === undefined) {
     return <p>You do not have an identity, yet.</p>
-  }
-
-  if (keyPair === undefined) {
-    return <p>You do not have a key pair for Identity, yet.</p>
   }
 
   const toggleSection = (section: Section) => () => {
@@ -50,7 +45,7 @@ const AccountEdit = ({ state }: Props) => {
         </h3>
         { openSection === "body" && (
           <div id="account-edit-body">
-            <IdentityEdit identity={ identity } keyPair={ keyPair } />
+            <IdentityEdit identity={ identity } />
           </div>
         ) }
       </section>
@@ -67,7 +62,7 @@ const AccountEdit = ({ state }: Props) => {
         </h3>
         { openSection === "subKeys" && (
           <div id="account-edit-sub-keys">
-            <IdentitySubKeysEdit identity={ identity } keyPair={ keyPair } />
+            <IdentitySubKeysEdit identity={ identity } />
             <CreateKeyPairForm forSubKey />
           </div>
         ) }
@@ -85,8 +80,8 @@ const AccountEdit = ({ state }: Props) => {
         </h3>
         { openSection === "referents" && (
           <div id="account-edit-referents">
-            <IdentityReferentsEdit identity={ identity } keyPair={ keyPair } />
-            <IdentityReferentsAdd identity={ identity } keyPair={ keyPair } />
+            <IdentityReferentsEdit identity={ identity } />
+            <IdentityReferentsAdd identity={ identity } />
           </div>
         ) }
       </section>

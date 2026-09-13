@@ -8,10 +8,7 @@ type Entry = {
   keyPair: KeyPairDisplay
 }
 export type ContainerDataEntry = Entry
-export type ContainerData = {
-  identity: Entry
-  subKeys: Entry[]
-}
+export type ContainerData = ContainerDataEntry[]
 
 const parseEntry = (value: unknown): Entry => {
   if (isObject(value) === false) throw new Error("Value does not contain a valid JSON object")
@@ -23,14 +20,8 @@ const parseEntry = (value: unknown): Entry => {
 }
 
 const parseContainerData = (value: unknown): ContainerData => {
-  if (isObject(value) === false) throw new Error("Value does not contain a valid JSON object")
-  const { identity, subKeys } = value
-  if (isObject(identity) === false) throw new Error("Value does not contain a valid identity object")
-  if (Array.isArray(subKeys) === false) throw new Error("Value does not contain a valid subKeys array")
-  return {
-    identity: parseEntry(identity),
-    subKeys: subKeys.map(parseEntry)
-  }
+  if (Array.isArray(value) === false) throw new Error("Value does not contain a valid entries array")
+  return value.map(parseEntry)
 }
 
 export const encodeSessionData = (data: ContainerData): string => {
@@ -48,18 +39,18 @@ export const decodeSessionData = (data: string): ContainerData | undefined => {
   }
 }
 
-const buildEntryFromMiningResult = (result: unknown): Entry => {
+export const buildContainerDataEntryFromMiningResult = (result: unknown): ContainerDataEntry => {
   const { nameKey, ...keyPair } = parseMiningResult(result)
   return { nameKey, keyPair }
 }
 
-export const buildContainerDataEntryFromMiningResult = (result: unknown): ContainerDataEntry => {
-  return buildEntryFromMiningResult(result)
+export const appendContainerDataEntry = (data: ContainerData, entry: ContainerDataEntry): ContainerData => {
+  if (findEntryInContainerData(data, entry.nameKey) !== undefined) {
+    throw new Error(`Entry for (${ entry.nameKey }) already exists in ContainerData`)
+  }
+  return [...data, entry]
 }
 
 export const findEntryInContainerData = (data: ContainerData, nameKey: NameKey): ContainerDataEntry | undefined => {
-  if (data.identity.nameKey === nameKey) {
-    return data.identity
-  }
-  return data.subKeys.find(entry => entry.nameKey === nameKey)
+  return data.find(entry => entry.nameKey === nameKey)
 }

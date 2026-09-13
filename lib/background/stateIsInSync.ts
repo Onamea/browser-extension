@@ -1,5 +1,7 @@
 import type { ExtensionState } from "./state.ts"
+import { isCreateOperation } from "@onamea/crdt"
 import { getIdentityFromMessages } from "../storage/identityMessagesStorage.ts"
+import { findEntryInContainerData } from "../types/ContainerData.ts"
 
 export const stateIsInSync = async (state: ExtensionState): Promise<boolean> => {
   if (state.isInitialized === false) {
@@ -14,13 +16,15 @@ export const stateIsInSync = async (state: ExtensionState): Promise<boolean> => 
   if (state.container.data === undefined) {
     throw new Error("No Container Data")
   }
-  const { identity } = state.container.data
   const buildIdentity = await getIdentityFromMessages(state.local.messages)
   if (buildIdentity === undefined) return false
-  if (buildIdentity.id !== identity.nameKey) return false
+  const createOperation = buildIdentity.operations.find(isCreateOperation)
+  if (createOperation === undefined || createOperation.id !== buildIdentity.id) return false
+  const identityEntry = findEntryInContainerData(state.container.data, buildIdentity.id)
+  if (identityEntry === undefined) return false
   if (buildIdentity.subKeys !== undefined) {
     for (const subKey of buildIdentity.subKeys) {
-      const found = state.container.data?.subKeys.find(({ nameKey }) => nameKey === subKey.id)
+      const found = findEntryInContainerData(state.container.data, subKey.id)
       if (found === undefined) return false
     }
   }

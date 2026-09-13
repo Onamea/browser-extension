@@ -1,9 +1,9 @@
 import { type ReactNode, useEffect, useReducer, createContext } from "react"
-import type { KeyPair } from "@onamea/types"
+import type { NameKey } from "@onamea/types"
 import type { Message, Operation } from "@onamea/crdt"
 import { signOperation } from "@onamea/crdt"
 import type { ContainerData, ContainerDataEntry } from "@/lib/types/ContainerData.ts"
-import { encodeSessionData } from "@/lib/types/ContainerData.ts"
+import { appendContainerDataEntry, encodeSessionData, findEntryInContainerData } from "@/lib/types/ContainerData.ts"
 import {
   extensionReducer,
   initialState,
@@ -27,16 +27,16 @@ import {
 } from "@/lib/messaging/client/stateClient.ts"
 import { clearMessages, removeMessage } from "../storage/identityMessagesStorage.ts"
 import { isRootOperationMessage } from "../storage/isRootOperationMessage.ts"
+import useLatest from "./useLatest.ts"
 
 export type ExtensionStateContextValue = {
   state: ExtensionState
   createContainer: (password: string) => Promise<boolean>
   signIn: (password: string) => Promise<boolean>
-  writeIdentity: (identity: ContainerDataEntry) => Promise<ContainerData | undefined>
-  writeSubKey: (subKey: ContainerDataEntry) => Promise<ContainerData | undefined>
+  writeEntry: (entry: ContainerDataEntry) => Promise<boolean>
   clearData: () => Promise<boolean>
   deleteMessage: (message: Message) => Promise<boolean>
-  signAndAppendOperation: (operation: Operation, keyPair: KeyPair, shouldAppend?: boolean) => Promise<Message>
+  signAndAppendOperation: (operation: Operation, nameKey: NameKey, shouldAppend?: boolean) => Promise<Message>
   signOut: () => Promise<void>
 }
 
@@ -48,6 +48,7 @@ type Props = {
 
 const useExtensionStateStore = () => {
   const [state, dispatch] = useReducer(extensionReducer, initialState)
+  const containerData = useLatest(state.container.data)
 
   useEffect(() => {
     const syncState = (nextState: ExtensionState) => {
@@ -117,6 +118,7 @@ const useExtensionStateStore = () => {
       return undefined
     }
 
+    containerData.current = data
     setContainerStatusToDispatch(dispatch, true)
     setAccessKeyToDispatch(dispatch, accessKey)
     setSessionDataToDispatch(dispatch, raw)
@@ -129,23 +131,14 @@ const useExtensionStateStore = () => {
     return data
   }
 
-  const writeIdentity = async (identity: ContainerDataEntry): Promise<ContainerData | undefined> => {
-    return await writeContainerData({
-      identity,
-      subKeys: state.container.data?.subKeys ?? []
-    })
-  }
-
-  const writeSubKey = async (subKey: ContainerDataEntry): Promise<ContainerData | undefined> => {
-    const data = state.container.data
-    if (data === undefined) {
-      return undefined
+  const writeEntry = async (entry: ContainerDataEntry): Promise<boolean> => {
+    const latestData = containerData.current ?? []
+    try {
+      const nextData = appendContainerDataEntry(latestData, entry)
+      return await writeContainerData(nextData) !== undefined
+    } catch (_error) {
+      return false
     }
-
-    return await writeContainerData({
-      identity: data.identity,
-      subKeys: [...data.subKeys, subKey]
-    })
   }
 
   const clearData = async (): Promise<boolean> => {
@@ -187,8 +180,14 @@ const useExtensionStateStore = () => {
     }
   }
 
-  const signAndAppendOperation = async (operation: Operation, keyPair: KeyPair, shouldAppend = true): Promise<Message> => {
+  const signAndAppendOperation = async (operation: Operation, nameKey: NameKey, shouldAppend = true): Promise<Message> => {
     try {
+      const keyPair = containerData.current !== undefined
+        ? findEntryInContainerData(containerData.current, nameKey)?.keyPair
+        : undefined
+      if (keyPair === undefined) {
+        throw new Error(`Key pair for (${ nameKey }) not found in ContainerData`)
+      }
       const message = await signOperation(operation, keyPair, Date.now())
       if (shouldAppend) {
         const isSuccess = await appendMessageState(message)
@@ -213,8 +212,7 @@ const useExtensionStateStore = () => {
     state,
     createContainer,
     signIn,
-    writeIdentity,
-    writeSubKey,
+    writeEntry,
     clearData,
     deleteMessage,
     signAndAppendOperation,

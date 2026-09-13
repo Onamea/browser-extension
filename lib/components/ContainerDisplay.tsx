@@ -14,7 +14,7 @@ const ContainerDisplay = ({ container }: Props) => {
         ? <ContainerDataDisplay data={ data } />
         : <p>
             { raw === undefined || raw === ""
-              ? "You do not have an identity, yet. Please create or import one."
+              ? "You do not have a key pair for your identity, yet. Please create or import one."
               : `Container contains invalid data (${ raw })`
             }
           </p>

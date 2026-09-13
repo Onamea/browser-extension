@@ -1,15 +1,14 @@
 import { type SubmitEvent, useState } from "react"
-import { isNameKey, type KeyPairDisplay } from "@onamea/types"
+import { isNameKey } from "@onamea/types"
 import { type IdentityWithMessages, createVouchOperation, getRootOperation } from "@onamea/crdt"
 import useExtensionState from "../hooks/useExtensionState.ts"
 import ErrorDisplay from "./ErrorDisplay.tsx"
 
 type Props = {
   identity: IdentityWithMessages
-  keyPair: KeyPairDisplay
 }
 
-const IdentityReferentsAdd = ({ identity, keyPair }: Props) => {
+const IdentityReferentsAdd = ({ identity }: Props) => {
 
   const { signAndAppendOperation } = useExtensionState()
   const [referent, setReferent] = useState("")
@@ -30,7 +29,7 @@ const IdentityReferentsAdd = ({ identity, keyPair }: Props) => {
         throw new Error("CREATE operation not found for identity")
       }
       const vouchOperation = await createVouchOperation(identity.id, createOperation.hash, referent)
-      await signAndAppendOperation(vouchOperation, keyPair)
+      await signAndAppendOperation(vouchOperation, identity.id)
       setReferent("")
     } catch (error) {
       console.error("Failed to vouch for referent:", error)

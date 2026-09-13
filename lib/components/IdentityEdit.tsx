@@ -1,4 +1,3 @@
-import type { KeyPairDisplay } from "@onamea/types"
 import type { IdentityWithMessages } from "@onamea/crdt"
 import TombstoneButton from "./TombstoneButton.tsx"
 import SetOperationForm from "./SetOperationForm.tsx"
@@ -6,16 +5,15 @@ import BodyDisplay from "./BodyDisplay.tsx"
 
 type Props = {
   identity: IdentityWithMessages
-  keyPair: KeyPairDisplay
 }
 
-const IdentityEdit = ({ identity, keyPair }: Props) => {
+const IdentityEdit = ({ identity }: Props) => {
   return (
     <div>
       <p><strong>tombstone: </strong> { identity.tombstone ? "true" : "false" }</p>
-      { identity.tombstone === false && <TombstoneButton identity={ identity } keyPair={ keyPair } /> }
+      { identity.tombstone === false && <TombstoneButton identity={ identity } /> }
       <p><strong>body: </strong><BodyDisplay body={ identity.body } /></p>
-      <SetOperationForm identity={ identity } keyPair={ keyPair } />
+      <SetOperationForm identity={ identity } />
     </div>
   )
 } 

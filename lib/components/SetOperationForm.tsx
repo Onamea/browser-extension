@@ -1,14 +1,12 @@
 import { type ChangeEvent, type SubmitEvent, useState } from "react"
-import type { KeyPairDisplay } from "@onamea/types"
 import { type IdentityWithMessages, createSetOperation, getLatestHashFromOperations } from "@onamea/crdt"
 import useExtensionState from "../hooks/useExtensionState.ts"
 
 type Props = {
   identity: IdentityWithMessages
-  keyPair: KeyPairDisplay
 }
 
-const SetOperationForm = ({ identity, keyPair }: Props) => {
+const SetOperationForm = ({ identity }: Props) => {
 
   const { signAndAppendOperation } = useExtensionState()
   const [value, setValue] = useState(identity.body ?? "")
@@ -26,7 +24,7 @@ const SetOperationForm = ({ identity, keyPair }: Props) => {
     }
     try {
       const setOperation = await createSetOperation(identity.id, previousHash, value)
-      await signAndAppendOperation(setOperation, keyPair)
+      await signAndAppendOperation(setOperation, identity.id)
       setValue("")
     } catch (error) {
       console.error("Failed to append operation:", error)

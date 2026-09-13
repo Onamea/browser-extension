@@ -17,7 +17,7 @@ const useHandleMiningResult = ({
   subKeyDomain,
   resetValues,
 }: UseHandleMiningResultParams) => {
-  const { state, writeIdentity, writeSubKey, signAndAppendOperation } = useExtensionState()
+  const { state, writeEntry, signAndAppendOperation } = useExtensionState()
   const [errors, setErrors] = useState<string[]>([])
   const processedMiningResultRef = useRef<MiningResult>(undefined)
 
@@ -41,16 +41,11 @@ const useHandleMiningResult = ({
           if (state.local.identity === undefined) {
             throw new Error("No Identity in state")
           }
-          if (state.container.data === undefined) {
-            throw new Error("No Container Data in state")
-          }
-
           const subKey = buildContainerDataEntryFromMiningResult(miningResult)
-          const data = await writeSubKey(subKey)
-          if (data === undefined) {
+          const isWritten = await writeEntry(subKey)
+          if (isWritten === false) {
             throw new Error("Failed to write SubKey to container")
           }
-
           const id = state.local.identity.id
           const rootOperation = getRootOperation(id, state.local.identity.operations ?? [])
           if (rootOperation === undefined) {
@@ -62,25 +57,25 @@ const useHandleMiningResult = ({
             miningResult.nameKey,
             subKeyDomain !== "" ? subKeyDomain : undefined
           )
-          await signAndAppendOperation(grantOperation, data.identity.keyPair)
+          await signAndAppendOperation(grantOperation, id)
 
         } else {
           const identity = buildContainerDataEntryFromMiningResult(miningResult)
-          const data = await writeIdentity(identity)
-          if (data === undefined) {
+          const isWritten = await writeEntry(identity)
+          if (isWritten === false) {
             throw new Error("Failed to write Identity to container")
           }
 
-          const { nameKey, keyPair } = identity
+          const { nameKey } = identity
           const createOperation = await createCreateOperation(nameKey)
-          await signAndAppendOperation(createOperation, keyPair)
+          await signAndAppendOperation(createOperation, nameKey)
         }
         resetValues()
       } catch (error) {
         setErrors([String(error)])
       }
     })()
-  }, [miningResult, forSubKey, subKeyDomain, writeIdentity, writeSubKey, signAndAppendOperation, resetValues, state.local.identity, state.container.data])
+  }, [miningResult, forSubKey, subKeyDomain, writeEntry, signAndAppendOperation, resetValues, state.local.identity])
 
   return { errors }
 }
