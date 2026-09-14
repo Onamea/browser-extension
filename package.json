@@ -15,7 +15,8 @@
     "postinstall": "wxt prepare",
     "serve:browser-page": "npx serve browser-page --listen 3001",
     "lint": "deno lint --ignore=public/workers/worker.js",
-    "test": "vitest run"
+    "test": "vitest run",
+    "check": "pnpm lint && pnpm compile && pnpm test"
   },
   "dependencies": {
     "@onamea/crdt": "jsr:0.6.3",
