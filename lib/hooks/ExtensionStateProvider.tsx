@@ -1,7 +1,7 @@
 import { type ReactNode, useEffect, useReducer, createContext } from "react"
 import type { NameKey } from "@onamea/types"
-import type { Message, Operation } from "@onamea/crdt"
-import { signOperation } from "@onamea/crdt"
+import { createAndAttachOperation, signOperation } from "@onamea/crdt"
+import type { IdentityWithMessages, Message, Operation, OperationType } from "@onamea/crdt"
 import type { ContainerData, ContainerDataEntry } from "@/lib/types/ContainerData.ts"
 import { appendContainerDataEntry, encodeSessionData, findEntryInContainerData } from "@/lib/types/ContainerData.ts"
 import {
@@ -36,6 +36,7 @@ export type ExtensionStateContextValue = {
   writeEntry: (entry: ContainerDataEntry) => Promise<boolean>
   clearData: () => Promise<boolean>
   deleteMessage: (message: Message) => Promise<boolean>
+  createSignAndAppendOperation: (identity: IdentityWithMessages, operationType: OperationType, value?: string, value2?: string) => Promise<Message | undefined>
   signAndAppendOperation: (operation: Operation, nameKey: NameKey, shouldAppend?: boolean) => Promise<Message>
   signOut: () => Promise<void>
 }
@@ -44,6 +45,22 @@ export const ExtensionStateContext = createContext<ExtensionStateContextValue | 
 
 type Props = {
   children: ReactNode
+}
+
+export const createSignAndAppendOperation = async (
+  identity: IdentityWithMessages,
+  operationType: OperationType,
+  value: string | undefined,
+  value2: string | undefined,
+  signAndAppendOperation: (operation: Operation, nameKey: NameKey, shouldAppend?: boolean) => Promise<Message>
+): Promise<Message | undefined> => {
+  try {
+    const operation = await createAndAttachOperation(identity.operations, operationType, value, value2)
+    return await signAndAppendOperation(operation, identity.id)
+  } catch (error) {
+    console.error("Failed to create, sign, and append operation:", error)
+    return undefined
+  }
 }
 
 const useExtensionStateStore = () => {
@@ -215,6 +232,13 @@ const useExtensionStateStore = () => {
     writeEntry,
     clearData,
     deleteMessage,
+    createSignAndAppendOperation: (
+      identity: IdentityWithMessages,
+      operationType: OperationType,
+      value?: string,
+      value2?: string
+    ) =>
+      createSignAndAppendOperation(identity, operationType, value, value2, signAndAppendOperation),
     signAndAppendOperation,
     signOut
   }

@@ -1,6 +1,7 @@
 import type { NameKey } from "@onamea/types"
-import { type IdentityWithMessages, createDenounceOperation } from "@onamea/crdt"
+import type { IdentityWithMessages } from "@onamea/crdt"
 import useExtensionState from "../hooks/useExtensionState.ts"
+import ErrorDisplay from "./ErrorDisplay.tsx"
 
 type Props = {
   identity: IdentityWithMessages
@@ -8,21 +9,23 @@ type Props = {
 
 const IdentityReferentsEdit = ({ identity }: Props) => {
 
-  const { signAndAppendOperation } = useExtensionState()
+  const { createSignAndAppendOperation } = useExtensionState()
+  const [error, setError] = useState<string>()
 
   const handleClick = async (referent: NameKey) => {
-    try {
-      const vouchOperation = identity.operations.find(operation => {
-        return operation.type === "VOUCH" && operation.referent === referent
-      })
-      if (vouchOperation === undefined) {
-        throw new Error("No VOUCH Operation found")
-      }
-      const denounceOperation = await createDenounceOperation(identity.id, vouchOperation.hash)
-      await signAndAppendOperation(denounceOperation, identity.id)
-    } catch (error) {
-      console.error("Failed to denounce referent:", error)
+    const vouchOperation = identity.operations.find(operation => {
+      return operation.type === "VOUCH" && operation.referent === referent
+    })
+    if (vouchOperation === undefined) {
+      setError("No VOUCH Operation found")
+      return
     }
+    const message = await createSignAndAppendOperation(identity, "DENOUNCE", vouchOperation.hash)
+    if (message === undefined) {
+      setError(`Failed to create and sign DenounceOperation for ${ referent }`)
+      return
+    }
+    setError(undefined)
   }
 
   return (
@@ -30,6 +33,7 @@ const IdentityReferentsEdit = ({ identity }: Props) => {
       { identity.referents?.map(({ id, displayName }) => (
         <li key={ id }>
           { displayName ?? id }
+          { error !== undefined && <ErrorDisplay errors={ error } /> }
           <button type="button" onClick={ () => handleClick(id) }>Denounce</button>
         </li>
       )) }

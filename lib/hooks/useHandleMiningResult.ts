@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { createCreateOperation, createGrantOperation, getRootOperation } from "@onamea/crdt"
+import { createCreateOperation } from "@onamea/crdt"
 import type { MiningResult } from "@/lib/types/MiningResult.ts"
 import { buildContainerDataEntryFromMiningResult } from "@/lib/types/ContainerData.ts"
 import useExtensionState from "./useExtensionState.ts"
@@ -17,7 +17,7 @@ const useHandleMiningResult = ({
   subKeyDomain,
   resetValues,
 }: UseHandleMiningResultParams) => {
-  const { state, writeEntry, signAndAppendOperation } = useExtensionState()
+  const { state, writeEntry, createSignAndAppendOperation, signAndAppendOperation } = useExtensionState()
   const [errors, setErrors] = useState<string[]>([])
   const processedMiningResultRef = useRef<MiningResult>(undefined)
 
@@ -46,24 +46,23 @@ const useHandleMiningResult = ({
           if (isWritten === false) {
             throw new Error("Failed to write SubKey to container")
           }
-          const id = state.local.identity.id
-          const rootOperation = getRootOperation(id, state.local.identity.operations ?? [])
-          if (rootOperation === undefined) {
-            throw new Error("No root operation found for identity")
-          }
-          const grantOperation = await createGrantOperation(
-            id,
-            rootOperation?.hash,
+          const message = await createSignAndAppendOperation(
+            state.local.identity,
+            "GRANT",
             miningResult.nameKey,
             subKeyDomain !== "" ? subKeyDomain : undefined
           )
-          await signAndAppendOperation(grantOperation, id)
+          if (message === undefined) {
+            setErrors(["Failed to grant subKey"])
+            return
+          }
 
         } else {
           const identity = buildContainerDataEntryFromMiningResult(miningResult)
           const isWritten = await writeEntry(identity)
           if (isWritten === false) {
-            throw new Error("Failed to write Identity to container")
+            setErrors(["Failed to write Identity to container"])
+            return
           }
 
           const { nameKey } = identity
@@ -75,7 +74,7 @@ const useHandleMiningResult = ({
         setErrors([String(error)])
       }
     })()
-  }, [miningResult, forSubKey, subKeyDomain, writeEntry, signAndAppendOperation, resetValues, state.local.identity])
+  }, [miningResult, forSubKey, subKeyDomain, writeEntry, createSignAndAppendOperation, signAndAppendOperation, resetValues, state.local.identity])
 
   return { errors }
 }

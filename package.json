@@ -19,7 +19,7 @@
     "check": "pnpm lint && pnpm compile && pnpm test"
   },
   "dependencies": {
-    "@onamea/crdt": "jsr:0.6.3",
+    "@onamea/crdt": "jsr:0.6.4",
     "@onamea/types": "jsr:^0.5.3",
     "@onamea/workers": "jsr:^0.5.0",
     "react": "^19.2.8",

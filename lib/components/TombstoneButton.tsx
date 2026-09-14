@@ -1,5 +1,7 @@
-import { type IdentityWithMessages, createDeleteOperation, getRootOperation } from "@onamea/crdt"
+import { useState } from "react"
+import type { IdentityWithMessages } from "@onamea/crdt"
 import useExtensionState from "../hooks/useExtensionState.ts"
+import ErrorDisplay from "./ErrorDisplay.tsx"
 
 type Props = {
   identity: IdentityWithMessages
@@ -7,28 +9,30 @@ type Props = {
 
 const TombstoneButton = ({ identity }: Props) => {
 
-  const { signAndAppendOperation } = useExtensionState()
+  const { createSignAndAppendOperation } = useExtensionState()
+  const [error, setError] = useState<string>()
 
   const onClick = () => {
 
     const confirmed = globalThis.confirm(`Are you sure you want to tombstone Identity: ${ identity.id }?`)
     if (confirmed === false) return
-    
+
+    setError(undefined)
+
     void (async () => {
-      try {
-        const rootOperation = getRootOperation(identity.id, identity.operations ?? [])
-        if (rootOperation === undefined) {
-          throw new Error("No root operation found for identity")
-        }
-        const tombstoneOperation = await createDeleteOperation(identity.id, rootOperation.hash)
-        await signAndAppendOperation(tombstoneOperation, identity.id)
-      } catch (error) {
-        console.error("Failed to tombstone identity:", error)
+      const message = await createSignAndAppendOperation(identity, "DELETE")
+      if (message === undefined) {
+        setError("Failed to tombstone identity")
       }
     })()
   }
 
-  return <button type="button" onClick={ onClick }>Tombstone</button>
+  return (
+    <>
+      { error !== undefined && <ErrorDisplay errors={ error } /> }
+      <button type="button" onClick={ onClick }>Tombstone</button>
+    </>
+  )
 }
 
 export default TombstoneButton
