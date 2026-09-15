@@ -3,18 +3,18 @@ import ErrorDisplay from "./ErrorDisplay.tsx"
 import { isPassword } from "../container/main.ts"
 import useExtensionState from "@/lib/hooks/useExtensionState.ts"
 
-const CreatePassphraseForm = () => {
-  const [passphrase, setPassphrase] = useState("")
-  const [passphraseConfirm, setPassphraseConfirm] = useState("")
+const CreatePasswordForm = () => {
+  const [password, setPassword] = useState("")
+  const [passwordConfirm, setPasswordConfirm] = useState("")
   const [errors, setErrors] = useState<string[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { createContainer } = useExtensionState()
 
   const handleSubmit = async (event: SubmitEvent) => {
     event.preventDefault()
-    const validationErrors = isPassword(passphrase) ? [] : ["Invalid passphrase"]
-    if (passphrase !== passphraseConfirm) {
-      validationErrors.push("Passphrases do not match")
+    const validationErrors = isPassword(password) ? [] : ["Invalid password"]
+    if (password !== passwordConfirm) {
+      validationErrors.push("Passwords do not match")
     }
     if (validationErrors.length > 0) {
       setErrors(validationErrors)
@@ -23,7 +23,7 @@ const CreatePassphraseForm = () => {
     setErrors([])
     setIsSubmitting(true)
     try {
-      const isSuccess = await createContainer(passphrase)
+      const isSuccess = await createContainer(password)
       if (isSuccess === false) {
         setErrors(["Failed to create container"])
       }
@@ -37,21 +37,21 @@ const CreatePassphraseForm = () => {
   return (
     <form onSubmit={ handleSubmit }>
       <div>
-        <label htmlFor="passphrase">Password:</label>
+        <label htmlFor="password">Password:</label>
         <input
-          id="passphrase"
+          id="password"
           type="password"
-          value={ passphrase }
-          onChange={ event => setPassphrase(event.target.value) }
+          value={ password }
+          onChange={ event => setPassword(event.target.value) }
         />
       </div>
       <div>
-        <label htmlFor="passphraseConfirm">Confirm password:</label>
+        <label htmlFor="passwordConfirm">Confirm password:</label>
         <input
-          id="passphraseConfirm"
+          id="passwordConfirm"
           type="password"
-          value={ passphraseConfirm }
-          onChange={ event => setPassphraseConfirm(event.target.value) }
+          value={ passwordConfirm }
+          onChange={ event => setPasswordConfirm(event.target.value) }
         />
       </div>
       <ErrorDisplay errors={ errors } />
@@ -60,4 +60,4 @@ const CreatePassphraseForm = () => {
   )
 }
 
-export default CreatePassphraseForm
+export default CreatePasswordForm

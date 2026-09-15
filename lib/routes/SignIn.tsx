@@ -1,10 +1,10 @@
-import PassphraseEntryForm from "@/lib/components/PassphraseEntryForm.tsx"
+import PasswordEntryForm from "@/lib/components/PasswordEntryForm.tsx"
 
 const SignIn = () => {
   return (
     <div>
       <h1>Sign in</h1>
-      <PassphraseEntryForm />
+      <PasswordEntryForm />
     </div>
   )
 }

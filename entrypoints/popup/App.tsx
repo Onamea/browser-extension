@@ -1,5 +1,5 @@
 import { ExtensionStateProvider } from "@/lib/hooks/ExtensionStateProvider.tsx"
-import PassphraseEntryForm from "@/lib/components/PassphraseEntryForm.tsx"
+import PasswordEntryForm from "@/lib/components/PasswordEntryForm.tsx"
 import ContainerDisplay from "@/lib/components/ContainerDisplay.tsx"
 import SignConfirmation from "@/lib/components/SignConfirmation.tsx"
 import SignRequestResultsDisplay from "@/lib/components/SignRequestResultsDisplay.tsx"
@@ -42,7 +42,7 @@ const AppContent = () => {
       </>
     )
   } else if (hasContainer && isUnlocked === false) {
-    return <PassphraseEntryForm />
+    return <PasswordEntryForm />
   } else if (isUnlocked) {
     return (
       <>

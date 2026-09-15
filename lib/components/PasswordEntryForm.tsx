@@ -3,8 +3,8 @@ import ErrorDisplay from "./ErrorDisplay.tsx"
 import { isPassword } from "@/lib/container/main.ts"
 import useExtensionState from "@/lib/hooks/useExtensionState.ts"
 
-const PassphraseEntryForm = () => {
-  const [passphrase, setPassphrase] = useState("")
+const PasswordEntryForm = () => {
+  const [password, setPassword] = useState("")
   const [errors, setErrors] = useState<string[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { signIn } = useExtensionState()
@@ -12,9 +12,9 @@ const PassphraseEntryForm = () => {
   const handleSubmit = async (event: SubmitEvent) => {
     event.preventDefault()
     const errors = []
-    if (passphrase.length === 0) {
+    if (password.length === 0) {
       errors.push("Password required")
-    } else if (isPassword(passphrase) === false) {
+    } else if (isPassword(password) === false) {
       errors.push("Invalid password")
     }
     if (errors.length > 0) {
@@ -23,7 +23,7 @@ const PassphraseEntryForm = () => {
     }
     setErrors([])
     setIsSubmitting(true)
-    const isSuccess = await signIn(passphrase)
+    const isSuccess = await signIn(password)
     setIsSubmitting(false)
     if (isSuccess === false) {
       setErrors(["Incorrect password"])
@@ -34,12 +34,12 @@ const PassphraseEntryForm = () => {
     <section>
       <form onSubmit={ handleSubmit }>
         <div>
-          <label htmlFor="passphrase">Password:</label>
+          <label htmlFor="password">Password:</label>
           <input
-            id="passphrase"
+            id="password"
             type="password"
-            value={ passphrase }
-            onChange={ event => setPassphrase(event.target.value) }
+            value={ password }
+            onChange={ event => setPassword(event.target.value) }
           />
         </div>
         <button type="submit" disabled={ isSubmitting }>{ isSubmitting ? "..." : "Submit" }</button>
@@ -49,4 +49,4 @@ const PassphraseEntryForm = () => {
   )
 }
 
-export default PassphraseEntryForm
+export default PasswordEntryForm
