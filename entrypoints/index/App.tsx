@@ -9,8 +9,6 @@ import AccountEdit from "@/lib/routes/AccountEdit.tsx"
 import AccountCreate from "@/lib/routes/AccountCreate.tsx"
 import OutOfSyncErrorDisplay from "@/lib/components/OutOfSyncErrorDisplay.tsx"
 
-import "./App.css"
-
 const AppRoutes = () => {
   const { state } = useExtensionState()
   const { view } = useView()

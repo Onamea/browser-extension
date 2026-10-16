@@ -14,3 +14,15 @@ export const parsePassword = (value: string): Password => {
   }
   return password
 }
+
+export const passwordStrength = (password: string): [number, string | undefined] => {
+  const trimmedPassword = password.trim()
+  if (isPassword(password) === false) {
+    const value = 6 * trimmedPassword.length / PASSWORD_MIN_LENGTH
+    return [value, undefined]
+  }
+  const value = 6 + ((trimmedPassword.length - PASSWORD_MIN_LENGTH) / PASSWORD_MIN_LENGTH)
+  const strength = value > 10 ? 10 : value
+  const display = (strength >= 10 ? 9.9 : strength).toFixed(1)
+  return [strength, display]
+}

@@ -1,14 +1,33 @@
 import { type SubmitEvent, useState } from "react"
 import ErrorDisplay from "./ErrorDisplay.tsx"
-import { isPassword } from "../container/main.ts"
+import { isPassword, passwordStrength as getPasswordStrength } from "../container/main.ts"
 import useExtensionState from "@/lib/hooks/useExtensionState.ts"
+import PasswordStrength from "./PasswordStrength.tsx"
+
+import "./CreatePasswordForm.css"
 
 const CreatePasswordForm = () => {
   const [password, setPassword] = useState("")
+  const [passwordStrength, setPasswordStrength] = useState<[number, string | undefined]>([0, undefined])
+  const showPasswordConfirm = passwordStrength[0] >= 6
   const [passwordConfirm, setPasswordConfirm] = useState("")
+  useEffect(() => { 
+    setPasswordConfirm("")
+  }, [showPasswordConfirm])
   const [errors, setErrors] = useState<string[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { createContainer } = useExtensionState()
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newPassword = event.target.value
+    console.log(newPassword.length)
+    setPassword(newPassword)
+    if (newPassword === "") {
+      setPasswordStrength([0, undefined])
+    } else {
+      setPasswordStrength(getPasswordStrength(newPassword))
+    }
+  }
 
   const handleSubmit = async (event: SubmitEvent) => {
     event.preventDefault()
@@ -35,25 +54,29 @@ const CreatePasswordForm = () => {
   }
 
   return (
-    <form onSubmit={ handleSubmit }>
+    <form onSubmit={ handleSubmit } className="create-password-form">
       <div>
         <label htmlFor="password">Password:</label>
         <input
           id="password"
           type="password"
           value={ password }
-          onChange={ event => setPassword(event.target.value) }
+          onChange={ handleChange }
+          style={{ marginBottom: 0 }}
         />
+        { <PasswordStrength strength={ passwordStrength } /> }
       </div>
-      <div>
-        <label htmlFor="passwordConfirm">Confirm password:</label>
-        <input
-          id="passwordConfirm"
-          type="password"
-          value={ passwordConfirm }
-          onChange={ event => setPasswordConfirm(event.target.value) }
-        />
-      </div>
+      { showPasswordConfirm && (
+        <div>
+          <label htmlFor="passwordConfirm">Confirm password:</label>
+          <input
+            id="passwordConfirm"
+            type="password"
+            value={ passwordConfirm }
+            onChange={ event => setPasswordConfirm(event.target.value) }
+          />
+        </div>
+      ) }
       <ErrorDisplay errors={ errors } />
       <button type="submit" disabled={ isSubmitting }>{ isSubmitting ? "..." : "Save" }</button>
     </form>

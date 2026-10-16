@@ -100,7 +100,8 @@ textarea {
 }
 
 progress {
-  width: 300px;
+  pointer-events: none;
+  width: 100%;
 }
 
 p.error {

@@ -6,7 +6,7 @@ import { createWriteQueue } from "./utils/writeQueue.ts"
 import { compareUint8Arrays } from "./utils/compareUint8Arrays.ts"
 import { encode, decode } from "./utils/codec.ts"
 
-export { isPassword } from "./Password.ts"
+export { isPassword, passwordStrength } from "./Password.ts"
 export type { ActiveSession, Session, InvalidatedSession } from "./Session.ts"
 export type { AccessKey } from "./AccessKey.ts"
 
