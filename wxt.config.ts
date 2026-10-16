@@ -5,6 +5,7 @@ export default defineConfig({
   modules: ["@wxt-dev/module-react"],
   manifest: {
     name: "Onamea",
+    description: "Identification & Key Storage for Onamea",
     permissions: ["storage", "offscreen"],
     content_scripts: [
       {
