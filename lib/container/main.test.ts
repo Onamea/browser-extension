@@ -524,10 +524,8 @@ describe("main.deinitialize", () => {
     vi.stubGlobal("chrome", {
       storage: {
         local: (() => {
-          let getCalls = 0
           return {
             get: (key: string) => {
-              getCalls++
               return Promise.resolve({ [key]: freshContainer })
             },
             set: () => Promise.resolve()

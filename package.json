@@ -1,6 +1,5 @@
 {
-  "name": "wxt-react-starter",
-  "description": "manifest.json description",
+  "name": "@onamea/browser-extension",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -14,7 +13,7 @@
     "compile": "tsc --noEmit",
     "postinstall": "wxt prepare",
     "serve:browser-page": "npx serve browser-page --listen 3001",
-    "lint": "deno lint --ignore=public/workers/worker.js",
+    "lint": "eslint .",
     "test": "vitest run",
     "check": "pnpm lint && pnpm compile && pnpm test"
   },
@@ -27,10 +26,14 @@
     "react-router-dom": "^7.18.2"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@wxt-dev/module-react": "^1.1.5",
-    "typescript": "^7.0.2",
+    "eslint": "^10.12.0",
+    "globals": "^17.13.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.71.2",
     "vitest": "^5.0.4",
     "web-ext": "^10.5.0",
     "wxt": "^0.21.3"
