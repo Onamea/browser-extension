@@ -1,0 +1,1 @@
+Onamea does not collect or share personal data. Data used by the extension is stored locally in your browser and is not sent to Onamea.
